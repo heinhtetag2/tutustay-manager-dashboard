@@ -76,7 +76,7 @@ export default function PaymentMethodsSection() {
             <h3 className="text-lg font-medium text-[#1A1A1A] mb-4">
               {t('Linked account')}
             </h3>
-            <div className="bg-white border border-[#EBEBEB] rounded-md p-6">
+            <div className="bg-white border border-[#EBEBEB] rounded-md p-4 sm:p-6">
               <LinkedAccount
                 method={method}
                 onEdit={() => setEdit({ kind: 'editing' })}
@@ -92,7 +92,7 @@ export default function PaymentMethodsSection() {
             </h3>
             <div className="bg-white border border-[#EBEBEB] rounded-md divide-y divide-[#F3F3F3]">
               {GATEWAYS.map((g) => (
-                <div key={g.gateway} className="flex items-center gap-3 px-5 py-4">
+                <div key={g.gateway} className="flex items-center gap-3 px-4 sm:px-5 py-4">
                   <GatewayGlyph gateway={g.gateway} size="sm" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-[#1A1A1A]">
@@ -252,33 +252,35 @@ function LinkedAccount({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-4 flex-wrap">
-      <GatewayGlyph gateway={method.gateway} size="lg" />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-[#1A1A1A]">
-            {formatPaymentLabel(method)}
-          </span>
-          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md text-[#047857] bg-[#ECFDF5]">
-            {t('Active')}
-          </span>
-        </div>
-        <div className="text-xs text-[#616161] mt-0.5">
-          {method.accountName} · {t('Linked')}{' '}
-          {format(new Date(method.linkedAt), 'MMM d, yyyy')}
+    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+      <div className="flex items-center gap-4 min-w-0">
+        <GatewayGlyph gateway={method.gateway} size="lg" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-[#1A1A1A] break-all">
+              {formatPaymentLabel(method)}
+            </span>
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md text-[#047857] bg-[#ECFDF5] whitespace-nowrap">
+              {t('Active')}
+            </span>
+          </div>
+          <div className="text-xs text-[#616161] mt-0.5">
+            {method.accountName} · {t('Linked')}{' '}
+            {format(new Date(method.linkedAt), 'MMM d, yyyy')}
+          </div>
         </div>
       </div>
-      <div className="flex gap-2 shrink-0">
+      <div className="flex gap-2 sm:shrink-0">
         <button
           onClick={onEdit}
-          className="px-3 py-2 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+          className="flex-1 sm:flex-none px-3 py-2 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <Pencil className="w-3.5 h-3.5 text-[#616161]" />
           {t('Change')}
         </button>
         <button
           onClick={onRemove}
-          className="px-3 py-2 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#DC2626] hover:bg-[#FEF2F2] hover:border-[#F5DBDB] transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+          className="flex-1 sm:flex-none px-3 py-2 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#DC2626] hover:bg-[#FEF2F2] hover:border-[#F5DBDB] transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <Trash2 className="w-3.5 h-3.5" />
           {t('Remove')}
