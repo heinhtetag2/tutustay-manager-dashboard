@@ -1,9 +1,9 @@
 export type HelpIconKey =
   | 'rocket'
+  | 'feed'
   | 'clipboard'
-  | 'message'
-  | 'credit'
-  | 'settings'
+  | 'wallet'
+  | 'trophy'
   | 'shield';
 
 export interface HelpCategoryMeta {
@@ -17,37 +17,37 @@ export const HELP_CATEGORIES: HelpCategoryMeta[] = [
   {
     slug: 'getting-started',
     title: 'Getting Started',
-    description: 'First survey, workspace setup, and basics.',
+    description: 'How iDap works, your dashboard, and earning your first reward.',
     iconKey: 'rocket',
   },
   {
-    slug: 'creating-surveys',
-    title: 'Creating Surveys',
-    description: 'Question types, logic, targeting, and rewards.',
+    slug: 'survey-feed',
+    title: 'Survey Feed & Matching',
+    description: 'How surveys are matched to you, filters, categories, and trust gating.',
+    iconKey: 'feed',
+  },
+  {
+    slug: 'taking-surveys',
+    title: 'Taking Surveys',
+    description: 'Screener questions, saving progress, disqualifications, and quality tips.',
     iconKey: 'clipboard',
   },
   {
-    slug: 'responses-quality',
-    title: 'Responses & Quality',
-    description: 'Review responses, quality scores, and export.',
-    iconKey: 'message',
+    slug: 'rewards-wallet',
+    title: 'Rewards & Wallet',
+    description: 'The 24-hour hold, bonuses, balance, and paying out via QPay, Bonum, or Social Pay.',
+    iconKey: 'wallet',
   },
   {
-    slug: 'billing-credits',
-    title: 'Billing & Credits',
-    description: 'Plans, top-ups, invoices, and payment methods.',
-    iconKey: 'credit',
+    slug: 'trust-quality',
+    title: 'Trust Level & Quality',
+    description: 'Levels L1–L5, how your quality score moves, and unlocking higher-paying surveys.',
+    iconKey: 'trophy',
   },
   {
-    slug: 'account-team',
-    title: 'Account & Team',
-    description: 'Profile, members, permissions, and notifications.',
-    iconKey: 'settings',
-  },
-  {
-    slug: 'privacy-trust',
-    title: 'Privacy & Trust',
-    description: 'Anonymous surveys, data retention, and compliance.',
+    slug: 'account-privacy',
+    title: 'Account, Privacy & Settings',
+    description: 'Your demographics, notifications, privacy, sessions, and deleting your account.',
     iconKey: 'shield',
   },
 ];
@@ -57,40 +57,46 @@ export interface HelpArticleMeta {
   categorySlug: string;
   title: string;
   description: string;
-  readTime: string; // e.g. "4 min"
-  updatedAt: string; // display string
+  readTime: string;
+  updatedAt: string;
 }
 
 export const HELP_ARTICLES: HelpArticleMeta[] = [
   // Getting Started
-  { slug: 'create-first-survey', categorySlug: 'getting-started', title: 'How to create your first survey', description: 'A 10-minute walkthrough from draft to launch.', readTime: '4 min', updatedAt: 'Apr 12, 2026' },
-  { slug: 'workspace-setup', categorySlug: 'getting-started', title: 'Setting up your workspace', description: 'Invite teammates, pick a plan, connect a payment method.', readTime: '3 min', updatedAt: 'Mar 28, 2026' },
-  { slug: 'dashboard-tour', categorySlug: 'getting-started', title: 'A tour of the Dashboard', description: 'Understand every card, chart, and what they mean.', readTime: '5 min', updatedAt: 'Apr 02, 2026' },
-  { slug: 'terminology', categorySlug: 'getting-started', title: 'iDap terminology and concepts', description: 'Credits, responses, quality scores, and trust levels.', readTime: '3 min', updatedAt: 'Mar 22, 2026' },
+  { slug: 'how-idap-works', categorySlug: 'getting-started', title: 'How iDap works', description: 'The three-step flow: match, answer, get paid.', readTime: '3 min', updatedAt: 'Apr 18, 2026' },
+  { slug: 'dashboard-tour', categorySlug: 'getting-started', title: 'Reading your dashboard', description: 'Earnings, trust level, streak, and recent activity at a glance.', readTime: '4 min', updatedAt: 'Apr 15, 2026' },
+  { slug: 'first-survey', categorySlug: 'getting-started', title: 'Completing your first survey', description: 'Tips to qualify, avoid disqualification, and get paid quickly.', readTime: '4 min', updatedAt: 'Apr 10, 2026' },
+  { slug: 'daily-routine', categorySlug: 'getting-started', title: 'A good daily routine on iDap', description: 'When to check the feed, how to protect your trust level, and cashing out.', readTime: '3 min', updatedAt: 'Apr 08, 2026' },
 
-  // Creating Surveys
-  { slug: 'reward-and-targeting', categorySlug: 'creating-surveys', title: 'Setting reward amounts and targeting respondents', description: 'Choose rewards that attract quality answers from the right audience.', readTime: '6 min', updatedAt: 'Apr 15, 2026' },
-  { slug: 'question-types', categorySlug: 'creating-surveys', title: 'All available question types', description: 'Single choice, multi-choice, matrix, free text, and more.', readTime: '7 min', updatedAt: 'Apr 10, 2026' },
-  { slug: 'survey-logic', categorySlug: 'creating-surveys', title: 'Branching, skip logic, and quotas', description: 'Build surveys that adapt to each respondent.', readTime: '5 min', updatedAt: 'Apr 08, 2026' },
-  { slug: 'categories-and-tags', categorySlug: 'creating-surveys', title: 'Using categories and tags', description: 'Organize your surveys for faster filtering.', readTime: '2 min', updatedAt: 'Apr 05, 2026' },
+  // Survey Feed & Matching
+  { slug: 'how-matching-works', categorySlug: 'survey-feed', title: 'How surveys are matched to you', description: 'Demographics, categories, and what your match % means.', readTime: '4 min', updatedAt: 'Apr 20, 2026' },
+  { slug: 'feed-filters', categorySlug: 'survey-feed', title: 'Filtering the Survey Feed', description: 'Category, recommended, reward, and duration filters.', readTime: '3 min', updatedAt: 'Apr 16, 2026' },
+  { slug: 'trust-gating', categorySlug: 'survey-feed', title: 'Why some surveys are locked', description: 'Level-gated surveys and how to unlock them.', readTime: '3 min', updatedAt: 'Apr 12, 2026' },
+  { slug: 'spots-left', categorySlug: 'survey-feed', title: 'Spots left and first-come-first-served', description: 'How survey capacity works and why speed matters.', readTime: '3 min', updatedAt: 'Apr 05, 2026' },
 
-  // Responses & Quality
-  { slug: 'quality-scores', categorySlug: 'responses-quality', title: 'Understanding response quality scores', description: 'How iDap scores responses and what to do with low scores.', readTime: '5 min', updatedAt: 'Apr 16, 2026' },
-  { slug: 'export-csv', categorySlug: 'responses-quality', title: 'Exporting survey responses as CSV', description: 'Download raw or quality-filtered responses for analysis.', readTime: '2 min', updatedAt: 'Apr 11, 2026' },
-  { slug: 'completion-rate', categorySlug: 'responses-quality', title: 'Improving your completion rate', description: 'Common reasons respondents drop off — and fixes.', readTime: '4 min', updatedAt: 'Apr 03, 2026' },
+  // Taking Surveys
+  { slug: 'screener-questions', categorySlug: 'taking-surveys', title: 'Screener questions explained', description: 'Why they exist and what disqualification means.', readTime: '3 min', updatedAt: 'Apr 19, 2026' },
+  { slug: 'saving-progress', categorySlug: 'taking-surveys', title: 'Saving progress and coming back later', description: 'When it works, when it does not, and how long you have.', readTime: '3 min', updatedAt: 'Apr 14, 2026' },
+  { slug: 'quality-tips', categorySlug: 'taking-surveys', title: 'Tips for high-quality responses', description: 'Read fully, avoid straight-lining, and pass attention checks.', readTime: '4 min', updatedAt: 'Apr 11, 2026' },
+  { slug: 'disqualification-reasons', categorySlug: 'taking-surveys', title: 'Why you were disqualified', description: 'Common reasons and what they mean for your rewards.', readTime: '3 min', updatedAt: 'Apr 07, 2026' },
 
-  // Billing & Credits
-  { slug: 'top-up-credits', categorySlug: 'billing-credits', title: 'Topping up credits and bonus packages', description: 'How packages work and when bonus credits apply.', readTime: '3 min', updatedAt: 'Apr 14, 2026' },
-  { slug: 'invoices', categorySlug: 'billing-credits', title: 'Where to find your invoices', description: 'Download PDFs and view billing history.', readTime: '2 min', updatedAt: 'Apr 09, 2026' },
-  { slug: 'plans-overview', categorySlug: 'billing-credits', title: 'Comparing plans (Starter, Growth, Enterprise)', description: 'Which plan fits your team and budget.', readTime: '4 min', updatedAt: 'Apr 01, 2026' },
+  // Rewards & Wallet
+  { slug: '24h-hold', categorySlug: 'rewards-wallet', title: 'The 24-hour hold explained', description: 'Why rewards sit in held balance before paying out.', readTime: '3 min', updatedAt: 'Apr 21, 2026' },
+  { slug: 'reward-statuses', categorySlug: 'rewards-wallet', title: 'Reward statuses: held, paid, rejected', description: 'What each status means and when it changes.', readTime: '3 min', updatedAt: 'Apr 17, 2026' },
+  { slug: 'withdrawal-methods', categorySlug: 'rewards-wallet', title: 'Withdrawal methods: QPay, Bonum, Social Pay, Bank Transfer', description: 'Processing times, minimums, and fees for each gateway.', readTime: '4 min', updatedAt: 'Apr 13, 2026' },
+  { slug: 'payout-missing', categorySlug: 'rewards-wallet', title: 'What to do if a payout has not arrived', description: 'Checking status, retry windows, and when to contact support.', readTime: '3 min', updatedAt: 'Apr 09, 2026' },
 
-  // Account & Team
-  { slug: 'invite-members', categorySlug: 'account-team', title: 'Inviting teammates and setting permissions', description: 'Owner, admin, and viewer roles explained.', readTime: '3 min', updatedAt: 'Apr 13, 2026' },
-  { slug: 'notifications-prefs', categorySlug: 'account-team', title: 'Notification preferences', description: 'Choose what triggers email, in-app, and digest alerts.', readTime: '2 min', updatedAt: 'Apr 07, 2026' },
+  // Trust Level & Quality
+  { slug: 'trust-levels-explained', categorySlug: 'trust-quality', title: 'Trust Levels L1–L5 explained', description: 'How iDap computes trust and what each level unlocks.', readTime: '5 min', updatedAt: 'Apr 20, 2026' },
+  { slug: 'quality-score', categorySlug: 'trust-quality', title: 'Your quality score', description: 'How it is measured and how to protect it.', readTime: '4 min', updatedAt: 'Apr 16, 2026' },
+  { slug: 'streaks-bonuses', categorySlug: 'trust-quality', title: 'Streaks and bonuses', description: 'How daily streaks earn extra rewards on top of surveys.', readTime: '3 min', updatedAt: 'Apr 12, 2026' },
+  { slug: 'regaining-trust', categorySlug: 'trust-quality', title: 'Regaining a lowered trust level', description: 'What triggers a drop and how to recover to your previous level.', readTime: '4 min', updatedAt: 'Apr 06, 2026' },
 
-  // Privacy & Trust
-  { slug: 'anonymous-surveys', categorySlug: 'privacy-trust', title: 'Running anonymous surveys', description: 'When to use anonymity and how iDap enforces it.', readTime: '4 min', updatedAt: 'Apr 06, 2026' },
-  { slug: 'data-retention', categorySlug: 'privacy-trust', title: 'Data retention and deletion', description: 'How long response data lives, and how to purge it.', readTime: '3 min', updatedAt: 'Mar 30, 2026' },
+  // Account, Privacy & Settings
+  { slug: 'demographics', categorySlug: 'account-privacy', title: 'Why your demographics matter', description: 'They decide which surveys match you — keep them accurate.', readTime: '3 min', updatedAt: 'Apr 18, 2026' },
+  { slug: 'notifications', categorySlug: 'account-privacy', title: 'Customizing notifications', description: 'Push, email, in-app, and setting quiet hours.', readTime: '2 min', updatedAt: 'Apr 14, 2026' },
+  { slug: 'privacy-data', categorySlug: 'account-privacy', title: 'Privacy and your data', description: 'What is shared with companies and how to export or delete it.', readTime: '4 min', updatedAt: 'Apr 10, 2026' },
+  { slug: 'referrals', categorySlug: 'account-privacy', title: 'Inviting friends and earning bonuses', description: 'How the referral program works — ₮5,000 each per qualified friend.', readTime: '2 min', updatedAt: 'Apr 04, 2026' },
 ];
 
 export function getCategoryBySlug(slug: string | undefined): HelpCategoryMeta | undefined {
@@ -109,9 +115,9 @@ export function getArticlesInCategory(slug: string | undefined): HelpArticleMeta
 }
 
 export const POPULAR_ARTICLE_SLUGS = [
-  'create-first-survey',
-  'reward-and-targeting',
-  'quality-scores',
-  'top-up-credits',
-  'export-csv',
+  'how-matching-works',
+  '24h-hold',
+  'trust-levels-explained',
+  'withdrawal-methods',
+  'quality-score',
 ];

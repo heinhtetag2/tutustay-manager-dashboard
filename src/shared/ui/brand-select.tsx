@@ -34,24 +34,24 @@ export function BrandSelect({
       <SelectPrimitive.Trigger
         aria-label={ariaLabel}
         className={cn(
-          'relative flex items-center justify-between gap-2 w-full py-2 bg-white border border-[#E4E4E7] rounded-md text-sm font-normal text-[#0A0A0A]',
+          'relative flex items-center justify-between gap-2 w-full py-2 bg-white border border-[#EBEBEB] rounded-md text-sm font-normal text-[#1A1A1A]',
           'hover:bg-white transition-colors',
           'focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21]',
           'data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed',
-          'data-[placeholder]:text-[#71717A]',
+          'data-[placeholder]:text-[#616161]',
           'cursor-pointer text-left',
           leftIcon ? 'pl-9 pr-3' : 'px-3',
           className,
         )}
       >
         {leftIcon && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A] pointer-events-none [&>svg]:w-4 [&>svg]:h-4">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161] pointer-events-none [&>svg]:w-4 [&>svg]:h-4">
             {leftIcon}
           </span>
         )}
         <SelectPrimitive.Value placeholder={placeholder} />
         <SelectPrimitive.Icon asChild>
-          <ChevronDown className="w-4 h-4 text-[#71717A] shrink-0" />
+          <ChevronDown className="w-4 h-4 text-[#616161] shrink-0" />
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
 
@@ -60,7 +60,7 @@ export function BrandSelect({
           position="popper"
           sideOffset={4}
           className={cn(
-            'z-50 overflow-hidden rounded-md border border-[#E4E4E7] bg-white',
+            'z-50 overflow-hidden rounded-md border border-[#EBEBEB] bg-white',
             'min-w-[var(--radix-select-trigger-width)]',
             'shadow-[0_4px_16px_rgba(44,38,39,0.08)]',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
@@ -74,7 +74,7 @@ export function BrandSelect({
                 key={opt.value}
                 value={opt.value}
                 className={cn(
-                  'relative flex items-center gap-2 px-3 py-2 pr-8 text-sm text-[#0A0A0A] rounded-md',
+                  'relative flex items-center gap-2 px-3 py-2 pr-8 text-sm text-[#1A1A1A] rounded-md',
                   'cursor-pointer select-none outline-none',
                   'data-[highlighted]:bg-[#FFF1EE] data-[highlighted]:text-[#FF3C21]',
                   'data-[state=checked]:bg-[#FFF1EE] data-[state=checked]:text-[#FF3C21] data-[state=checked]:font-medium',

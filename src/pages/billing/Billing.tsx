@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
+import { Portal } from '@/shared/ui/portal';
 import {
   CreditCard,
   Sparkles,
@@ -118,8 +119,8 @@ export default function Billing() {
     >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-serif text-[#0A0A0A]">{t('Billing & Credits')}</h1>
-        <p className="text-sm text-[#71717A] mt-1">
+        <h1 className="text-3xl font-serif text-[#1A1A1A]">{t('Billing & Credits')}</h1>
+        <p className="text-sm text-[#616161] mt-1">
           {t('Manage your credits and view transaction history.')}
         </p>
       </div>
@@ -129,7 +130,7 @@ export default function Billing() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05 }}
-        className="relative overflow-hidden bg-[#0A0A0A] rounded-md p-8 mb-8"
+        className="relative overflow-hidden bg-[#1A1A1A] rounded-md p-8 mb-8"
       >
         {/* Soft brand glow */}
         <div className="pointer-events-none absolute -right-32 -top-32 w-[420px] h-[420px] rounded-full bg-[#FF3C21]/25 blur-3xl" />
@@ -138,8 +139,8 @@ export default function Billing() {
         <div className="relative flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-white/60 mb-2">{t('Available Credits')}</p>
-            <h2 className="text-5xl font-semibold text-white mb-4 tabular-nums tracking-tight">₮450,000</h2>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/15 rounded-full text-[11px] font-medium text-white uppercase tracking-wider backdrop-blur-sm">
+            <h2 className="text-5xl font-medium text-white mb-4 tabular-nums tracking-tight">₮450,000</h2>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 rounded-md text-[11px] font-medium text-white backdrop-blur-sm">
               <Building2 className="w-3 h-3" />
               {t('GROWTH plan')}
             </span>
@@ -156,11 +157,11 @@ export default function Billing() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="bg-white border border-[#E4E4E7] rounded-md p-6 mb-6 shadow-none"
+        className="bg-white border border-[#EBEBEB] rounded-md p-6 mb-6 shadow-none"
       >
         <div className="flex items-center gap-2 mb-5">
           <Sparkles className="w-4 h-4 text-[#FF3C21]" />
-          <h3 className="text-base font-semibold text-[#0A0A0A]">{t('Top Up Credits')}</h3>
+          <h3 className="text-base font-medium text-[#1A1A1A]">{t('Top Up Credits')}</h3>
         </div>
 
         {/* Package grid */}
@@ -174,12 +175,12 @@ export default function Billing() {
                 className={`relative text-left p-4 rounded-md border transition-colors cursor-pointer ${
                   isActive
                     ? 'border-[#FF3C21] bg-[#FFF1EE]'
-                    : 'border-[#E4E4E7] bg-white hover:border-[#D4D4D8]'
+                    : 'border-[#EBEBEB] bg-white hover:border-[#FFC1B5]'
                 }`}
               >
                 {pkg.badge && (
                   <span
-                    className={`absolute -top-2 right-3 px-2 py-0.5 text-[10px] font-semibold tracking-wide rounded-full ${
+                    className={`absolute -top-2 right-3 px-2 py-0.5 text-[10px] font-medium tracking-wide rounded-full ${
                       isActive
                         ? 'bg-[#FF3C21] text-white'
                         : 'bg-[#FFF1EE] text-[#FF3C21] border border-[#FFDED5]'
@@ -188,8 +189,8 @@ export default function Billing() {
                     {t(pkg.badge)}
                   </span>
                 )}
-                <div className="text-sm font-medium text-[#52525B] mb-1">{t(pkg.name)}</div>
-                <div className={`text-2xl font-semibold tabular-nums ${isActive ? 'text-[#FF3C21]' : 'text-[#0A0A0A]'}`}>
+                <div className="text-sm font-medium text-[#4A4A4A] mb-1">{t(pkg.name)}</div>
+                <div className={`text-2xl font-medium tabular-nums ${isActive ? 'text-[#FF3C21]' : 'text-[#1A1A1A]'}`}>
                   {pkg.amount}
                 </div>
                 {pkg.bonus && (
@@ -205,7 +206,7 @@ export default function Billing() {
 
         {/* Payment methods */}
         <div className="mb-5">
-          <p className="text-xs font-medium text-[#71717A] uppercase tracking-wider mb-2">
+          <p className="text-xs font-medium text-[#616161] uppercase tracking-wider mb-2">
             {t('Payment method')}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -218,7 +219,7 @@ export default function Billing() {
                   className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition-colors cursor-pointer ${
                     isActive
                       ? 'border-[#FF3C21] bg-[#FFF1EE] text-[#FF3C21]'
-                      : 'border-[#E4E4E7] bg-white text-[#52525B] hover:border-[#D4D4D8] hover:bg-[#FAFAFA]'
+                      : 'border-[#EBEBEB] bg-white text-[#4A4A4A] hover:border-[#FFC1B5] hover:bg-[#FAFAFA]'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -235,7 +236,7 @@ export default function Billing() {
           className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium transition-colors ${
             selectedPkg
               ? 'bg-[#FF3C21] text-white hover:bg-[#E63419] cursor-pointer'
-              : 'bg-[#F4F4F5] text-[#A1A1AA] cursor-not-allowed'
+              : 'bg-[#F3F3F3] text-[#8A8A8A] cursor-not-allowed'
           }`}
         >
           {selectedPackageObj
@@ -250,18 +251,18 @@ export default function Billing() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.15 }}
-        className="bg-white border border-[#E4E4E7] rounded-md p-6 mb-6 shadow-none"
+        className="bg-white border border-[#EBEBEB] rounded-md p-6 mb-6 shadow-none"
       >
         <div className="flex items-start justify-between gap-4 mb-5">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#F4F4F5] rounded-md text-[#52525B]">
+            <div className="p-2 bg-[#F3F3F3] rounded-md text-[#4A4A4A]">
               <Building2 className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-[#0A0A0A]">
-                {t('Your Plan')} <span className="text-[#71717A] font-normal">— {t('Growth')}</span>
+              <h3 className="text-base font-medium text-[#1A1A1A]">
+                {t('Your Plan')} <span className="text-[#616161] font-normal">— {t('Growth')}</span>
               </h3>
-              <p className="text-xs text-[#71717A] mt-0.5">
+              <p className="text-xs text-[#616161] mt-0.5">
                 {t('Next monthly invoice due')} <span className="tabular-nums">{renewsLabel}</span>
               </p>
             </div>
@@ -281,7 +282,7 @@ export default function Billing() {
             'Demographic targeting',
             'Custom branding',
           ].map((feature) => (
-            <div key={feature} className="flex items-center gap-2.5 text-sm text-[#52525B]">
+            <div key={feature} className="flex items-center gap-2.5 text-sm text-[#4A4A4A]">
               <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#ECFDF5] text-[#047857] shrink-0">
                 <Check className="w-3 h-3" strokeWidth={3} />
               </span>
@@ -296,11 +297,11 @@ export default function Billing() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.18 }}
-        className="bg-white border border-[#E4E4E7] rounded-md overflow-hidden shadow-none"
+        className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden shadow-none"
       >
         <div className="px-6 pt-5 pb-4">
-          <h3 className="text-base font-semibold text-[#0A0A0A]">{t('Billing Activity')}</h3>
-          <p className="text-xs text-[#71717A] mt-0.5">
+          <h3 className="text-base font-medium text-[#1A1A1A]">{t('Billing Activity')}</h3>
+          <p className="text-xs text-[#616161] mt-0.5">
             {t('Your subscription invoices and credit top-ups')}
           </p>
         </div>
@@ -308,7 +309,7 @@ export default function Billing() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
-              <tr className="border-b border-[#E4E4E7] text-[#52525B] font-medium bg-[#F4F4F5]">
+              <tr className="border-b border-[#EBEBEB] text-[#4A4A4A] font-medium bg-[#F3F3F3]">
                 <th className="px-6 py-3 font-medium">{t('Date')}</th>
                 <th className="px-6 py-3 font-medium">{t('Description')}</th>
                 <th className="px-6 py-3 font-medium">{t('Status')}</th>
@@ -316,14 +317,14 @@ export default function Billing() {
                 <th className="px-6 py-3 font-medium w-8"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F4F4F5]">
+            <tbody className="divide-y divide-[#F3F3F3]">
               {ACTIVITY.map((item, index) => {
                 const statusBadge =
                   item.status === 'Paid'
                     ? 'bg-[#ECFDF5] text-[#047857] border border-[#D1FAE5]'
                     : item.status === 'Overdue'
                     ? 'bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]'
-                    : 'bg-[#F4F4F5] text-[#52525B] border border-[#E4E4E7]';
+                    : 'bg-[#F3F3F3] text-[#4A4A4A] border border-[#EBEBEB]';
 
                 const Icon = item.kind === 'subscription' ? Receipt : Sparkles;
 
@@ -336,13 +337,13 @@ export default function Billing() {
                     onClick={() => setOpenInvoice(item.invoice)}
                     className="hover:bg-[#FAFAFA] transition-colors group cursor-pointer"
                   >
-                    <td className="px-6 py-4 text-[#52525B] tabular-nums">{item.date}</td>
+                    <td className="px-6 py-4 text-[#4A4A4A] tabular-nums">{item.date}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-md bg-[#F4F4F5] text-[#52525B] shrink-0">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-md bg-[#F3F3F3] text-[#4A4A4A] shrink-0">
                           <Icon className="w-4 h-4" />
                         </span>
-                        <div className="font-medium text-[#0A0A0A]">{t(item.label)}</div>
+                        <div className="font-medium text-[#1A1A1A]">{t(item.label)}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -350,11 +351,11 @@ export default function Billing() {
                         {t(item.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right font-semibold tabular-nums text-[#0A0A0A]">
-                      {item.amount === null ? <span className="text-[#A1A1AA]">—</span> : formatMnt(item.amount)}
+                    <td className="px-6 py-4 text-right font-medium tabular-nums text-[#1A1A1A]">
+                      {item.amount === null ? <span className="text-[#8A8A8A]">—</span> : formatMnt(item.amount)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <ChevronRight className="w-4 h-4 text-[#A1A1AA] group-hover:text-[#52525B] transition-colors" />
+                      <ChevronRight className="w-4 h-4 text-[#8A8A8A] group-hover:text-[#4A4A4A] transition-colors" />
                     </td>
                   </motion.tr>
                 );
@@ -365,6 +366,7 @@ export default function Billing() {
       </motion.div>
 
       {/* Invoice Detail Drawer */}
+      <Portal>
       <AnimatePresence>
         {openInvoice && (
           <motion.div
@@ -372,7 +374,7 @@ export default function Billing() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setOpenInvoice(null)}
-            className="fixed inset-0 bg-[#0A0A0A]/30 z-50 flex justify-end"
+            className="fixed inset-0 bg-[#1A1A1A]/30 z-50 flex justify-end"
           >
             <motion.div
               initial={{ x: '100%' }}
@@ -380,10 +382,10 @@ export default function Billing() {
               exit={{ x: '100%' }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-white h-full overflow-y-auto border-l border-[#E4E4E7] flex flex-col"
+              className="w-full max-w-md bg-white h-full overflow-y-auto border-l border-[#EBEBEB] flex flex-col"
             >
               {/* Header */}
-              <div className="px-6 py-5 border-b border-[#F4F4F5] flex items-start justify-between gap-4 shrink-0">
+              <div className="px-6 py-5 border-b border-[#F3F3F3] flex items-start justify-between gap-4 shrink-0">
                 <div className="flex items-start gap-3 min-w-0">
                   <span
                     className={`flex items-center justify-center w-11 h-11 rounded-full shrink-0 ${
@@ -391,34 +393,34 @@ export default function Billing() {
                         ? 'bg-[#ECFDF5] text-[#047857]'
                         : openInvoice.status === 'Overdue'
                         ? 'bg-[#FEF2F2] text-[#DC2626]'
-                        : 'bg-[#F4F4F5] text-[#52525B]'
+                        : 'bg-[#F3F3F3] text-[#4A4A4A]'
                     }`}
                   >
                     <Receipt className="w-5 h-5" />
                   </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-base font-semibold text-[#0A0A0A]">{t(openInvoice.description)}</h2>
+                      <h2 className="text-base font-medium text-[#1A1A1A]">{t(openInvoice.description)}</h2>
                       <span
                         className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${
                           openInvoice.status === 'Paid'
                             ? 'bg-[#ECFDF5] text-[#047857] border border-[#D1FAE5]'
                             : openInvoice.status === 'Overdue'
                             ? 'bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]'
-                            : 'bg-[#F4F4F5] text-[#52525B] border border-[#E4E4E7]'
+                            : 'bg-[#F3F3F3] text-[#4A4A4A] border border-[#EBEBEB]'
                         }`}
                       >
                         {t(openInvoice.status)}
                       </span>
                     </div>
-                    <p className="text-sm text-[#71717A] mt-1">
+                    <p className="text-sm text-[#616161] mt-1">
                       {t('Invoice issue date')} <span className="tabular-nums">{openInvoice.issueDate}</span>
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setOpenInvoice(null)}
-                  className="p-1 text-[#71717A] hover:text-[#0A0A0A] hover:bg-[#F4F4F5] rounded-md transition-colors cursor-pointer shrink-0"
+                  className="p-1 text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors cursor-pointer shrink-0"
                   aria-label={t('Close')}
                 >
                   <X className="w-5 h-5" />
@@ -426,31 +428,31 @@ export default function Billing() {
               </div>
 
               {/* Meta grid */}
-              <div className="px-6 py-5 border-b border-[#F4F4F5] grid grid-cols-2 gap-x-6 gap-y-5">
+              <div className="px-6 py-5 border-b border-[#F3F3F3] grid grid-cols-2 gap-x-6 gap-y-5">
                 <div>
-                  <p className="text-xs text-[#71717A] mb-1">{t('Due date')}</p>
-                  <p className="text-sm font-medium text-[#0A0A0A] tabular-nums">{openInvoice.dueDate}</p>
+                  <p className="text-xs text-[#616161] mb-1">{t('Due date')}</p>
+                  <p className="text-sm font-medium text-[#1A1A1A] tabular-nums">{openInvoice.dueDate}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#71717A] mb-1">{t('Status')}</p>
-                  <p className="text-sm font-medium text-[#0A0A0A]">{t(openInvoice.status)}</p>
+                  <p className="text-xs text-[#616161] mb-1">{t('Status')}</p>
+                  <p className="text-sm font-medium text-[#1A1A1A]">{t(openInvoice.status)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#71717A] mb-1">{t('Invoice number')}</p>
+                  <p className="text-xs text-[#616161] mb-1">{t('Invoice number')}</p>
                   <button className="text-sm font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors tabular-nums cursor-pointer">
                     {openInvoice.id}
                   </button>
                 </div>
                 <div>
-                  <p className="text-xs text-[#71717A] mb-1">{t('Payment method')}</p>
-                  <p className="text-sm font-medium text-[#0A0A0A]">{t(openInvoice.paymentMethod)}</p>
+                  <p className="text-xs text-[#616161] mb-1">{t('Payment method')}</p>
+                  <p className="text-sm font-medium text-[#1A1A1A]">{t(openInvoice.paymentMethod)}</p>
                 </div>
               </div>
 
               {/* Monthly costs */}
-              <div className="px-6 py-5 border-b border-[#F4F4F5]">
-                <h3 className="text-base font-semibold text-[#0A0A0A] mb-1">{t('Monthly costs')}</h3>
-                <p className="text-sm text-[#71717A] mb-4">
+              <div className="px-6 py-5 border-b border-[#F3F3F3]">
+                <h3 className="text-base font-medium text-[#1A1A1A] mb-1">{t('Monthly costs')}</h3>
+                <p className="text-sm text-[#616161] mb-4">
                   {t('This covers your workspace from')}{' '}
                   <span className="tabular-nums">{openInvoice.periodStart}</span> {t('to')}{' '}
                   <span className="tabular-nums">{openInvoice.periodEnd}</span>.
@@ -458,35 +460,35 @@ export default function Billing() {
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-[#52525B]">{t('Growth plan — monthly subscription')}</span>
-                    <span className="text-[#0A0A0A] font-medium tabular-nums">
+                    <span className="text-[#4A4A4A]">{t('Growth plan — monthly subscription')}</span>
+                    <span className="text-[#1A1A1A] font-medium tabular-nums">
                       {openInvoice.total !== null ? formatMnt(500_000) : formatMnt(500_000)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-[#52525B]">{t('5,000 response credits included')}</span>
-                    <span className="text-[#0A0A0A] font-medium tabular-nums">₮0</span>
+                    <span className="text-[#4A4A4A]">{t('5,000 response credits included')}</span>
+                    <span className="text-[#1A1A1A] font-medium tabular-nums">₮0</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-[#52525B]">{t('Additional top-up credits')}</span>
-                    <span className="text-[#0A0A0A] font-medium tabular-nums">₮0</span>
+                    <span className="text-[#4A4A4A]">{t('Additional top-up credits')}</span>
+                    <span className="text-[#1A1A1A] font-medium tabular-nums">₮0</span>
                   </div>
                 </div>
               </div>
 
               {/* Totals */}
-              <div className="px-6 py-5 border-b border-[#F4F4F5] space-y-2">
+              <div className="px-6 py-5 border-b border-[#F3F3F3] space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#52525B]">{t('Subtotal')}</span>
-                  <span className="text-[#0A0A0A] font-medium tabular-nums">{formatMnt(500_000)}</span>
+                  <span className="text-[#4A4A4A]">{t('Subtotal')}</span>
+                  <span className="text-[#1A1A1A] font-medium tabular-nums">{formatMnt(500_000)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#52525B]">{t('VAT (0%)')}</span>
-                  <span className="text-[#0A0A0A] font-medium tabular-nums">₮0</span>
+                  <span className="text-[#4A4A4A]">{t('VAT (0%)')}</span>
+                  <span className="text-[#1A1A1A] font-medium tabular-nums">₮0</span>
                 </div>
-                <div className="flex items-center justify-between pt-3 mt-1 border-t border-[#F4F4F5]">
-                  <span className="text-base font-semibold text-[#0A0A0A]">{t('Total')}</span>
-                  <span className="text-base font-semibold text-[#0A0A0A] tabular-nums">
+                <div className="flex items-center justify-between pt-3 mt-1 border-t border-[#F3F3F3]">
+                  <span className="text-base font-medium text-[#1A1A1A]">{t('Total')}</span>
+                  <span className="text-base font-medium text-[#1A1A1A] tabular-nums">
                     {openInvoice.total === null ? formatMnt(500_000) : formatMnt(openInvoice.total)}
                   </span>
                 </div>
@@ -498,15 +500,15 @@ export default function Billing() {
                   disabled={openInvoice.status === 'Upcoming'}
                   className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
                     openInvoice.status === 'Upcoming'
-                      ? 'bg-[#F4F4F5] text-[#A1A1AA] border border-[#E4E4E7] cursor-not-allowed'
-                      : 'bg-white text-[#0A0A0A] border border-[#E4E4E7] hover:bg-[#FAFAFA] cursor-pointer'
+                      ? 'bg-[#F3F3F3] text-[#8A8A8A] border border-[#EBEBEB] cursor-not-allowed'
+                      : 'bg-white text-[#1A1A1A] border border-[#EBEBEB] hover:bg-[#FAFAFA] cursor-pointer'
                   }`}
                 >
                   <Download className="w-4 h-4" />
                   {t('Download invoice')}
                 </button>
                 {openInvoice.status === 'Upcoming' && (
-                  <p className="text-xs text-[#71717A] mt-2 text-center">
+                  <p className="text-xs text-[#616161] mt-2 text-center">
                     {t('Available after this invoice is paid.')}
                   </p>
                 )}
@@ -515,6 +517,7 @@ export default function Billing() {
           </motion.div>
         )}
       </AnimatePresence>
+      </Portal>
     </motion.div>
   );
 }

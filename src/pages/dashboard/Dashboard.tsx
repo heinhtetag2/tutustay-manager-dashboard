@@ -6,15 +6,26 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Calendar,
-  Building2,
-  ClipboardList,
-  UsersRound,
   Wallet,
   ArrowRight,
-  CheckCircle2,
+  ClipboardCheck,
+  Trophy,
+  Sparkles,
   Clock,
+  CheckCircle2,
   AlertTriangle,
+  Coins,
 } from 'lucide-react';
+import {
+  format,
+  differenceInDays,
+  startOfDay,
+  startOfMonth,
+  isWithinInterval,
+  subDays,
+  subMonths,
+  isSameMonth,
+} from 'date-fns';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import {
   AreaChart,
@@ -23,77 +34,23 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ReferenceLine,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
 } from 'recharts';
-import { formatDistanceToNow } from 'date-fns';
-
-import { DEMO_SURVEYS } from '@/pages/surveys/survey-data';
-import { DEMO_COMPANIES } from '@/pages/companies/company-data';
-import { DEMO_RESPONDENTS } from '@/pages/respondents/respondent-data';
-import { DEMO_PAYOUTS } from '@/pages/payouts/payout-data';
+import { cn } from '@/shared/lib/cn';
+import { DEMO_FILLED_SURVEYS } from '@/pages/my-surveys/my-surveys-data';
+import {
+  DEMO_FEED_SURVEYS,
+  USER_TRUST_LEVEL,
+} from '@/pages/survey-feed/survey-feed-data';
+import { DEMO_WALLET } from '@/pages/wallet/wallet-data';
+import { TRUST_LEVELS } from '@/shared/config/business';
 
 type RangeKey = '7d' | '30d' | 'this_month' | 'last_month';
 
-interface ChartPoint { name: string; value: number; }
-interface RangeData {
-  response: ChartPoint[];
-  payout: ChartPoint[];
-  responseTrend: number;
-  payoutTrend: number;
-  subtitle: string;
+function formatMnt(value: number): string {
+  return `₮${value.toLocaleString('en-US')}`;
 }
-
-const CHART_DATA: Record<RangeKey, RangeData> = {
-  '7d': {
-    response: [
-      { name: 'Mon', value: 420 }, { name: 'Tue', value: 512 }, { name: 'Wed', value: 388 },
-      { name: 'Thu', value: 604 }, { name: 'Fri', value: 731 }, { name: 'Sat', value: 489 }, { name: 'Sun', value: 556 },
-    ],
-    payout: [
-      { name: 'Mon', value: 180_000 }, { name: 'Tue', value: 240_000 }, { name: 'Wed', value: 130_000 },
-      { name: 'Thu', value: 320_000 }, { name: 'Fri', value: 410_000 }, { name: 'Sat', value: 260_000 }, { name: 'Sun', value: 220_000 },
-    ],
-    responseTrend: 12.4,
-    payoutTrend: 8.1,
-    subtitle: 'in the last 7 days',
-  },
-  '30d': {
-    response: [
-      { name: 'Week 1', value: 2_480 }, { name: 'Week 2', value: 3_120 }, { name: 'Week 3', value: 2_870 }, { name: 'Week 4', value: 3_940 },
-    ],
-    payout: [
-      { name: 'Week 1', value: 920_000 }, { name: 'Week 2', value: 1_180_000 }, { name: 'Week 3', value: 1_040_000 }, { name: 'Week 4', value: 1_420_000 },
-    ],
-    responseTrend: 8.7,
-    payoutTrend: 14.2,
-    subtitle: 'in the last 30 days',
-  },
-  this_month: {
-    response: [
-      { name: 'W1', value: 2_100 }, { name: 'W2', value: 2_980 }, { name: 'W3', value: 3_410 }, { name: 'W4', value: 1_760 },
-    ],
-    payout: [
-      { name: 'W1', value: 780_000 }, { name: 'W2', value: 1_120_000 }, { name: 'W3', value: 1_280_000 }, { name: 'W4', value: 620_000 },
-    ],
-    responseTrend: 6.1,
-    payoutTrend: 9.4,
-    subtitle: 'this month',
-  },
-  last_month: {
-    response: [
-      { name: 'W1', value: 1_880 }, { name: 'W2', value: 2_540 }, { name: 'W3', value: 3_010 }, { name: 'W4', value: 2_290 },
-    ],
-    payout: [
-      { name: 'W1', value: 980_000 }, { name: 'W2', value: 1_240_000 }, { name: 'W3', value: 1_380_000 }, { name: 'W4', value: 1_100_000 },
-    ],
-    responseTrend: -2.3,
-    payoutTrend: 5.8,
-    subtitle: 'last month',
-  },
-};
 
 function formatMntCompact(value: number): string {
   if (value >= 1_000_000) return `₮${(value / 1_000_000).toFixed(1)}M`;
@@ -101,115 +58,216 @@ function formatMntCompact(value: number): string {
   return `₮${value}`;
 }
 
-function formatMntExact(value: number): string {
-  return `₮${value.toLocaleString('en-US')}`;
-}
+const USER_FIRST_NAME = 'Hein';
+const NOW = new Date('2026-04-22T10:00:00');
 
 export default function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [dateRange, setDateRange] = useState<RangeKey>('7d');
-  const range = CHART_DATA[dateRange];
 
-  const responseTotal = range.response.reduce((sum, d) => sum + d.value, 0);
-  const payoutTotal = range.payout.reduce((sum, d) => sum + d.value, 0);
+  const [range, setRange] = useState<RangeKey>('30d');
 
-  const platformStats = useMemo(() => {
-    const approvedCompanies = DEMO_COMPANIES.filter((c) => c.status === 'Approved').length;
-    const pendingCompanies = DEMO_COMPANIES.filter((c) => c.status === 'Pending').length;
-    const activeSurveys = DEMO_SURVEYS.filter((s) => s.status === 'Active').length;
-    const activeRespondents = DEMO_RESPONDENTS.filter((r) => r.status === 'Active').length;
-    const warnedRespondents = DEMO_RESPONDENTS.filter((r) => r.status === 'Warned').length;
-    const pendingPayouts = DEMO_PAYOUTS.filter((p) => p.status === 'Pending');
-    const pendingPayoutAmount = pendingPayouts.reduce((acc, p) => acc + p.amountMnt, 0);
-    return {
-      approvedCompanies,
-      pendingCompanies,
-      activeSurveys,
-      activeRespondents,
-      warnedRespondents,
-      pendingPayoutCount: pendingPayouts.length,
-      pendingPayoutAmount,
-    };
+  // ── Stats ─────────────────────────────────────────────────────────────
+  const thisMonthEarned = useMemo(() => {
+    return DEMO_FILLED_SURVEYS.filter(
+      (s) =>
+        s.status === 'paid' &&
+        isSameMonth(new Date(s.completedAt), NOW),
+    ).reduce((sum, s) => sum + s.rewardMnt, 0);
   }, []);
+
+  const completedCount = DEMO_FILLED_SURVEYS.filter(
+    (s) => s.status === 'paid' || s.status === 'held',
+  ).length;
+
+  const pendingRewards = DEMO_FILLED_SURVEYS.filter(
+    (s) => s.status === 'held' || s.status === 'under-review',
+  ).reduce((sum, s) => sum + s.rewardMnt, 0);
+
+  const currentLevel = [...TRUST_LEVELS]
+    .reverse()
+    .find((l) => l.minResponses <= completedCount);
+  const nextLevel = TRUST_LEVELS.find((l) => l.level === (currentLevel?.level ?? 1) + 1);
+  const levelProgress = nextLevel
+    ? Math.min(
+        100,
+        ((completedCount - (currentLevel?.minResponses ?? 0)) /
+          (nextLevel.minResponses - (currentLevel?.minResponses ?? 0))) *
+          100,
+      )
+    : 100;
 
   const stats = [
     {
-      title: 'Active companies',
-      value: String(platformStats.approvedCompanies),
-      Icon: Building2,
-      trend: platformStats.pendingCompanies > 0 ? `${platformStats.pendingCompanies} pending` : undefined,
-      tone: 'neutral' as const,
-      subtitle: `${DEMO_COMPANIES.length} total on the platform`,
-      href: '/companies',
-    },
-    {
-      title: 'Live surveys',
-      value: String(platformStats.activeSurveys),
-      Icon: ClipboardList,
-      trend: '+6.2%',
-      tone: 'positive' as const,
-      subtitle: `${DEMO_SURVEYS.length} total across companies`,
-      href: '/surveys',
-    },
-    {
-      title: 'Active respondents',
-      value: String(platformStats.activeRespondents),
-      Icon: UsersRound,
-      trend: platformStats.warnedRespondents > 0 ? `${platformStats.warnedRespondents} warned` : undefined,
-      tone: platformStats.warnedRespondents > 0 ? 'warning' as const : 'neutral' as const,
-      subtitle: `${DEMO_RESPONDENTS.length} total respondents`,
-      href: '/respondents',
-    },
-    {
-      title: 'Pending payouts',
-      value: String(platformStats.pendingPayoutCount),
+      title: 'Wallet balance',
+      value: formatMntCompact(DEMO_WALLET.availableMnt),
       Icon: Wallet,
-      trend: formatMntCompact(platformStats.pendingPayoutAmount),
-      tone: 'neutral' as const,
-      subtitle: t('Awaiting release'),
-      href: '/payouts',
+      subtitle: pendingRewards > 0
+        ? `${formatMntCompact(pendingRewards)} ${t('pending')}`
+        : t('Available to withdraw'),
+      href: '/wallet',
+      accent: true,
+    },
+    {
+      title: 'This month',
+      value: formatMntCompact(thisMonthEarned),
+      Icon: Coins,
+      subtitle: t('Earned in April'),
+      href: '/my-surveys',
+    },
+    {
+      title: 'Surveys completed',
+      value: String(completedCount),
+      Icon: ClipboardCheck,
+      subtitle: t('Lifetime responses'),
+      href: '/my-surveys',
+    },
+    {
+      title: 'Trust level',
+      value: `${t('Lv.')}${currentLevel?.level ?? 1} · ${currentLevel?.label ?? 'Newcomer'}`,
+      Icon: Trophy,
+      subtitle: nextLevel
+        ? `${nextLevel.minResponses - completedCount} ${t('to Lv.')}${nextLevel.level}`
+        : t('Top level reached'),
+      href: '/my-surveys',
+      progress: nextLevel ? levelProgress : undefined,
     },
   ];
 
-  const pendingCompanies = DEMO_COMPANIES.filter((c) => c.status === 'Pending').slice(0, 3);
-  const pendingPayouts = DEMO_PAYOUTS.filter((p) => p.status === 'Pending').slice(0, 3);
+  // ── Chart: earnings over time ────────────────────────────────────────
+  const {
+    chartData,
+    rangeTotal,
+    rangeTrend,
+    rangeSubtitle,
+    rangeSurveys,
+    rangeAvgPerBucket,
+    bucketUnit,
+  } = useMemo(() => {
+    const paid = DEMO_FILLED_SURVEYS.filter((s) => s.status === 'paid');
+    return buildEarningsChart(paid, range);
+  }, [range]);
 
-  // Top companies by lifetime spend
-  const topCompanies = [...DEMO_COMPANIES]
-    .filter((c) => c.status === 'Approved')
-    .sort((a, b) => b.totalSpentMnt - a.totalSpentMnt)
-    .slice(0, 5);
+  // ── Earnings by category ─────────────────────────────────────────────
+  const categoryBreakdown = useMemo(() => {
+    const map = new Map<string, { earned: number; count: number }>();
+    DEMO_FILLED_SURVEYS.filter((s) => s.status === 'paid').forEach((s) => {
+      const prev = map.get(s.category) ?? { earned: 0, count: 0 };
+      map.set(s.category, {
+        earned: prev.earned + s.rewardMnt,
+        count: prev.count + 1,
+      });
+    });
+    const rows = Array.from(map.entries())
+      .map(([category, v]) => ({ category, ...v }))
+      .sort((a, b) => b.earned - a.earned);
+    const max = rows[0]?.earned ?? 0;
+    return { rows, max };
+  }, []);
+
+  // ── Recent activity feed (blended) ───────────────────────────────────
+  type FeedEvent = {
+    kind: 'paid' | 'held-release' | 'under-review' | 'level-up' | 'new-match';
+    date: string;
+    primary: string;
+    secondary: string;
+    amount?: number;
+    href: string;
+  };
+
+  const activity: FeedEvent[] = useMemo(() => {
+    const events: FeedEvent[] = [];
+    DEMO_FILLED_SURVEYS.forEach((s) => {
+      if (s.status === 'paid') {
+        events.push({
+          kind: 'paid',
+          date: s.completedAt,
+          primary: s.title,
+          secondary: `${s.companyName} · ${t('reward paid')}`,
+          amount: s.rewardMnt,
+          href: `/survey-feed/${s.surveyId}`,
+        });
+      } else if (s.status === 'under-review') {
+        events.push({
+          kind: 'under-review',
+          date: s.completedAt,
+          primary: s.title,
+          secondary: `${s.companyName} · ${t('under review')}`,
+          amount: s.rewardMnt,
+          href: `/survey-feed/${s.surveyId}`,
+        });
+      } else if (s.status === 'held') {
+        events.push({
+          kind: 'held-release',
+          date: s.completedAt,
+          primary: s.title,
+          secondary: `${s.companyName} · ${t('on 24h hold')}`,
+          amount: s.rewardMnt,
+          href: `/survey-feed/${s.surveyId}`,
+        });
+      }
+    });
+    return events
+      .sort((a, b) => (a.date < b.date ? 1 : -1))
+      .slice(0, 5);
+  }, [t]);
+
+  const feedIcon = (kind: FeedEvent['kind']) => {
+    const tone = 'bg-[#F3F3F3] text-[#4A4A4A]';
+    switch (kind) {
+      case 'paid':
+        return { Icon: CheckCircle2, tone };
+      case 'held-release':
+        return { Icon: Clock, tone };
+      case 'under-review':
+        return { Icon: AlertTriangle, tone };
+      case 'level-up':
+        return { Icon: Trophy, tone };
+      case 'new-match':
+        return { Icon: Sparkles, tone };
+    }
+  };
+
+  const feedPill = (kind: FeedEvent['kind']): { tone: string; label: string } | null => {
+    switch (kind) {
+      case 'held-release':
+        return { tone: 'text-[#B45309] bg-[#FFFBEB]', label: t('Held') };
+      case 'under-review':
+        return { tone: 'text-[#1D4ED8] bg-[#EFF6FF]', label: t('Under review') };
+      case 'level-up':
+        return { tone: 'text-[#FF3C21] bg-[#FFF1EE]', label: t('Level up') };
+      case 'new-match':
+        return { tone: 'text-[#FF3C21] bg-[#FFF1EE]', label: t('New match') };
+      case 'paid':
+      default:
+        return null;
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-y-auto w-full px-6 md:px-8 xl:px-12 py-8 bg-[#FAFAFA]"
+      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[#FAFAFA]"
     >
       {/* Header */}
-      <div className="flex justify-between items-center mb-8 gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-[#0A0A0A]">{t('Platform Dashboard')}</h1>
-          <p className="text-sm text-[#71717A] mt-1">
-            {t('Overview of companies, surveys, respondents, and payouts across the platform.')}
+          <h1 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A]">
+            {t('Welcome back,')} {USER_FIRST_NAME}
+          </h1>
+          <p className="text-sm text-[#616161] mt-1">
+            {t('Your earnings, progress, and surveys at a glance.')}
           </p>
         </div>
-        <div className="flex gap-3">
-          <BrandSelect
-            value={dateRange}
-            onValueChange={(v) => setDateRange(v as RangeKey)}
-            leftIcon={<Calendar />}
-            ariaLabel={t('Chart range')}
-            options={[
-              { value: '7d', label: t('Last 7 days') },
-              { value: '30d', label: t('Last 30 days') },
-              { value: 'this_month', label: t('This month') },
-              { value: 'last_month', label: t('Last month') },
-            ]}
-          />
-        </div>
+        <button
+          onClick={() => navigate('/survey-feed')}
+          className="h-10 px-4 inline-flex items-center justify-center gap-2 bg-[#FF3C21] hover:bg-[#E63419] text-white text-sm font-medium rounded-md transition-colors cursor-pointer w-full sm:w-auto"
+        >
+          {t('Browse surveys')}
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Stats row */}
@@ -220,334 +278,477 @@ export default function Dashboard() {
             onClick={() => navigate(stat.href)}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="text-left bg-white border border-[#E4E4E7] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#D4D4D8] transition-colors group cursor-pointer"
+            transition={{ duration: 0.3, delay: i * 0.06 }}
+            className="text-left bg-white border border-[#EBEBEB] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#FFC1B5] transition-colors group cursor-pointer"
           >
             <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[#71717A]">{t(stat.title)}</span>
-              <div className="p-2 bg-[#F4F4F5] rounded-md text-[#52525B] group-hover:bg-[#FF3C21] group-hover:text-white transition-colors">
+              <span className="text-sm font-medium text-[#616161]">
+                {t(stat.title)}
+              </span>
+              <div
+                className={cn(
+                  'p-2 rounded-md transition-colors',
+                  stat.accent
+                    ? 'bg-[#FFF1EE] text-[#FF3C21] group-hover:bg-[#FF3C21] group-hover:text-white'
+                    : 'bg-[#F3F3F3] text-[#4A4A4A] group-hover:bg-[#FF3C21] group-hover:text-white',
+                )}
+              >
                 <stat.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-semibold text-[#0A0A0A] tabular-nums">{stat.value}</div>
-            <div className="text-xs flex items-center gap-1.5 font-medium mt-2">
-              {stat.trend && (
-                <>
-                  <span
-                    className={
-                      stat.tone === 'positive'
-                        ? 'text-[#047857] flex items-center gap-0.5'
-                        : stat.tone === 'warning'
-                          ? 'text-[#B45309]'
-                          : 'text-[#52525B]'
-                    }
-                  >
-                    {stat.tone === 'positive' && <ArrowUpRight className="w-3 h-3" />}
-                    {stat.trend}
-                  </span>
-                  <span className="text-[#D4D4D8]">•</span>
-                </>
+            <div
+              className={cn(
+                'text-2xl font-medium tabular-nums lining-nums truncate',
+                stat.accent ? 'text-[#FF3C21]' : 'text-[#1A1A1A]',
               )}
-              <span className="text-[#71717A] font-normal">{t(stat.subtitle)}</span>
+            >
+              {stat.value}
             </div>
+            <div className="text-xs text-[#4A4A4A] mt-2">{stat.subtitle}</div>
+            {stat.progress !== undefined && (
+              <div className="h-1 w-full bg-[#F3F3F3] rounded-full overflow-hidden mt-3">
+                <div
+                  className="h-full bg-[#FF3C21] transition-all"
+                  style={{ width: `${stat.progress}%` }}
+                />
+              </div>
+            )}
           </motion.button>
         ))}
       </div>
 
-      {/* Moderation queue */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Pending companies */}
+      {/* Earnings chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.25 }}
+        className="bg-white border border-[#EBEBEB] rounded-md p-4 sm:p-6 shadow-none mb-6"
+      >
+        <div className="flex justify-between items-start mb-6 gap-3 flex-wrap">
+          <div>
+            <h2 className="text-base font-medium text-[#1A1A1A]">
+              {t('Earnings')}
+            </h2>
+            <p className="text-xs text-[#616161] mt-0.5 mb-3">
+              {t('Reward payments')} {t(rangeSubtitle)}
+            </p>
+            <div className="flex items-baseline gap-2">
+              <div className="text-2xl font-medium text-[#1A1A1A] tabular-nums lining-nums">
+                {formatMntCompact(rangeTotal)}
+              </div>
+              {rangeTrend !== null && (
+                <div
+                  className={cn(
+                    'text-xs font-medium flex items-center gap-0.5',
+                    rangeTrend >= 0 ? 'text-[#047857]' : 'text-[#DC2626]',
+                  )}
+                >
+                  {rangeTrend >= 0 ? (
+                    <ArrowUpRight className="w-3 h-3" />
+                  ) : (
+                    <ArrowDownRight className="w-3 h-3" />
+                  )}
+                  {Math.abs(rangeTrend).toFixed(1)}%
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-[#616161] mt-2 tabular-nums flex-wrap">
+              <span>
+                {rangeSurveys} {rangeSurveys === 1 ? t('survey') : t('surveys')}
+              </span>
+              <span className="text-[#D4D4D4]">·</span>
+              <span>
+                {t('Avg')} {formatMntCompact(rangeAvgPerBucket)}{' '}
+                {bucketUnit === 'day' ? t('/ day') : t('/ week')}
+              </span>
+              {rangeSurveys > 0 && (
+                <>
+                  <span className="text-[#D4D4D4]">·</span>
+                  <span>
+                    {formatMnt(Math.round(rangeTotal / rangeSurveys))} {t('per survey')}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+          <BrandSelect
+            value={range}
+            onValueChange={(v) => setRange(v as RangeKey)}
+            leftIcon={<Calendar />}
+            ariaLabel={t('Range')}
+            className="sm:w-auto"
+            options={[
+              { value: '7d', label: t('Last 7 days') },
+              { value: '30d', label: t('Last 30 days') },
+              { value: 'this_month', label: t('This month') },
+              { value: 'last_month', label: t('Last month') },
+            ]}
+          />
+        </div>
+        <div className="h-[200px] sm:h-[240px] w-full min-w-0">
+          <ResponsiveContainer width="100%" height={240}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#FF3C21" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#FF3C21" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F3F3" />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: '#616161' }}
+                dy={10}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: '#616161' }}
+                tickFormatter={(v: number) => (v >= 1000 ? `${v / 1000}K` : String(v))}
+              />
+              <Tooltip
+                cursor={{ stroke: '#EBEBEB', strokeWidth: 1, strokeDasharray: '4 4' }}
+                content={<EarningsTooltip bucketUnit={bucketUnit} t={t} />}
+              />
+              {rangeAvgPerBucket > 0 && (
+                <ReferenceLine
+                  y={rangeAvgPerBucket}
+                  stroke="#8A8A8A"
+                  strokeDasharray="4 4"
+                  strokeWidth={1}
+                  label={{
+                    value: `${t('Avg')} ${formatMntCompact(rangeAvgPerBucket)}`,
+                    position: 'right',
+                    fill: '#616161',
+                    fontSize: 11,
+                  }}
+                />
+              )}
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="#FF3C21"
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#colorEarnings)"
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
+
+      {/* Two-up: Keep going + Recent activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Earnings by category */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.3 }}
-          className="bg-white border border-[#E4E4E7] rounded-md shadow-none overflow-hidden"
+          className="bg-white border border-[#EBEBEB] rounded-md shadow-none overflow-hidden"
         >
-          <div className="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-[#FFFBEB] text-[#B45309] rounded-md shrink-0">
-                <Clock className="w-4 h-4" />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold text-[#0A0A0A]">
-                  {t('Companies awaiting review')}
-                </h2>
-                <p className="text-xs text-[#71717A] mt-0.5">
-                  {platformStats.pendingCompanies} {t('pending applications')}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate('/companies')}
-              className="flex items-center gap-1 text-xs font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors cursor-pointer shrink-0"
-            >
-              {t('Review all')}
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="divide-y divide-[#F4F4F5] border-t border-[#F4F4F5]">
-            {pendingCompanies.length === 0 ? (
-              <div className="px-6 py-8 text-center text-sm text-[#71717A]">
-                {t('Nothing pending. All caught up.')}
-              </div>
-            ) : pendingCompanies.map((company) => (
-              <button
-                key={company.id}
-                onClick={() => navigate(`/companies/${company.id.toLowerCase()}`)}
-                className="w-full flex items-center gap-3 px-6 py-3.5 text-left hover:bg-[#FAFAFA] transition-colors cursor-pointer group"
-              >
-                <div className="w-9 h-9 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-sm font-semibold shrink-0">
-                  {company.initial}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm text-[#0A0A0A] truncate">
-                    {company.name}
-                  </div>
-                  <div className="text-xs text-[#71717A] mt-0.5 truncate">
-                    {company.plan} · {company.industry}
-                  </div>
-                </div>
-                <span className="text-xs text-[#71717A] tabular-nums hidden sm:inline">
-                  {formatDistanceToNow(new Date(company.joined), { addSuffix: true })}
-                </span>
-                <ArrowRight className="w-4 h-4 text-[#A1A1AA] group-hover:text-[#52525B] transition-colors" />
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Pending payouts */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-          className="bg-white border border-[#E4E4E7] rounded-md shadow-none overflow-hidden"
-        >
-          <div className="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-[#FFF1EE] text-[#FF3C21] rounded-md shrink-0">
-                <Wallet className="w-4 h-4" />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold text-[#0A0A0A]">{t('Pending payouts')}</h2>
-                <p className="text-xs text-[#71717A] mt-0.5">
-                  {formatMntCompact(platformStats.pendingPayoutAmount)} {t('awaiting release')}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate('/payouts')}
-              className="flex items-center gap-1 text-xs font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors cursor-pointer shrink-0"
-            >
-              {t('Release all')}
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="divide-y divide-[#F4F4F5] border-t border-[#F4F4F5]">
-            {pendingPayouts.length === 0 ? (
-              <div className="px-6 py-8 text-center text-sm text-[#71717A]">
-                {t('No payouts waiting.')}
-              </div>
-            ) : pendingPayouts.map((payout) => (
-              <button
-                key={payout.id}
-                onClick={() => navigate('/payouts')}
-                className="w-full flex items-center gap-3 px-6 py-3.5 text-left hover:bg-[#FAFAFA] transition-colors cursor-pointer group"
-              >
-                <div className="w-9 h-9 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-sm font-semibold shrink-0">
-                  {payout.initial}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm text-[#0A0A0A] truncate">
-                    {payout.respondentName}
-                  </div>
-                  <div className="text-xs text-[#71717A] mt-0.5 truncate">
-                    {payout.gateway} · {payout.account}
-                  </div>
-                </div>
-                <div className="text-sm font-semibold text-[#0A0A0A] tabular-nums shrink-0">
-                  {formatMntExact(payout.amountMnt)}
-                </div>
-                <ArrowRight className="w-4 h-4 text-[#A1A1AA] group-hover:text-[#52525B] transition-colors" />
-              </button>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Response Collection */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.5 }}
-          className="bg-white border border-[#E4E4E7] rounded-md p-6 shadow-none"
-        >
-          <div className="flex justify-between items-start mb-6">
+          <div className="px-4 sm:px-6 pt-5 pb-4 flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-base font-semibold text-[#0A0A0A]">
-                {t('Response volume')}
+              <h2 className="text-base font-medium text-[#1A1A1A]">
+                {t('Earnings by category')}
               </h2>
-              <p className="text-xs text-[#71717A] mt-0.5">
-                {t('All surveys')} {t(range.subtitle)}
+              <p className="text-xs text-[#616161] mt-0.5">
+                {t('Where your rewards come from')}
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-xl font-semibold text-[#0A0A0A] tabular-nums">
-                {responseTotal.toLocaleString()}
-              </div>
-              <div
-                className={`text-xs font-medium flex items-center gap-0.5 justify-end ${
-                  range.responseTrend >= 0 ? 'text-[#047857]' : 'text-[#DC2626]'
-                }`}
-              >
-                {range.responseTrend >= 0 ? (
-                  <ArrowUpRight className="w-3 h-3" />
-                ) : (
-                  <ArrowDownRight className="w-3 h-3" />
-                )}
-                {Math.abs(range.responseTrend).toFixed(1)}%
-              </div>
+            <button
+              onClick={() => navigate('/my-surveys')}
+              className="flex items-center gap-1 text-xs font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors cursor-pointer shrink-0"
+            >
+              {t('See all')}
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {categoryBreakdown.rows.length === 0 ? (
+            <div className="border-t border-[#F3F3F3] px-6 py-8 text-center text-sm text-[#616161]">
+              {t('No paid rewards yet.')}
             </div>
-          </div>
-          <div className="h-[260px] w-full min-w-0 min-h-0">
-            <ResponsiveContainer width="100%" height={260}>
-              <AreaChart data={range.response} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorResponses" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#FF3C21" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#FF3C21" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F4F4F5" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#71717A' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#71717A' }} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0A0A0A', borderRadius: '6px', border: 'none', color: '#fff', fontSize: '12px' }}
-                  itemStyle={{ color: '#fff' }}
-                  labelStyle={{ color: '#A1A1AA' }}
-                  formatter={(value: number) => [`${value.toLocaleString()} responses`, '']}
-                  cursor={{ stroke: '#E4E4E7', strokeWidth: 1, strokeDasharray: '4 4' }}
-                />
-                <Area type="monotone" dataKey="value" stroke="#FF3C21" strokeWidth={2} fillOpacity={1} fill="url(#colorResponses)" isAnimationActive={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          ) : (
+            <ul className="border-t border-[#F3F3F3] px-4 sm:px-6 py-4 space-y-3.5">
+              {categoryBreakdown.rows.map((row) => {
+                const pct = categoryBreakdown.max === 0
+                  ? 0
+                  : (row.earned / categoryBreakdown.max) * 100;
+                return (
+                  <li key={row.category}>
+                    <div className="flex items-center justify-between mb-1.5 text-xs">
+                      <span className="font-medium text-[#1A1A1A]">
+                        {row.category}
+                      </span>
+                      <span className="flex items-center gap-2 text-[#616161] tabular-nums">
+                        <span>
+                          {row.count} {row.count === 1 ? t('survey') : t('surveys')}
+                        </span>
+                        <span className="text-[#D4D4D4]">·</span>
+                        <span className="font-medium text-[#1A1A1A] lining-nums">
+                          {formatMnt(row.earned)}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="h-2 w-full bg-[#F3F3F3] rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{
+                          duration: 0.7,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        className="h-full bg-[#FF3C21] rounded-full"
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </motion.div>
 
-        {/* Payout Volume */}
+        {/* Recent activity */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.6 }}
-          className="bg-white border border-[#E4E4E7] rounded-md p-6 shadow-none"
+          transition={{ duration: 0.3, delay: 0.35 }}
+          className="bg-white border border-[#EBEBEB] rounded-md shadow-none overflow-hidden"
         >
-          <div className="flex justify-between items-start mb-6">
+          <div className="px-4 sm:px-6 pt-5 pb-4 flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-base font-semibold text-[#0A0A0A]">{t('Payout volume')}</h2>
-              <p className="text-xs text-[#71717A] mt-0.5">
-                {t('Released to respondents')} {t(range.subtitle)}
+              <h2 className="text-base font-medium text-[#1A1A1A]">
+                {t('Recent activity')}
+              </h2>
+              <p className="text-xs text-[#616161] mt-0.5">
+                {t('Latest rewards and status changes')}
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-xl font-semibold text-[#0A0A0A] tabular-nums">
-                {formatMntCompact(payoutTotal)}
-              </div>
-              <div
-                className={`text-xs font-medium flex items-center gap-0.5 justify-end ${
-                  range.payoutTrend >= 0 ? 'text-[#047857]' : 'text-[#DC2626]'
-                }`}
-              >
-                {range.payoutTrend >= 0 ? (
-                  <ArrowUpRight className="w-3 h-3" />
-                ) : (
-                  <ArrowDownRight className="w-3 h-3" />
-                )}
-                {Math.abs(range.payoutTrend).toFixed(1)}%
-              </div>
-            </div>
+            <button
+              onClick={() => navigate('/my-surveys')}
+              className="flex items-center gap-1 text-xs font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors cursor-pointer shrink-0"
+            >
+              {t('View all')}
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
-          <div className="h-[260px] w-full min-w-0 min-h-0">
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={range.payout} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F4F4F5" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#71717A' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#71717A' }} tickFormatter={(v: number) => `${v / 1000}K`} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0A0A0A', borderRadius: '6px', border: 'none', color: '#fff', fontSize: '12px' }}
-                  itemStyle={{ color: '#fff' }}
-                  labelStyle={{ color: '#A1A1AA' }}
-                  formatter={(value: number) => [formatMntExact(value), '']}
-                  cursor={{ fill: '#F4F4F5' }}
-                />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-                  {range.payout.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}-${entry.name}`}
-                      fill={index === range.payout.length - 1 ? '#FF3C21' : '#E4E4E7'}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+
+          <ol className="divide-y divide-[#F3F3F3] border-t border-[#F3F3F3]">
+            {activity.length === 0 ? (
+              <li className="px-6 py-8 text-center text-sm text-[#616161]">
+                {t('No recent activity.')}
+              </li>
+            ) : (
+              activity.map((ev, i) => {
+                const { Icon, tone } = feedIcon(ev.kind);
+                const pill = feedPill(ev.kind);
+                return (
+                  <li key={`${ev.kind}-${i}`}>
+                    <button
+                      onClick={() => navigate(ev.href)}
+                      className="w-full flex items-center gap-3 px-4 sm:px-6 py-3.5 text-left hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                    >
+                      <div className={cn('w-9 h-9 rounded-full flex items-center justify-center shrink-0', tone)}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-[#1A1A1A] truncate">
+                            {ev.primary}
+                          </span>
+                          {pill && (
+                            <span
+                              className={cn(
+                                'text-[10px] font-medium px-1.5 py-0.5 rounded-md',
+                                pill.tone,
+                              )}
+                            >
+                              {pill.label}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-[#616161] mt-0.5 tabular-nums">
+                          {ev.secondary} · {format(new Date(ev.date), 'MMM d')}
+                        </div>
+                      </div>
+                      {ev.amount !== undefined && (
+                        <div
+                          className={cn(
+                            'text-sm font-medium tabular-nums lining-nums shrink-0',
+                            ev.kind === 'paid' ? 'text-[#047857]' : 'text-[#1A1A1A]',
+                          )}
+                        >
+                          {ev.kind === 'paid' ? '+' : ''}
+                          {formatMnt(ev.amount)}
+                        </div>
+                      )}
+                    </button>
+                  </li>
+                );
+              })
+            )}
+          </ol>
         </motion.div>
       </div>
-
-      {/* Top companies */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.7 }}
-        className="bg-white border border-[#E4E4E7] rounded-md shadow-none overflow-hidden"
-      >
-        <div className="px-6 pt-5 pb-4 flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold text-[#0A0A0A]">{t('Top companies by spend')}</h2>
-            <p className="text-xs text-[#71717A] mt-0.5">
-              {t('Ranked by lifetime platform spend')}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/companies')}
-            className="flex items-center gap-1 text-xs font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors cursor-pointer shrink-0"
-          >
-            {t('View all')}
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="divide-y divide-[#F4F4F5] border-t border-[#F4F4F5]">
-          {topCompanies.map((company) => {
-            const companySurveys = DEMO_SURVEYS.filter((s) => s.companyId === company.id).length;
-            return (
-              <button
-                key={company.id}
-                onClick={() => navigate(`/companies/${company.id.toLowerCase()}`)}
-                className="w-full grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-6 px-6 py-4 text-left hover:bg-[#FAFAFA] transition-colors cursor-pointer group"
-              >
-                <div className="w-9 h-9 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-sm font-semibold shrink-0">
-                  {company.initial}
-                </div>
-                <div className="min-w-0">
-                  <div className="font-medium text-[#0A0A0A] truncate">{company.name}</div>
-                  <div className="text-xs text-[#71717A] mt-0.5">{company.industry}</div>
-                </div>
-                <div className="hidden sm:block text-xs text-[#71717A] tabular-nums">
-                  {companySurveys} {t('surveys')}
-                </div>
-                <div className="text-sm font-semibold text-[#0A0A0A] tabular-nums">
-                  {formatMntCompact(company.totalSpentMnt)}
-                </div>
-                <ArrowRight className="w-4 h-4 text-[#A1A1AA] group-hover:text-[#52525B] transition-colors" />
-              </button>
-            );
-          })}
-        </div>
-      </motion.div>
     </motion.div>
   );
+}
+
+interface ChartPoint {
+  name: string;
+  value: number;
+  surveys: number;
+  date: Date;
+}
+
+function EarningsTooltip({
+  active,
+  payload,
+  bucketUnit,
+  t,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: ChartPoint }>;
+  bucketUnit: 'day' | 'week';
+  t: (key: string) => string;
+}) {
+  if (!active || !payload || payload.length === 0) return null;
+  const p = payload[0].payload;
+  const label =
+    bucketUnit === 'day' ? format(p.date, 'EEE, MMM d') : `${p.name} · ${format(p.date, 'MMM d')}`;
+  return (
+    <div className="bg-[#1A1A1A] text-white rounded-md px-3 py-2 text-xs shadow-lg">
+      <div className="text-[#8A8A8A] mb-1">{label}</div>
+      <div className="font-medium tabular-nums lining-nums">{formatMnt(p.value)}</div>
+      <div className="text-[#8A8A8A] mt-0.5 tabular-nums">
+        {p.surveys} {p.surveys === 1 ? t('survey') : t('surveys')}
+      </div>
+    </div>
+  );
+}
+
+function buildEarningsChart(
+  paidSurveys: typeof DEMO_FILLED_SURVEYS,
+  range: RangeKey,
+): {
+  chartData: ChartPoint[];
+  rangeTotal: number;
+  rangeTrend: number | null;
+  rangeSubtitle: string;
+  rangeSurveys: number;
+  rangeAvgPerBucket: number;
+  bucketUnit: 'day' | 'week';
+} {
+  const today = startOfDay(NOW);
+
+  let from: Date;
+  let to: Date = today;
+  let buckets: 'day' | 'week' = 'day';
+  let subtitle = '';
+
+  switch (range) {
+    case '7d':
+      from = subDays(today, 6);
+      buckets = 'day';
+      subtitle = 'in the last 7 days';
+      break;
+    case '30d':
+      from = subDays(today, 29);
+      buckets = 'week';
+      subtitle = 'in the last 30 days';
+      break;
+    case 'this_month':
+      from = startOfMonth(today);
+      buckets = 'week';
+      subtitle = 'this month';
+      break;
+    case 'last_month':
+    default:
+      from = startOfMonth(subMonths(today, 1));
+      to = subDays(startOfMonth(today), 1);
+      buckets = 'week';
+      subtitle = 'last month';
+      break;
+  }
+
+  // Build daily or weekly buckets (skeleton only — values come from demo pattern below)
+  let chartData: ChartPoint[] = [];
+  if (buckets === 'day') {
+    const days = differenceInDays(to, from) + 1;
+    for (let i = 0; i < days; i++) {
+      const d = subDays(to, days - 1 - i);
+      chartData.push({
+        name: format(d, 'EEE'),
+        value: 0,
+        surveys: 0,
+        date: d,
+      });
+    }
+  } else {
+    const weeks = Math.ceil((differenceInDays(to, from) + 1) / 7);
+    for (let i = 0; i < weeks; i++) {
+      const start = subDays(to, (weeks - i) * 7 - 1);
+      chartData.push({
+        name: `Wk ${i + 1}`,
+        value: 0,
+        surveys: 0,
+        date: start,
+      });
+    }
+  }
+
+  // Demo values — zigzag patterns per range so the line actually has life
+  const DEMO_PATTERNS: Record<RangeKey, { values: number[]; surveys: number[] }> = {
+    '7d': {
+      values: [6500, 2000, 11500, 4000, 14500, 3500, 9000],
+      surveys: [2, 1, 3, 1, 3, 1, 2],
+    },
+    '30d': {
+      values: [18500, 9500, 22000, 12500, 19000],
+      surveys: [5, 3, 6, 4, 5],
+    },
+    this_month: {
+      values: [14500, 26000, 10500, 22500, 8500],
+      surveys: [4, 6, 3, 5, 2],
+    },
+    last_month: {
+      values: [21000, 12000, 27500, 15000, 19500],
+      surveys: [5, 3, 7, 4, 5],
+    },
+  };
+
+  const pattern = DEMO_PATTERNS[range];
+  chartData.forEach((p, i) => {
+    p.value = pattern.values[i % pattern.values.length];
+    p.surveys = pattern.surveys[i % pattern.surveys.length];
+  });
+
+  const rangeTotal = chartData.reduce((sum, p) => sum + p.value, 0);
+  const rangeSurveys = chartData.reduce((sum, p) => sum + p.surveys, 0);
+
+  // Trend vs a plausible prior period — varies by range so each view tells its own story
+  const prevMultiplier: Record<RangeKey, number> = {
+    '7d': 0.82,
+    '30d': 1.12,
+    this_month: 0.94,
+    last_month: 1.05,
+  };
+  const prevTotal = Math.round(rangeTotal * prevMultiplier[range]);
+  const rangeTrend = prevTotal === 0 ? null : ((rangeTotal - prevTotal) / prevTotal) * 100;
+
+  const rangeAvgPerBucket =
+    chartData.length === 0 ? 0 : Math.round(rangeTotal / chartData.length);
+
+  return {
+    chartData,
+    rangeTotal,
+    rangeTrend,
+    rangeSubtitle: subtitle,
+    rangeSurveys,
+    rangeAvgPerBucket,
+    bucketUnit: buckets,
+  };
 }

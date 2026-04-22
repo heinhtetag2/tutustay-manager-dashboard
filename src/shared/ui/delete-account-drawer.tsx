@@ -1,0 +1,241 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { X, AlertTriangle, Trash2, ArrowLeft } from 'lucide-react';
+import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/shared/ui/drawer';
+import { cn } from '@/shared/lib/cn';
+
+type Step = 'review' | 'confirm';
+
+export function DeleteAccountDrawer({
+  open,
+  onOpenChange,
+  heldMnt = 0,
+  balanceMnt = 0,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  heldMnt?: number;
+  balanceMnt?: number;
+}) {
+  const { t } = useTranslation();
+  const [step, setStep] = useState<Step>('review');
+  const [reason, setReason] = useState<string>('');
+  const [typed, setTyped] = useState('');
+
+  const confirmOk = typed.trim().toUpperCase() === 'DELETE';
+  const hasUnreleased = heldMnt > 0 || balanceMnt > 0;
+
+  const reset = () => {
+    setStep('review');
+    setReason('');
+    setTyped('');
+  };
+
+  const handleOpenChange = (o: boolean) => {
+    if (!o) reset();
+    onOpenChange(o);
+  };
+
+  return (
+    <Drawer direction="right" open={open} onOpenChange={handleOpenChange}>
+      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[#EBEBEB]">
+        <div className="h-14 flex items-center gap-3 px-5 border-b border-[#EBEBEB] shrink-0">
+          {step === 'confirm' && (
+            <button
+              onClick={() => setStep('review')}
+              className="p-1.5 text-[#616161] hover:bg-[#F3F3F3] rounded-md transition-colors"
+              aria-label={t('Back')}
+            >
+              <ArrowLeft className="w-4 h-4" strokeWidth={1.75} />
+            </button>
+          )}
+          <DrawerTitle className="text-base font-medium text-[#1A1A1A] flex-1">
+            {t('Delete account')}
+          </DrawerTitle>
+          <button
+            onClick={() => handleOpenChange(false)}
+            className="p-1.5 text-[#616161] hover:bg-[#F3F3F3] rounded-md transition-colors"
+            aria-label={t('Close')}
+          >
+            <X className="w-4 h-4" strokeWidth={1.75} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <DrawerDescription className="sr-only">
+            {t('Permanently delete your iDap account and all associated data.')}
+          </DrawerDescription>
+
+          {step === 'review' ? (
+            <div className="space-y-6">
+              {/* Warning banner */}
+              <div className="bg-[#FEF2F2] rounded-md p-4 flex gap-3">
+                <AlertTriangle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" strokeWidth={1.75} />
+                <p className="text-sm text-[#4A4A4A] leading-relaxed">
+                  {t('This is permanent. You will not be able to recover your account, responses, or unreleased rewards.')}
+                </p>
+              </div>
+
+              {/* What happens */}
+              <div>
+                <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">
+                  {t("What happens when you delete")}
+                </h3>
+                <ul className="space-y-2.5 text-sm text-[#4A4A4A] leading-relaxed">
+                  <BulletRow text={t('Your profile, demographics, and survey history are erased within 30 days.')} />
+                  <BulletRow text={t('Any ₮ held for quality review is forfeited and not paid out.')} />
+                  <BulletRow text={t('Available wallet balance must be withdrawn before you can delete.')} />
+                  <BulletRow text={t("You won't be able to sign up again with the same email or phone for 90 days.")} />
+                  <BulletRow text={t('Aggregated, anonymized responses already delivered to companies remain with them.')} />
+                </ul>
+              </div>
+
+              {/* Balance warning */}
+              {hasUnreleased && (
+                <div className="bg-[#FFFBEB] rounded-md p-4">
+                  <div className="text-sm font-medium text-[#1A1A1A] mb-2">
+                    {t('You have unreleased rewards')}
+                  </div>
+                  <div className="space-y-1 text-xs text-[#4A4A4A] tabular-nums">
+                    {balanceMnt > 0 && (
+                      <div className="flex justify-between">
+                        <span>{t('Available balance')}</span>
+                        <span className="font-medium text-[#1A1A1A]">
+                          ₮{balanceMnt.toLocaleString('en-US')}
+                        </span>
+                      </div>
+                    )}
+                    {heldMnt > 0 && (
+                      <div className="flex justify-between">
+                        <span>{t('Held for review')}</span>
+                        <span className="font-medium text-[#B45309]">
+                          ₮{heldMnt.toLocaleString('en-US')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#616161] mt-3 leading-relaxed">
+                    {t('Withdraw your balance first to keep that ₮. Held rewards will be forfeited.')}
+                  </p>
+                </div>
+              )}
+
+              {/* Reason */}
+              <div>
+                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                  {t('Help us improve — why are you leaving?')}{' '}
+                  <span className="text-[#616161] font-normal">{t('(optional)')}</span>
+                </label>
+                <div className="space-y-2">
+                  {[
+                    t('Not enough surveys match me'),
+                    t('Rewards are too small'),
+                    t('Concerns about privacy'),
+                    t('Taking a break'),
+                    t('Other'),
+                  ].map((r) => (
+                    <label
+                      key={r}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-md border cursor-pointer transition-colors',
+                        reason === r
+                          ? 'border-[#FFC1B5] bg-[#FFF1EE]'
+                          : 'border-[#EBEBEB] bg-white hover:border-[#FFC1B5]',
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="reason"
+                        value={r}
+                        checked={reason === r}
+                        onChange={() => setReason(r)}
+                        className="accent-[#FF3C21]"
+                      />
+                      <span className="text-sm text-[#1A1A1A]">{r}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="pt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleOpenChange(false)}
+                  className="flex-1 h-10 rounded-md bg-[#FF3C21] hover:bg-[#E63419] text-white text-sm font-medium transition-colors"
+                >
+                  {t('Keep my account')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep('confirm')}
+                  className="flex-1 h-10 rounded-md border border-[#EBEBEB] text-sm font-medium text-[#DC2626] hover:bg-[#FEF2F2] hover:border-[#F5DBDB] transition-colors"
+                >
+                  {t('Continue to delete')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">
+                  {t('Final confirmation')}
+                </h3>
+                <p className="text-sm text-[#4A4A4A] leading-relaxed">
+                  {t('Type')}{' '}
+                  <span className="font-medium text-[#DC2626] tabular-nums">DELETE</span>{' '}
+                  {t('in the box below to permanently remove your account.')}
+                </p>
+              </div>
+
+              <input
+                type="text"
+                autoFocus
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
+                placeholder="DELETE"
+                className="w-full px-3 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] placeholder:text-[#D4D4D4] tabular-nums uppercase focus:outline-none focus:border-[#DC2626] transition-colors"
+              />
+
+              <div className="pt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStep('review')}
+                  className="flex-1 h-10 rounded-md border border-[#EBEBEB] text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors"
+                >
+                  {t('Go back')}
+                </button>
+                <button
+                  type="button"
+                  disabled={!confirmOk}
+                  onClick={() => {
+                    // Fire-and-forget in demo — would call API in production
+                    handleOpenChange(false);
+                  }}
+                  className={cn(
+                    'flex-1 h-10 rounded-md text-sm font-medium transition-colors inline-flex items-center justify-center gap-2',
+                    confirmOk
+                      ? 'bg-[#DC2626] hover:bg-[#B91C1C] text-white cursor-pointer'
+                      : 'bg-[#F3F3F3] text-[#8A8A8A] cursor-not-allowed',
+                  )}
+                >
+                  <Trash2 className="w-4 h-4" strokeWidth={1.75} />
+                  {t('Delete my account')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+function BulletRow({ text }: { text: string }) {
+  return (
+    <li className="flex items-start gap-2">
+      <span className="w-1 h-1 rounded-full bg-[#8A8A8A] mt-2 shrink-0" />
+      <span>{text}</span>
+    </li>
+  );
+}

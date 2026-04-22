@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
+import { Portal } from '@/shared/ui/portal';
 import { formatDistanceToNow, format } from 'date-fns';
 import {
   Search,
@@ -80,11 +81,11 @@ function TrustMeter({ level }: { level: TrustLevel }) {
         {[1, 2, 3, 4, 5].map((i) => (
           <span
             key={i}
-            className={`w-1.5 h-1.5 rounded-full ${i <= filled ? color : 'bg-[#E4E4E7]'}`}
+            className={`w-1.5 h-1.5 rounded-full ${i <= filled ? color : 'bg-[#EBEBEB]'}`}
           />
         ))}
       </div>
-      <span className="text-xs font-medium text-[#52525B] tabular-nums">{level}</span>
+      <span className="text-xs font-medium text-[#4A4A4A] tabular-nums">{level}</span>
     </div>
   );
 }
@@ -222,13 +223,13 @@ export default function Respondents() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-[#0A0A0A]">{t('Respondents')}</h1>
-          <p className="text-sm text-[#71717A] mt-1">
+          <h1 className="text-3xl font-serif text-[#1A1A1A]">{t('Respondents')}</h1>
+          <p className="text-sm text-[#616161] mt-1">
             {counts.total} {t('registered respondents')} · {counts.warned} {t('warned')} · {counts.suspended} {t('suspended')}
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-[#E4E4E7] rounded-md text-sm font-medium text-[#0A0A0A] hover:bg-[#F4F4F5] transition-colors bg-white shadow-none cursor-pointer">
+          <button className="flex items-center gap-2 px-4 py-2 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors bg-white shadow-none cursor-pointer">
             <Download className="w-4 h-4" />
             {t('Export CSV')}
           </button>
@@ -243,16 +244,16 @@ export default function Respondents() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="bg-white border border-[#E4E4E7] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#D4D4D8] transition-colors group"
+            className="bg-white border border-[#EBEBEB] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#FFC1B5] transition-colors group"
           >
             <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[#71717A]">{t(card.title)}</span>
-              <div className="p-2 bg-[#F4F4F5] rounded-md text-[#52525B] group-hover:bg-[#FF3C21] group-hover:text-white transition-colors">
+              <span className="text-sm font-medium text-[#616161]">{t(card.title)}</span>
+              <div className="p-2 bg-[#F3F3F3] rounded-md text-[#4A4A4A] group-hover:bg-[#FF3C21] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-semibold text-[#0A0A0A]">{card.value}</div>
-            <div className="text-xs text-[#52525B] mt-2">{card.subtitle}</div>
+            <div className="text-2xl font-medium text-[#1A1A1A]">{card.value}</div>
+            <div className="text-xs text-[#4A4A4A] mt-2">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
@@ -260,13 +261,13 @@ export default function Respondents() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('Search respondents...')}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-[#E4E4E7] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#71717A]"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161]"
           />
         </div>
 
@@ -316,7 +317,7 @@ export default function Respondents() {
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center justify-center w-9 h-9 text-[#71717A] hover:text-[#0A0A0A] hover:bg-[#F4F4F5] rounded-full transition-colors border border-transparent hover:border-[#E4E4E7] shadow-none cursor-pointer flex-shrink-0"
+              className="flex items-center justify-center w-9 h-9 text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-full transition-colors border border-transparent hover:border-[#EBEBEB] shadow-none cursor-pointer flex-shrink-0"
               title={t('Clear filters')}
             >
               <X className="w-4 h-4" />
@@ -326,11 +327,11 @@ export default function Respondents() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-md border border-[#F4F4F5] overflow-hidden shadow-none">
+      <div className="bg-white rounded-md border border-[#F3F3F3] overflow-hidden shadow-none">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
-              <tr className="border-b border-[#E4E4E7] text-[#52525B] font-medium bg-[#F4F4F5]">
+              <tr className="border-b border-[#EBEBEB] text-[#4A4A4A] font-medium bg-[#F3F3F3]">
                 <th className="pl-6 pr-3 py-4 font-medium text-[11px] tracking-wider uppercase">{t('User')}</th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Trust')}</th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Surveys')}</th>
@@ -342,10 +343,10 @@ export default function Respondents() {
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase text-right">{t('Actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F4F4F5]">
+            <tbody className="divide-y divide-[#F3F3F3]">
               {visible.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-[#71717A]">
+                  <td colSpan={9} className="px-6 py-12 text-center text-[#616161]">
                     {t('No respondents match these filters.')}
                   </td>
                 </tr>
@@ -365,12 +366,12 @@ export default function Respondents() {
                       {/* User */}
                       <td className="pl-6 pr-3 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-sm font-semibold shrink-0">
+                          <div className="w-9 h-9 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-sm font-medium shrink-0">
                             {r.initial}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-medium text-[#0A0A0A] truncate">{r.name}</div>
-                            <div className="text-xs text-[#71717A] truncate mt-0.5">{r.email}</div>
+                            <div className="font-medium text-[#1A1A1A] truncate">{r.name}</div>
+                            <div className="text-xs text-[#616161] truncate mt-0.5">{r.email}</div>
                           </div>
                         </div>
                       </td>
@@ -381,32 +382,32 @@ export default function Respondents() {
                       </td>
 
                       {/* Surveys */}
-                      <td className="px-6 py-4 text-[#0A0A0A] tabular-nums font-medium">
+                      <td className="px-6 py-4 text-[#1A1A1A] tabular-nums font-medium">
                         {r.surveys}
                       </td>
 
                       {/* Quality score */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-24 h-1.5 bg-[#F4F4F5] rounded-full overflow-hidden">
+                          <div className="relative w-24 h-1.5 bg-[#F3F3F3] rounded-full overflow-hidden">
                             <div
                               className={`absolute inset-y-0 left-0 ${quality.bar} rounded-full`}
                               style={{ width: `${r.qualityScore}%` }}
                             />
                           </div>
-                          <span className={`text-xs font-semibold tabular-nums ${quality.text}`}>
+                          <span className={`text-xs font-medium tabular-nums ${quality.text}`}>
                             {r.qualityScore}%
                           </span>
                         </div>
                       </td>
 
                       {/* Earned */}
-                      <td className="px-6 py-4 text-[#0A0A0A] tabular-nums font-semibold">
+                      <td className="px-6 py-4 text-[#1A1A1A] tabular-nums font-medium">
                         {formatMnt(r.earnedMnt)}
                       </td>
 
                       {/* Last active */}
-                      <td className="px-6 py-4 text-[#52525B] tabular-nums">
+                      <td className="px-6 py-4 text-[#4A4A4A] tabular-nums">
                         <span title={format(new Date(r.lastActive), 'MMM d, yyyy')}>
                           {formatDistanceToNow(new Date(r.lastActive), { addSuffix: true })}
                         </span>
@@ -414,7 +415,7 @@ export default function Respondents() {
 
                       {/* Warnings */}
                       <td className="px-6 py-4 tabular-nums">
-                        <span className={r.warnings === 0 ? 'text-[#71717A]' : 'text-[#B91C1C] font-semibold'}>
+                        <span className={r.warnings === 0 ? 'text-[#616161]' : 'text-[#B91C1C] font-medium'}>
                           {r.warnings}
                         </span>
                       </td>
@@ -472,21 +473,21 @@ export default function Respondents() {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[#F4F4F5] bg-white">
-          <span className="text-sm text-[#71717A]">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[#F3F3F3] bg-white">
+          <span className="text-sm text-[#616161]">
             {t('Showing')} 1 {t('to')} {visible.length} {t('of')} {counts.total} {t('respondents')}
           </span>
           <div className="flex items-center gap-1">
             <button
               disabled
-              className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#E4E4E7] rounded-md bg-white text-[#71717A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#EBEBEB] rounded-md bg-white text-[#616161] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {t('Previous')}
             </button>
             <button className="h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border border-[#FF3C21] rounded-md bg-[#FF3C21] text-white tabular-nums cursor-default">
               1
             </button>
-            <button className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#E4E4E7] rounded-md bg-white text-[#52525B] hover:bg-[#F4F4F5] transition-colors cursor-pointer">
+            <button className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#EBEBEB] rounded-md bg-white text-[#4A4A4A] hover:bg-[#F3F3F3] transition-colors cursor-pointer">
               {t('Next')}
             </button>
           </div>
@@ -494,13 +495,14 @@ export default function Respondents() {
       </div>
 
       {/* Confirm Modal */}
+      <Portal>
       <AnimatePresence>
         {confirming && actionMeta && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#0A0A0A]/30 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-[#1A1A1A]/30 flex items-center justify-center z-50 p-4"
             onClick={() => setConfirming(null)}
           >
             <motion.div
@@ -508,28 +510,28 @@ export default function Respondents() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
               transition={{ type: 'spring', duration: 0.3 }}
-              className="bg-white rounded-md w-full max-w-sm shadow-none border border-[#F4F4F5] flex flex-col overflow-hidden"
+              className="bg-white rounded-md w-full max-w-sm shadow-none border border-[#F3F3F3] flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#F4F4F5]">
-                <h2 className="text-lg font-semibold text-[#0A0A0A]">{actionMeta.title}</h2>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#F3F3F3]">
+                <h2 className="text-lg font-medium text-[#1A1A1A]">{actionMeta.title}</h2>
                 <button
                   onClick={() => setConfirming(null)}
-                  className="text-[#71717A] hover:text-[#0A0A0A] hover:bg-[#F4F4F5] rounded-md transition-colors p-1 cursor-pointer"
+                  className="text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors p-1 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="p-6">
-                <p className="text-[#52525B] text-sm leading-relaxed">{actionMeta.description}</p>
-                <div className="mt-3 p-3 bg-white border border-[#E4E4E7] rounded-md flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-sm font-semibold shrink-0">
+                <p className="text-[#4A4A4A] text-sm leading-relaxed">{actionMeta.description}</p>
+                <div className="mt-3 p-3 bg-white border border-[#EBEBEB] rounded-md flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-sm font-medium shrink-0">
                     {confirming.respondent.initial}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-medium text-[#0A0A0A] text-sm truncate">{confirming.respondent.name}</div>
-                    <div className="text-[#71717A] text-xs truncate">{confirming.respondent.email}</div>
+                    <div className="font-medium text-[#1A1A1A] text-sm truncate">{confirming.respondent.name}</div>
+                    <div className="text-[#616161] text-xs truncate">{confirming.respondent.email}</div>
                   </div>
                 </div>
                 {actionMeta.tone === 'danger' && (
@@ -540,10 +542,10 @@ export default function Respondents() {
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#F4F4F5]">
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#F3F3F3]">
                 <button
                   onClick={() => setConfirming(null)}
-                  className="px-4 py-2 text-sm font-medium text-[#52525B] bg-white border border-[#E4E4E7] rounded-md hover:bg-[#F4F4F5] transition-colors cursor-pointer"
+                  className="px-4 py-2 text-sm font-medium text-[#4A4A4A] bg-white border border-[#EBEBEB] rounded-md hover:bg-[#F3F3F3] transition-colors cursor-pointer"
                 >
                   {t('Cancel')}
                 </button>
@@ -564,6 +566,7 @@ export default function Respondents() {
           </motion.div>
         )}
       </AnimatePresence>
+      </Portal>
     </motion.div>
   );
 }

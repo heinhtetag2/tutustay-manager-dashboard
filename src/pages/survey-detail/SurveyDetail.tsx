@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
+import { Portal } from '@/shared/ui/portal';
 import {
   Pause,
   Play,
@@ -491,46 +492,46 @@ export default function SurveyDetail() {
       className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[#FAFAFA]"
     >
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-[#71717A] mb-2">
+      <nav className="flex items-center gap-2 text-sm text-[#616161] mb-2">
         <button
           onClick={() => navigate('/surveys')}
-          className="font-normal hover:text-[#0A0A0A] transition-colors cursor-pointer"
+          className="font-normal hover:text-[#1A1A1A] transition-colors cursor-pointer"
         >
           {t('Surveys')}
         </button>
-        <span className="text-[#D4D4D8]">/</span>
-        <span className="text-[#0A0A0A] font-medium">{t(survey.title)}</span>
+        <span className="text-[#D4D4D4]">/</span>
+        <span className="text-[#1A1A1A] font-medium">{t(survey.title)}</span>
       </nav>
 
       {/* Page header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-3xl font-serif text-[#0A0A0A]">{t(survey.title)}</h1>
+            <h1 className="text-3xl font-serif text-[#1A1A1A]">{t(survey.title)}</h1>
             <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusBadge}`}>
               {t(survey.status)}
             </span>
           </div>
-          <p className="text-sm text-[#71717A] flex items-center gap-1.5 flex-wrap">
+          <p className="text-sm text-[#616161] flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => navigate(`/companies/${survey.companyId.toLowerCase()}`)}
-              className="inline-flex items-center gap-1 font-medium text-[#0A0A0A] hover:text-[#FF3C21] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 font-medium text-[#1A1A1A] hover:text-[#FF3C21] transition-colors cursor-pointer"
             >
               <Building2 className="w-3.5 h-3.5" />
               {survey.companyName}
             </button>
-            <span className="text-[#D4D4D8]">·</span>
+            <span className="text-[#D4D4D4]">·</span>
             <span>{t(survey.category)}</span>
-            <span className="text-[#D4D4D8]">·</span>
+            <span className="text-[#D4D4D4]">·</span>
             <span className="inline-flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#71717A]" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#616161]" />
               {t('Level')} {survey.trustLevel}+
             </span>
-            <span className="text-[#D4D4D8]">·</span>
+            <span className="text-[#D4D4D4]">·</span>
             <span>{survey.questionCount} {t('Questions')}</span>
-            <span className="text-[#D4D4D8]">·</span>
+            <span className="text-[#D4D4D4]">·</span>
             <span className="inline-flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-[#71717A]" />
+              <Clock className="w-3.5 h-3.5 text-[#616161]" />
               {survey.estMinutes} {t('Min')}
             </span>
           </p>
@@ -577,11 +578,11 @@ export default function SurveyDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-[#E4E4E7] mb-6">
+      <div className="flex gap-1 border-b border-[#EBEBEB] mb-6">
         <button
           onClick={() => setActiveTab('overview')}
           className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer ${
-            activeTab === 'overview' ? 'text-[#0A0A0A]' : 'text-[#52525B] hover:text-[#0A0A0A]'
+            activeTab === 'overview' ? 'text-[#1A1A1A]' : 'text-[#4A4A4A] hover:text-[#1A1A1A]'
           }`}
         >
           <LayoutDashboard className="w-4 h-4" />
@@ -591,11 +592,11 @@ export default function SurveyDetail() {
         <button
           onClick={() => setActiveTab('responses')}
           className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer ${
-            activeTab === 'responses' ? 'text-[#0A0A0A]' : 'text-[#52525B] hover:text-[#0A0A0A]'
+            activeTab === 'responses' ? 'text-[#1A1A1A]' : 'text-[#4A4A4A] hover:text-[#1A1A1A]'
           }`}
         >
           <Users className="w-4 h-4" />
-          {t('Responses')} <span className="text-[#71717A] font-normal tabular-nums">({allResponses.length})</span>
+          {t('Responses')} <span className="text-[#616161] font-normal tabular-nums">({allResponses.length})</span>
           {activeTab === 'responses' && <span className="absolute left-0 right-0 -bottom-[1px] h-0.5 bg-[#FF3C21] rounded-full" />}
         </button>
       </div>
@@ -632,36 +633,36 @@ export default function SurveyDetail() {
       {/* Progress + Details */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 mb-6">
         {/* Response Progress */}
-        <div className="bg-white rounded-md border border-[#E4E4E7] p-5">
-          <h2 className="text-base font-semibold text-[#0A0A0A] mb-4">{t('Response Progress')}</h2>
+        <div className="bg-white rounded-md border border-[#EBEBEB] p-5">
+          <h2 className="text-base font-medium text-[#1A1A1A] mb-4">{t('Response Progress')}</h2>
 
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-[#52525B] tabular-nums">
+            <span className="text-sm text-[#4A4A4A] tabular-nums">
               {survey.responsesCurrent} {t('collected')}
             </span>
-            <span className="text-sm font-semibold text-[#0A0A0A] tabular-nums">{pct}%</span>
+            <span className="text-sm font-medium text-[#1A1A1A] tabular-nums">{pct}%</span>
           </div>
-          <div className="h-2 bg-[#F4F4F5] rounded-full overflow-hidden">
+          <div className="h-2 bg-[#F3F3F3] rounded-full overflow-hidden">
             <div
               className="h-full bg-[#FF3C21] rounded-full transition-[width]"
               style={{ width: `${pct}%` }}
             />
           </div>
-          <p className="text-xs text-[#71717A] mt-2">
+          <p className="text-xs text-[#616161] mt-2">
             {spotsRemaining} {t('spots remaining')}
           </p>
 
-          <div className="mt-5 pt-4 border-t border-[#F4F4F5]">
-            <div className="text-[11px] font-medium text-[#71717A] uppercase tracking-wider mb-2">
+          <div className="mt-5 pt-4 border-t border-[#F3F3F3]">
+            <div className="text-[11px] font-medium text-[#616161] uppercase tracking-wider mb-2">
               {t('Description')}
             </div>
-            <p className="text-sm text-[#52525B] leading-relaxed">{t(survey.description)}</p>
+            <p className="text-sm text-[#4A4A4A] leading-relaxed">{t(survey.description)}</p>
           </div>
         </div>
 
         {/* Details */}
-        <div className="bg-white rounded-md border border-[#E4E4E7] p-5">
-          <h2 className="text-base font-semibold text-[#0A0A0A] mb-4">{t('Details')}</h2>
+        <div className="bg-white rounded-md border border-[#EBEBEB] p-5">
+          <h2 className="text-base font-medium text-[#1A1A1A] mb-4">{t('Details')}</h2>
 
           <dl className="space-y-3 text-sm">
             <DetailRow label={t('Reward per response')} value={formatMnt(survey.rewardPerResponse)} />
@@ -672,7 +673,7 @@ export default function SurveyDetail() {
               value={
                 <>
                   {format(new Date(survey.createdAt), 'MMM d, yyyy')}{' '}
-                  <span className="text-[#71717A] font-normal">({t(survey.createdLabel)})</span>
+                  <span className="text-[#616161] font-normal">({t(survey.createdLabel)})</span>
                 </>
               }
             />
@@ -681,7 +682,7 @@ export default function SurveyDetail() {
               value={
                 <>
                   {format(new Date(survey.endDate), 'MMM d, yyyy')}{' '}
-                  <span className="text-[#71717A] font-normal">({t(survey.endsLabel)})</span>
+                  <span className="text-[#616161] font-normal">({t(survey.endsLabel)})</span>
                 </>
               }
             />
@@ -690,17 +691,17 @@ export default function SurveyDetail() {
       </div>
 
       {/* Question Summary */}
-      <div className="bg-white rounded-md border border-[#E4E4E7] overflow-hidden mb-6">
-        <div className="flex items-center justify-between gap-3 px-6 py-4 border-b border-[#F4F4F5]">
-          <h2 className="text-base font-semibold text-[#0A0A0A]">{t('Question Summary')}</h2>
+      <div className="bg-white rounded-md border border-[#EBEBEB] overflow-hidden mb-6">
+        <div className="flex items-center justify-between gap-3 px-6 py-4 border-b border-[#F3F3F3]">
+          <h2 className="text-base font-medium text-[#1A1A1A]">{t('Question Summary')}</h2>
           <div className="flex items-center gap-4">
-            <span className="text-xs text-[#71717A]">
+            <span className="text-xs text-[#616161]">
               {t('Based on')} {allResponses.length} {t('responses')}
             </span>
             <button
               onClick={handleExportSummaryCsv}
               disabled={allResponses.length === 0}
-              className="flex items-center gap-2 h-8 px-3 border border-[#E4E4E7] rounded-md text-sm font-medium text-[#0A0A0A] hover:bg-[#F4F4F5] transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="flex items-center gap-2 h-8 px-3 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <Download className="w-4 h-4" />
               {t('Export CSV')}
@@ -719,12 +720,12 @@ export default function SurveyDetail() {
       </div>
 
       {/* Recent Responses */}
-      <div className="bg-white rounded-md border border-[#E4E4E7] overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#F4F4F5]">
-          <h2 className="text-base font-semibold text-[#0A0A0A]">{t('Recent Responses')}</h2>
+      <div className="bg-white rounded-md border border-[#EBEBEB] overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#F3F3F3]">
+          <h2 className="text-base font-medium text-[#1A1A1A]">{t('Recent Responses')}</h2>
           <button
             onClick={() => setActiveTab('responses')}
-            className="text-sm font-medium text-[#0A0A0A] hover:text-[#000000] transition-colors cursor-pointer"
+            className="text-sm font-medium text-[#1A1A1A] hover:text-[#000000] transition-colors cursor-pointer"
           >
             {t('View all')} →
           </button>
@@ -733,21 +734,21 @@ export default function SurveyDetail() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
-              <tr className="border-b border-[#E4E4E7] text-[#52525B] font-medium bg-[#F4F4F5]">
+              <tr className="border-b border-[#EBEBEB] text-[#4A4A4A] font-medium bg-[#F3F3F3]">
                 <th className="px-6 py-4 font-medium">{t('Respondent')}</th>
                 <th className="px-6 py-4 font-medium">{t('Quality')}</th>
                 <th className="px-6 py-4 font-medium">
                     <span className="inline-flex items-center gap-1.5">
                       {t('Reward Status')}
                       <span title={t('Auto-assigned by quality score — ≥80 instant, 50–79 held 24h, <50 invalidated')} className="inline-flex cursor-help">
-                        <Info className="w-3.5 h-3.5 text-[#D4D4D8] hover:text-[#71717A] transition-colors" />
+                        <Info className="w-3.5 h-3.5 text-[#D4D4D4] hover:text-[#616161] transition-colors" />
                       </span>
                     </span>
                   </th>
                 <th className="px-6 py-4 font-medium">{t('Submitted')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F4F4F5]">
+            <tbody className="divide-y divide-[#F3F3F3]">
               {allResponses.slice(0, 6).map((r) => {
                 const rs = rewardStatusDisplay(r.rewardStatus);
                 return (
@@ -756,7 +757,7 @@ export default function SurveyDetail() {
                     className="hover:bg-white transition-colors cursor-pointer"
                     onClick={() => setSelectedResponse(r)}
                   >
-                    <td className="px-6 py-4 text-[#0A0A0A] font-medium">{r.respondent}</td>
+                    <td className="px-6 py-4 text-[#1A1A1A] font-medium">{r.respondent}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${qualityBadge(r.quality)}`}>
                         {t(r.quality)}
@@ -768,7 +769,7 @@ export default function SurveyDetail() {
                         {t(rs.label)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-[#71717A]">{t(r.submittedLabel)}</td>
+                    <td className="px-6 py-4 text-[#616161]">{t(r.submittedLabel)}</td>
                   </tr>
                 );
               })}
@@ -783,13 +784,13 @@ export default function SurveyDetail() {
           {/* Filter bar */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
             <div className="relative flex-1 max-w-sm w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                 placeholder={t('Search by respondent...')}
-                className="w-full pl-9 pr-4 py-2 bg-white border border-[#E4E4E7] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#71717A]"
+                className="w-full pl-9 pr-4 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161]"
               />
             </div>
 
@@ -822,7 +823,7 @@ export default function SurveyDetail() {
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="flex items-center justify-center w-9 h-9 text-[#71717A] hover:text-[#0A0A0A] hover:bg-[#F4F4F5] rounded-full transition-colors border border-transparent hover:border-[#E4E4E7] shadow-none cursor-pointer flex-shrink-0"
+                className="flex items-center justify-center w-9 h-9 text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-full transition-colors border border-transparent hover:border-[#EBEBEB] shadow-none cursor-pointer flex-shrink-0"
                 title={t('Clear filters')}
               >
                 <X className="w-4 h-4" />
@@ -832,7 +833,7 @@ export default function SurveyDetail() {
             <div className="ml-auto">
               <button
                 onClick={handleExportCsv}
-                className="flex items-center gap-2 px-4 py-2 border border-[#E4E4E7] rounded-md text-sm font-medium text-[#0A0A0A] hover:bg-[#F4F4F5] transition-colors bg-white shadow-none cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors bg-white shadow-none cursor-pointer"
               >
                 <Download className="w-4 h-4" />
                 {t('Export CSV')}
@@ -841,28 +842,28 @@ export default function SurveyDetail() {
           </div>
 
           {/* Full table */}
-          <div className="bg-white rounded-md border border-[#E4E4E7] overflow-hidden">
+          <div className="bg-white rounded-md border border-[#EBEBEB] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead>
-                  <tr className="border-b border-[#E4E4E7] text-[#52525B] font-medium bg-[#F4F4F5]">
+                  <tr className="border-b border-[#EBEBEB] text-[#4A4A4A] font-medium bg-[#F3F3F3]">
                     <th className="px-6 py-4 font-medium">{t('Respondent')}</th>
                     <th className="px-6 py-4 font-medium">{t('Quality')}</th>
                     <th className="px-6 py-4 font-medium">
                     <span className="inline-flex items-center gap-1.5">
                       {t('Reward Status')}
                       <span title={t('Auto-assigned by quality score — ≥80 instant, 50–79 held 24h, <50 invalidated')} className="inline-flex cursor-help">
-                        <Info className="w-3.5 h-3.5 text-[#D4D4D8] hover:text-[#71717A] transition-colors" />
+                        <Info className="w-3.5 h-3.5 text-[#D4D4D4] hover:text-[#616161] transition-colors" />
                       </span>
                     </span>
                   </th>
                     <th className="px-6 py-4 font-medium">{t('Submitted')}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F4F4F5]">
+                <tbody className="divide-y divide-[#F3F3F3]">
                   {pageRows.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-[#71717A]">
+                      <td colSpan={4} className="px-6 py-12 text-center text-[#616161]">
                         {t('No responses match these filters.')}
                       </td>
                     </tr>
@@ -874,7 +875,7 @@ export default function SurveyDetail() {
                         className="hover:bg-white transition-colors cursor-pointer"
                         onClick={() => setSelectedResponse(r)}
                       >
-                        <td className="px-6 py-4 text-[#0A0A0A] font-medium">{r.respondent}</td>
+                        <td className="px-6 py-4 text-[#1A1A1A] font-medium">{r.respondent}</td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${qualityBadge(r.quality)}`}>
                             {t(r.quality)}
@@ -886,7 +887,7 @@ export default function SurveyDetail() {
                             {t(rs.label)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-[#71717A]">{t(r.submittedLabel)}</td>
+                        <td className="px-6 py-4 text-[#616161]">{t(r.submittedLabel)}</td>
                       </tr>
                     );
                   })}
@@ -895,21 +896,21 @@ export default function SurveyDetail() {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-[#F4F4F5] bg-white">
-              <span className="text-sm text-[#71717A]">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-[#F3F3F3] bg-white">
+              <span className="text-sm text-[#616161]">
                 {t('Showing')} {filteredResponses.length === 0 ? 0 : pageStart + 1} {t('to')} {Math.min(pageStart + pageSize, filteredResponses.length)} {t('of')} {filteredResponses.length} {t('responses')}
               </span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#E4E4E7] rounded-md bg-white text-[#52525B] hover:bg-[#F4F4F5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#EBEBEB] rounded-md bg-white text-[#4A4A4A] hover:bg-[#F3F3F3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {t('Previous')}
                 </button>
                 {getPageNumbers(page, totalPages).map((p, i) =>
                   p === 'ellipsis' ? (
-                    <span key={`e-${i}`} className="px-1 text-sm text-[#71717A]">…</span>
+                    <span key={`e-${i}`} className="px-1 text-sm text-[#616161]">…</span>
                   ) : (
                     <button
                       key={p}
@@ -917,7 +918,7 @@ export default function SurveyDetail() {
                       className={`h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm border rounded-md tabular-nums transition-colors ${
                         p === page
                           ? 'font-medium border-[#FF3C21] bg-[#FF3C21] text-white cursor-default'
-                          : 'font-normal border-[#E4E4E7] bg-white text-[#52525B] hover:bg-[#F4F4F5] cursor-pointer'
+                          : 'font-normal border-[#EBEBEB] bg-white text-[#4A4A4A] hover:bg-[#F3F3F3] cursor-pointer'
                       }`}
                     >
                       {p}
@@ -927,7 +928,7 @@ export default function SurveyDetail() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#E4E4E7] rounded-md bg-white text-[#52525B] hover:bg-[#F4F4F5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#EBEBEB] rounded-md bg-white text-[#4A4A4A] hover:bg-[#F3F3F3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {t('Next')}
                 </button>
@@ -938,13 +939,14 @@ export default function SurveyDetail() {
       )}
 
       {/* Response Detail side sheet */}
+      <Portal>
       <AnimatePresence>
         {selectedResponse && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#0A0A0A]/30 z-50 flex justify-end"
+            className="fixed inset-0 bg-[#1A1A1A]/30 z-50 flex justify-end"
             onClick={() => setSelectedResponse(null)}
           >
             <motion.aside
@@ -952,18 +954,18 @@ export default function SurveyDetail() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-              className="w-full max-w-md bg-white h-full overflow-y-auto border-l border-[#E4E4E7]"
+              className="w-full max-w-md bg-white h-full overflow-y-auto border-l border-[#EBEBEB]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="sticky top-0 z-10 bg-white px-6 py-4 border-b border-[#E4E4E7] flex items-center justify-between">
+              <div className="sticky top-0 z-10 bg-white px-6 py-4 border-b border-[#EBEBEB] flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-[#0A0A0A]">{t('Response Detail')}</h2>
-                  <p className="text-sm text-[#71717A] mt-0.5">{selectedResponse.respondent}</p>
+                  <h2 className="text-base font-medium text-[#1A1A1A]">{t('Response Detail')}</h2>
+                  <p className="text-sm text-[#616161] mt-0.5">{selectedResponse.respondent}</p>
                 </div>
                 <button
                   onClick={() => setSelectedResponse(null)}
-                  className="text-[#71717A] hover:text-[#0A0A0A] hover:bg-[#F4F4F5] rounded-md transition-colors p-1 cursor-pointer"
+                  className="text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors p-1 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -979,12 +981,12 @@ export default function SurveyDetail() {
                   const earned = Math.round(baseReward * mult);
                   const totalSec = QUESTIONS.reduce((acc, q) => acc + q.timeSec, 0);
                   return (
-                    <div className="bg-white rounded-md border border-[#E4E4E7] p-5">
+                    <div className="bg-white rounded-md border border-[#EBEBEB] p-5">
                       <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-sm font-semibold text-[#0A0A0A]">{t('Quality Score')}</h3>
-                        <span className="text-3xl font-bold text-[#0A0A0A] tabular-nums leading-none">{score}</span>
+                        <h3 className="text-sm font-medium text-[#1A1A1A]">{t('Quality Score')}</h3>
+                        <span className="text-3xl font-semibold text-[#1A1A1A] tabular-nums leading-none">{score}</span>
                       </div>
-                      <div className="h-2 bg-[#F4F4F5] rounded-full overflow-hidden mb-4">
+                      <div className="h-2 bg-[#F3F3F3] rounded-full overflow-hidden mb-4">
                         <div
                           className={`h-full rounded-full ${score >= 80 ? 'bg-[#047857]' : score >= 50 ? 'bg-[#B45309]' : 'bg-[#DC2626]'}`}
                           style={{ width: `${score}%` }}
@@ -1000,38 +1002,38 @@ export default function SurveyDetail() {
                 })()}
 
                 {/* Quality Factors */}
-                <div className="bg-white rounded-md border border-[#E4E4E7] overflow-hidden">
-                  <div className="px-5 py-3 border-b border-[#F4F4F5] bg-white">
-                    <h3 className="text-[11px] font-medium text-[#71717A] uppercase tracking-wider">
+                <div className="bg-white rounded-md border border-[#EBEBEB] overflow-hidden">
+                  <div className="px-5 py-3 border-b border-[#F3F3F3] bg-white">
+                    <h3 className="text-[11px] font-medium text-[#616161] uppercase tracking-wider">
                       {t('Quality Factors')}
                     </h3>
                   </div>
                   {QUALITY_FACTORS.map((f, i) => (
                     <div
                       key={f.label}
-                      className={`flex items-start gap-3 px-5 py-4 ${i < QUALITY_FACTORS.length - 1 ? 'border-b border-[#F4F4F5]' : ''}`}
+                      className={`flex items-start gap-3 px-5 py-4 ${i < QUALITY_FACTORS.length - 1 ? 'border-b border-[#F3F3F3]' : ''}`}
                     >
                       <CheckCircle2 className="w-5 h-5 text-[#047857] shrink-0 mt-0.5" strokeWidth={1.75} />
                       <div>
-                        <div className="text-sm font-medium text-[#0A0A0A]">{t(f.label)}</div>
-                        <div className="text-xs text-[#71717A] mt-0.5">{t(f.detail)}</div>
+                        <div className="text-sm font-medium text-[#1A1A1A]">{t(f.label)}</div>
+                        <div className="text-xs text-[#616161] mt-0.5">{t(f.detail)}</div>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Answers */}
-                <div className="bg-white rounded-md border border-[#E4E4E7] overflow-hidden">
+                <div className="bg-white rounded-md border border-[#EBEBEB] overflow-hidden">
                   <button
                     onClick={() => setIsAnswersOpen((o) => !o)}
-                    className="w-full flex items-center justify-between px-5 py-3 border-b border-[#F4F4F5] bg-white cursor-pointer"
+                    className="w-full flex items-center justify-between px-5 py-3 border-b border-[#F3F3F3] bg-white cursor-pointer"
                   >
-                    <h3 className="text-[11px] font-medium text-[#71717A] uppercase tracking-wider">
+                    <h3 className="text-[11px] font-medium text-[#616161] uppercase tracking-wider">
                       {t('Answers')} ({QUESTIONS.length} {t('Questions')})
                     </h3>
                     {isAnswersOpen
-                      ? <ChevronUp className="w-4 h-4 text-[#71717A]" />
-                      : <ChevronDown className="w-4 h-4 text-[#71717A]" />}
+                      ? <ChevronUp className="w-4 h-4 text-[#616161]" />
+                      : <ChevronDown className="w-4 h-4 text-[#616161]" />}
                   </button>
                   {isAnswersOpen && (
                     <div>
@@ -1040,19 +1042,19 @@ export default function SurveyDetail() {
                         return (
                           <div
                             key={q.id}
-                            className={`p-5 ${i < QUESTIONS.length - 1 ? 'border-b border-[#F4F4F5]' : ''}`}
+                            className={`p-5 ${i < QUESTIONS.length - 1 ? 'border-b border-[#F3F3F3]' : ''}`}
                           >
                             <div className="flex items-start gap-3">
-                              <div className="w-6 h-6 rounded-full bg-[#F4F4F5] text-[#0A0A0A] text-xs font-semibold flex items-center justify-center shrink-0">
+                              <div className="w-6 h-6 rounded-full bg-[#F3F3F3] text-[#1A1A1A] text-xs font-medium flex items-center justify-center shrink-0">
                                 {i + 1}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="text-sm text-[#0A0A0A] mb-2 leading-relaxed">{t(q.text)}</div>
-                                <div className="flex items-start gap-2 text-sm text-[#52525B]">
-                                  <MessageSquare className="w-4 h-4 text-[#71717A] shrink-0 mt-0.5" />
-                                  <span>{answer || <span className="italic text-[#71717A]">{t('(no answer)')}</span>}</span>
+                                <div className="text-sm text-[#1A1A1A] mb-2 leading-relaxed">{t(q.text)}</div>
+                                <div className="flex items-start gap-2 text-sm text-[#4A4A4A]">
+                                  <MessageSquare className="w-4 h-4 text-[#616161] shrink-0 mt-0.5" />
+                                  <span>{answer || <span className="italic text-[#616161]">{t('(no answer)')}</span>}</span>
                                 </div>
-                                <div className="text-[11px] text-[#71717A] mt-1 tabular-nums">{q.timeSec}s</div>
+                                <div className="text-[11px] text-[#616161] mt-1 tabular-nums">{q.timeSec}s</div>
                               </div>
                             </div>
                           </div>
@@ -1066,15 +1068,17 @@ export default function SurveyDetail() {
           </motion.div>
         )}
       </AnimatePresence>
+      </Portal>
 
       {/* Delete Confirmation Modal */}
+      <Portal>
       <AnimatePresence>
         {isDeleteOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#0A0A0A]/30 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-[#1A1A1A]/30 flex items-center justify-center z-50 p-4"
             onClick={() => setIsDeleteOpen(false)}
           >
             <motion.div
@@ -1082,29 +1086,29 @@ export default function SurveyDetail() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
               transition={{ type: 'spring', duration: 0.3 }}
-              className="bg-white rounded-md w-full max-w-sm shadow-none border border-[#F4F4F5] flex flex-col overflow-hidden"
+              className="bg-white rounded-md w-full max-w-sm shadow-none border border-[#F3F3F3] flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#F4F4F5] shrink-0">
-                <h2 className="text-lg font-semibold text-[#0A0A0A] flex items-center gap-2">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#F3F3F3] shrink-0">
+                <h2 className="text-lg font-medium text-[#1A1A1A] flex items-center gap-2">
                   <Ban className="w-5 h-5 text-[#DC2626]" />
                   {t('Reject survey?')}
                 </h2>
                 <button
                   onClick={() => setIsDeleteOpen(false)}
-                  className="text-[#71717A] hover:text-[#0A0A0A] hover:bg-[#F4F4F5] rounded-md transition-colors p-1 cursor-pointer"
+                  className="text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors p-1 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="p-6 bg-white">
-                <p className="text-[#52525B] text-sm leading-relaxed">
+                <p className="text-[#4A4A4A] text-sm leading-relaxed">
                   {t('The survey will be marked as rejected and removed from respondent feeds. The company will be notified.')}
                 </p>
-                <div className="mt-3 p-3 bg-white border border-[#E4E4E7] rounded-md">
-                  <div className="font-medium text-[#0A0A0A] text-sm">{t(survey.title)}</div>
-                  <div className="text-[#71717A] text-xs mt-1">
+                <div className="mt-3 p-3 bg-white border border-[#EBEBEB] rounded-md">
+                  <div className="font-medium text-[#1A1A1A] text-sm">{t(survey.title)}</div>
+                  <div className="text-[#616161] text-xs mt-1">
                     {survey.companyName} · {t(survey.category)} · {survey.responsesCurrent}/{survey.responsesTarget} {t('responses')}
                   </div>
                 </div>
@@ -1114,10 +1118,10 @@ export default function SurveyDetail() {
                 </p>
               </div>
 
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#F4F4F5] bg-white shrink-0">
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#F3F3F3] bg-white shrink-0">
                 <button
                   onClick={() => setIsDeleteOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-[#52525B] bg-white border border-[#E4E4E7] rounded-md hover:bg-[#F4F4F5] transition-colors shadow-none cursor-pointer"
+                  className="px-4 py-2 text-sm font-medium text-[#4A4A4A] bg-white border border-[#EBEBEB] rounded-md hover:bg-[#F3F3F3] transition-colors shadow-none cursor-pointer"
                 >
                   {t('Cancel')}
                 </button>
@@ -1132,6 +1136,7 @@ export default function SurveyDetail() {
           </motion.div>
         )}
       </AnimatePresence>
+      </Portal>
     </motion.div>
   );
 }
@@ -1145,18 +1150,18 @@ interface KpiCardProps {
 
 function KpiCard({ icon, iconTone, label, value }: KpiCardProps) {
   const tones: Record<KpiCardProps['iconTone'], string> = {
-    brand: 'bg-[#F4F4F5] text-[#0A0A0A]',
+    brand: 'bg-[#F3F3F3] text-[#1A1A1A]',
     green: 'bg-[#ECFDF5] text-[#047857]',
     amber: 'bg-[#FFFBEB] text-[#B45309]',
     blue:  'bg-[#EFF6FF] text-[#1D4ED8]',
   };
   return (
-    <div className="bg-white rounded-md border border-[#E4E4E7] p-5">
+    <div className="bg-white rounded-md border border-[#EBEBEB] p-5">
       <div className={`w-10 h-10 rounded-md flex items-center justify-center mb-4 ${tones[iconTone]}`}>
         {icon}
       </div>
-      <div className="text-2xl font-bold text-[#0A0A0A] tracking-tight mb-1 tabular-nums">{value}</div>
-      <div className="text-sm text-[#71717A]">{label}</div>
+      <div className="text-2xl font-semibold text-[#1A1A1A] tracking-tight mb-1 tabular-nums">{value}</div>
+      <div className="text-sm text-[#616161]">{label}</div>
     </div>
   );
 }
@@ -1187,23 +1192,23 @@ function QuestionSummaryRow({ question, index, aggregation, isLast }: QuestionSu
     : allTexts;
 
   return (
-    <div className={!isLast ? 'border-b border-[#F4F4F5]' : ''}>
+    <div className={!isLast ? 'border-b border-[#F3F3F3]' : ''}>
       <button
         onClick={() => setIsOpen((o) => !o)}
         aria-expanded={isOpen}
         className="w-full px-6 py-4 text-left hover:bg-white transition-colors cursor-pointer"
       >
         <div className="flex items-start gap-3">
-          <span className="w-6 h-6 rounded-full bg-[#F4F4F5] text-[#0A0A0A] text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
+          <span className="w-6 h-6 rounded-full bg-[#F3F3F3] text-[#1A1A1A] text-xs font-medium flex items-center justify-center shrink-0 mt-0.5">
             {index + 1}
           </span>
           <div className="flex-1 min-w-0">
-            <div className="text-xs text-[#71717A] mb-0.5">{t(qTypeLabel)}</div>
-            <div className="font-medium text-[#0A0A0A]">{t(question.text)}</div>
+            <div className="text-xs text-[#616161] mb-0.5">{t(qTypeLabel)}</div>
+            <div className="font-medium text-[#1A1A1A]">{t(question.text)}</div>
           </div>
           {isOpen
-            ? <ChevronUp className="w-4 h-4 text-[#71717A] shrink-0 mt-1" />
-            : <ChevronDown className="w-4 h-4 text-[#71717A] shrink-0 mt-1" />}
+            ? <ChevronUp className="w-4 h-4 text-[#616161] shrink-0 mt-1" />
+            : <ChevronDown className="w-4 h-4 text-[#616161] shrink-0 mt-1" />}
         </div>
       </button>
 
@@ -1220,10 +1225,10 @@ function QuestionSummaryRow({ question, index, aggregation, isLast }: QuestionSu
               {aggregation.type === 'rating' && (
                 <>
                   <div className="flex items-baseline gap-2 mb-3">
-                    <span className="text-3xl font-bold text-[#0A0A0A] tabular-nums leading-none">
+                    <span className="text-3xl font-semibold text-[#1A1A1A] tabular-nums leading-none">
                       {aggregation.avg?.toFixed(1) ?? '—'}
                     </span>
-                    <span className="text-sm text-[#71717A]">/ 5 {t('average')}</span>
+                    <span className="text-sm text-[#616161]">/ 5 {t('average')}</span>
                   </div>
                   <div className="space-y-2">
                     {aggregation.distribution.map((item) => (
@@ -1256,7 +1261,7 @@ function QuestionSummaryRow({ question, index, aggregation, isLast }: QuestionSu
                   {allTexts.slice(0, 3).map((text, i) => (
                     <div
                       key={i}
-                      className="bg-white border border-[#F4F4F5] rounded-md px-3 py-2 text-sm text-[#52525B] italic"
+                      className="bg-white border border-[#F3F3F3] rounded-md px-3 py-2 text-sm text-[#4A4A4A] italic"
                     >
                       “{text}”
                     </div>
@@ -1264,14 +1269,14 @@ function QuestionSummaryRow({ question, index, aggregation, isLast }: QuestionSu
                   {allTexts.length > 3 && (
                     <button
                       onClick={() => setIsTextModalOpen(true)}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-[#0A0A0A] hover:text-[#000000] transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-[#1A1A1A] hover:text-[#000000] transition-colors cursor-pointer"
                     >
                       + {allTexts.length - 3} {t('more written responses')}
                       <ArrowUpRight className="w-3.5 h-3.5" />
                     </button>
                   )}
                   {allTexts.length === 0 && (
-                    <div className="text-xs text-[#71717A]">{t('No written responses yet.')}</div>
+                    <div className="text-xs text-[#616161]">{t('No written responses yet.')}</div>
                   )}
                 </div>
               )}
@@ -1281,13 +1286,14 @@ function QuestionSummaryRow({ question, index, aggregation, isLast }: QuestionSu
       </AnimatePresence>
 
       {/* All text responses modal */}
+      <Portal>
       <AnimatePresence>
         {isTextModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#0A0A0A]/30 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-[#1A1A1A]/30 flex items-center justify-center z-50 p-4"
             onClick={() => setIsTextModalOpen(false)}
           >
             <motion.div
@@ -1295,49 +1301,49 @@ function QuestionSummaryRow({ question, index, aggregation, isLast }: QuestionSu
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
               transition={{ type: 'spring', duration: 0.3 }}
-              className="bg-white rounded-md w-full max-w-2xl border border-[#F4F4F5] flex flex-col max-h-[85vh] overflow-hidden"
+              className="bg-white rounded-md w-full max-w-2xl border border-[#F3F3F3] flex flex-col max-h-[85vh] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="px-6 py-4 border-b border-[#F4F4F5] shrink-0 flex items-start justify-between gap-4">
+              <div className="px-6 py-4 border-b border-[#F3F3F3] shrink-0 flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 mb-1 text-xs text-[#71717A]">
+                  <div className="flex items-center gap-2 mb-1 text-xs text-[#616161]">
                     <span>{t(qTypeLabel)}</span>
-                    <span className="text-[#D4D4D8]">·</span>
+                    <span className="text-[#D4D4D4]">·</span>
                     <span className="tabular-nums">{allTexts.length} {t('responses')}</span>
                   </div>
-                  <h2 className="text-lg font-semibold text-[#0A0A0A]">{t(question.text)}</h2>
+                  <h2 className="text-lg font-medium text-[#1A1A1A]">{t(question.text)}</h2>
                 </div>
                 <button
                   onClick={() => setIsTextModalOpen(false)}
-                  className="text-[#71717A] hover:text-[#0A0A0A] hover:bg-[#F4F4F5] rounded-md transition-colors p-1 cursor-pointer shrink-0"
+                  className="text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors p-1 cursor-pointer shrink-0"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="px-6 py-3 border-b border-[#F4F4F5] shrink-0">
+              <div className="px-6 py-3 border-b border-[#F3F3F3] shrink-0">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161]" />
                   <input
                     type="text"
                     value={textSearch}
                     onChange={(e) => setTextSearch(e.target.value)}
                     placeholder={t('Search within answers...')}
-                    className="w-full pl-9 pr-4 py-2 bg-white border border-[#E4E4E7] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#71717A]"
+                    className="w-full pl-9 pr-4 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161]"
                   />
                 </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-2">
                 {filteredTexts.length === 0 ? (
-                  <div className="text-sm text-[#71717A] text-center py-8">
+                  <div className="text-sm text-[#616161] text-center py-8">
                     {t('No answers match your search.')}
                   </div>
                 ) : (
                   filteredTexts.map((text, i) => (
                     <div
                       key={i}
-                      className="bg-white border border-[#F4F4F5] rounded-md px-3 py-2 text-sm text-[#52525B] italic"
+                      className="bg-white border border-[#F3F3F3] rounded-md px-3 py-2 text-sm text-[#4A4A4A] italic"
                     >
                       “{text}”
                     </div>
@@ -1345,15 +1351,15 @@ function QuestionSummaryRow({ question, index, aggregation, isLast }: QuestionSu
                 )}
               </div>
 
-              <div className="px-6 py-3 border-t border-[#F4F4F5] bg-white shrink-0 flex items-center justify-between">
-                <span className="text-xs text-[#71717A] tabular-nums">
+              <div className="px-6 py-3 border-t border-[#F3F3F3] bg-white shrink-0 flex items-center justify-between">
+                <span className="text-xs text-[#616161] tabular-nums">
                   {textSearch
                     ? `${filteredTexts.length} ${t('of')} ${allTexts.length}`
                     : `${allTexts.length} ${t('total responses')}`}
                 </span>
                 <button
                   onClick={() => setIsTextModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-[#52525B] bg-white border border-[#E4E4E7] rounded-md hover:bg-[#F4F4F5] transition-colors shadow-none cursor-pointer"
+                  className="px-4 py-2 text-sm font-medium text-[#4A4A4A] bg-white border border-[#EBEBEB] rounded-md hover:bg-[#F3F3F3] transition-colors shadow-none cursor-pointer"
                 >
                   {t('Close')}
                 </button>
@@ -1362,6 +1368,7 @@ function QuestionSummaryRow({ question, index, aggregation, isLast }: QuestionSu
           </motion.div>
         )}
       </AnimatePresence>
+      </Portal>
     </div>
   );
 }
@@ -1376,12 +1383,12 @@ function DistributionRow({ label, count, pct }: DistributionRowProps) {
   return (
     <div>
       <div className="flex items-baseline justify-between mb-1 gap-4">
-        <span className="text-sm text-[#0A0A0A] min-w-0 truncate">{label}</span>
-        <span className="text-xs text-[#71717A] tabular-nums shrink-0">
+        <span className="text-sm text-[#1A1A1A] min-w-0 truncate">{label}</span>
+        <span className="text-xs text-[#616161] tabular-nums shrink-0">
           {count} ({pct.toFixed(0)}%)
         </span>
       </div>
-      <div className="h-1.5 bg-[#F4F4F5] rounded-full overflow-hidden">
+      <div className="h-1.5 bg-[#F3F3F3] rounded-full overflow-hidden">
         <div
           className="h-full bg-[#FF3C21] rounded-full transition-[width]"
           style={{ width: `${pct}%` }}
@@ -1400,17 +1407,17 @@ interface StatTileProps {
 
 function StatTile({ icon, tone, value, label }: StatTileProps) {
   const tones: Record<StatTileProps['tone'], string> = {
-    neutral: 'bg-[#F4F4F5] text-[#52525B]',
-    brand:   'bg-[#F4F4F5] text-[#0A0A0A]',
+    neutral: 'bg-[#F3F3F3] text-[#4A4A4A]',
+    brand:   'bg-[#F3F3F3] text-[#1A1A1A]',
     amber:   'bg-[#FFFBEB] text-[#B45309]',
   };
   return (
-    <div className="flex flex-col items-center justify-center p-3 border border-[#F4F4F5] rounded-md text-center">
+    <div className="flex flex-col items-center justify-center p-3 border border-[#F3F3F3] rounded-md text-center">
       <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${tones[tone]}`}>
         {icon}
       </div>
-      <div className="text-sm font-semibold text-[#0A0A0A] tabular-nums">{value}</div>
-      <div className="text-[11px] text-[#71717A] mt-0.5">{label}</div>
+      <div className="text-sm font-medium text-[#1A1A1A] tabular-nums">{value}</div>
+      <div className="text-[11px] text-[#616161] mt-0.5">{label}</div>
     </div>
   );
 }
@@ -1418,8 +1425,8 @@ function StatTile({ icon, tone, value, label }: StatTileProps) {
 function DetailRow({ label, value }: DetailRowProps) {
   return (
     <div className="flex justify-between items-baseline gap-4">
-      <dt className="text-[#71717A]">{label}</dt>
-      <dd className="text-[#0A0A0A] font-medium text-right">{value}</dd>
+      <dt className="text-[#616161]">{label}</dt>
+      <dd className="text-[#1A1A1A] font-medium text-right">{value}</dd>
     </div>
   );
 }

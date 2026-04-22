@@ -30,6 +30,7 @@ import {
 
 import type { Survey, SurveyCategory, SurveyStatus } from './survey-data';
 import { DEMO_SURVEYS } from './survey-data';
+import { Portal } from '@/shared/ui/portal';
 
 function formatMnt(value: number): string {
   return `₮${value.toLocaleString('en-US')}`;
@@ -38,7 +39,7 @@ function formatMnt(value: number): string {
 function getStatusStyles(status: SurveyStatus) {
   switch (status) {
     case 'Active':    return { badge: 'bg-[#ECFDF5] text-[#047857] border border-[#D1FAE5]', Icon: CheckCircle2 };
-    case 'Draft':     return { badge: 'bg-[#F4F4F5] text-[#71717A] border border-[#E4E4E7]', Icon: Clock };
+    case 'Draft':     return { badge: 'bg-[#F3F3F3] text-[#616161] border border-[#EBEBEB]', Icon: Clock };
     case 'Paused':    return { badge: 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]', Icon: Pause };
     case 'Completed': return { badge: 'bg-[#EFF6FF] text-[#1D4ED8] border border-[#DBEAFE]', Icon: CheckCircle };
     case 'Rejected':  return { badge: 'bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]', Icon: Ban };
@@ -157,13 +158,13 @@ export default function Surveys() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-[#0A0A0A]">{t('Survey Moderation')}</h1>
-          <p className="text-sm text-[#71717A] mt-1">
+          <h1 className="text-3xl font-serif text-[#1A1A1A]">{t('Survey Moderation')}</h1>
+          <p className="text-sm text-[#616161] mt-1">
             {surveys.length} {t('total surveys across all companies')} · {totalActive} {t('active')} · {totalPaused} {t('paused')} · {totalRejected} {t('rejected')}
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-[#E4E4E7] rounded-md text-sm font-medium text-[#0A0A0A] hover:bg-[#F4F4F5] transition-colors bg-white shadow-none cursor-pointer">
+          <button className="flex items-center gap-2 px-4 py-2 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors bg-white shadow-none cursor-pointer">
             <Download className="w-4 h-4" />
             {t('Export CSV')}
           </button>
@@ -203,16 +204,16 @@ export default function Surveys() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="bg-white border border-[#E4E4E7] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#D4D4D8] transition-colors group"
+            className="bg-white border border-[#EBEBEB] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#FFC1B5] transition-colors group"
           >
             <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[#71717A]">{t(card.title)}</span>
-              <div className="p-2 bg-[#F4F4F5] rounded-md text-[#52525B] group-hover:bg-[#FF3C21] group-hover:text-white transition-colors">
+              <span className="text-sm font-medium text-[#616161]">{t(card.title)}</span>
+              <div className="p-2 bg-[#F3F3F3] rounded-md text-[#4A4A4A] group-hover:bg-[#FF3C21] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-semibold text-[#0A0A0A]">{card.value}</div>
-            <div className="text-xs text-[#52525B] mt-2">{card.subtitle}</div>
+            <div className="text-2xl font-medium text-[#1A1A1A]">{card.value}</div>
+            <div className="text-xs text-[#4A4A4A] mt-2">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
@@ -220,13 +221,13 @@ export default function Surveys() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('Search surveys or companies...')}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-[#E4E4E7] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#71717A]"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161]"
           />
         </div>
 
@@ -234,17 +235,17 @@ export default function Surveys() {
           <div className="relative">
             <button
               onClick={() => setIsDateRangeOpen(!isDateRangeOpen)}
-              className="flex items-center gap-2 px-4 py-2 border border-[#E4E4E7] bg-white rounded-md text-sm font-medium text-[#52525B] hover:bg-[#F4F4F5] focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] transition-colors shadow-none cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 border border-[#EBEBEB] bg-white rounded-md text-sm font-medium text-[#4A4A4A] hover:bg-[#F3F3F3] focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] transition-colors shadow-none cursor-pointer"
             >
-              <Calendar className="w-4 h-4 text-[#71717A]" />
+              <Calendar className="w-4 h-4 text-[#616161]" />
               {dateRange?.from
                 ? (dateRange.to ? `${format(dateRange.from, 'MMM d, yyyy')} - ${format(dateRange.to, 'MMM d, yyyy')}` : format(dateRange.from, 'MMM d, yyyy'))
                 : t('Created Date')}
             </button>
 
             {isDateRangeOpen && (
-              <div className="absolute top-full left-0 mt-2 bg-white border border-[#E4E4E7] rounded-md z-10 flex shadow-none">
-                <div className="w-48 border-r border-[#E4E4E7] p-2 flex flex-col gap-1">
+              <div className="absolute top-full left-0 mt-2 bg-white border border-[#EBEBEB] rounded-md z-10 flex shadow-none">
+                <div className="w-48 border-r border-[#EBEBEB] p-2 flex flex-col gap-1">
                   {['Last 7 days', 'Last 30 days', 'Last 90 days', 'Last 12 months', 'Custom date range'].map((preset) => (
                     <button
                       key={preset}
@@ -257,12 +258,12 @@ export default function Surveys() {
                       }}
                       className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors shadow-none cursor-pointer ${
                         selectedPreset === preset
-                          ? 'bg-[#F4F4F5] text-[#0A0A0A] font-medium'
-                          : 'text-[#52525B] hover:bg-white'
+                          ? 'bg-[#F3F3F3] text-[#1A1A1A] font-medium'
+                          : 'text-[#4A4A4A] hover:bg-white'
                       }`}
                     >
                       {t(preset)}
-                      {selectedPreset === preset && <Check className="w-4 h-4 text-[#0A0A0A]" />}
+                      {selectedPreset === preset && <Check className="w-4 h-4 text-[#1A1A1A]" />}
                     </button>
                   ))}
                 </div>
@@ -278,14 +279,14 @@ export default function Surveys() {
                     numberOfMonths={2}
                     className="border-0 shadow-none p-0"
                   />
-                  <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-[#F4F4F5]">
+                  <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-[#F3F3F3]">
                     <button
                       onClick={() => {
                         setDateRange(undefined);
                         setSelectedPreset('Custom date range');
                         setIsDateRangeOpen(false);
                       }}
-                      className="px-4 py-2 text-sm font-medium text-[#52525B] bg-white border border-[#E4E4E7] rounded-md hover:bg-[#F4F4F5] transition-colors shadow-none cursor-pointer"
+                      className="px-4 py-2 text-sm font-medium text-[#4A4A4A] bg-white border border-[#EBEBEB] rounded-md hover:bg-[#F3F3F3] transition-colors shadow-none cursor-pointer"
                     >
                       {t('Clear')}
                     </button>
@@ -333,7 +334,7 @@ export default function Surveys() {
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center justify-center w-9 h-9 text-[#71717A] hover:text-[#0A0A0A] hover:bg-[#F4F4F5] rounded-full transition-colors border border-transparent hover:border-[#E4E4E7] shadow-none cursor-pointer flex-shrink-0"
+              className="flex items-center justify-center w-9 h-9 text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-full transition-colors border border-transparent hover:border-[#EBEBEB] shadow-none cursor-pointer flex-shrink-0"
               title={t('Clear filters')}
             >
               <X className="w-4 h-4" />
@@ -343,11 +344,11 @@ export default function Surveys() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-md border border-[#F4F4F5] overflow-hidden shadow-none">
+      <div className="bg-white rounded-md border border-[#F3F3F3] overflow-hidden shadow-none">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
-              <tr className="border-b border-[#E4E4E7] text-[#52525B] font-medium bg-[#F4F4F5]">
+              <tr className="border-b border-[#EBEBEB] text-[#4A4A4A] font-medium bg-[#F3F3F3]">
                 <th className="pl-6 pr-3 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Survey')}</th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Company')}</th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Status')}</th>
@@ -358,10 +359,10 @@ export default function Surveys() {
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase text-right">{t('Actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F4F4F5]">
+            <tbody className="divide-y divide-[#F3F3F3]">
               {visibleSurveys.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-[#71717A]">
+                  <td colSpan={8} className="px-6 py-12 text-center text-[#616161]">
                     {t('No surveys match these filters.')}
                   </td>
                 </tr>
@@ -383,15 +384,15 @@ export default function Surveys() {
                   >
                     {/* Survey */}
                     <td className="pl-6 pr-3 py-4">
-                      <div className="font-medium text-[#0A0A0A]">{survey.title}</div>
-                      <div className="text-xs text-[#71717A] mt-0.5">{t(survey.category)}</div>
+                      <div className="font-medium text-[#1A1A1A]">{survey.title}</div>
+                      <div className="text-xs text-[#616161] mt-0.5">{t(survey.category)}</div>
                     </td>
 
                     {/* Company */}
                     <td className="px-6 py-4">
                       <button
                         onClick={(e) => { e.stopPropagation(); navigate(`/companies/${survey.companyId.toLowerCase()}`); }}
-                        className="text-sm font-medium text-[#0A0A0A] hover:text-[#FF3C21] transition-colors cursor-pointer"
+                        className="text-sm font-medium text-[#1A1A1A] hover:text-[#FF3C21] transition-colors cursor-pointer"
                       >
                         {survey.companyName}
                       </button>
@@ -408,33 +409,33 @@ export default function Surveys() {
                     {/* Responses */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative w-24 h-1.5 bg-[#F4F4F5] rounded-full overflow-hidden">
+                        <div className="relative w-24 h-1.5 bg-[#F3F3F3] rounded-full overflow-hidden">
                           <div
                             className="absolute inset-y-0 left-0 bg-[#FF3C21] rounded-full"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <span className="text-xs font-medium text-[#52525B] tabular-nums">
+                        <span className="text-xs font-medium text-[#4A4A4A] tabular-nums">
                           {survey.responsesCurrent}/{survey.responsesTarget}
                         </span>
                       </div>
                     </td>
 
                     {/* Reward */}
-                    <td className="px-6 py-4 font-semibold text-[#0A0A0A] tabular-nums">
+                    <td className="px-6 py-4 font-medium text-[#1A1A1A] tabular-nums">
                       {formatMnt(survey.rewardMnt)}
                     </td>
 
                     {/* Trust req. */}
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-[#F4F4F5] text-[#52525B] border border-[#E4E4E7]">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-[#F3F3F3] text-[#4A4A4A] border border-[#EBEBEB]">
                         <ShieldCheck className="w-3 h-3" />
                         {t('Level')} {survey.trustLevel}+
                       </span>
                     </td>
 
                     {/* Created */}
-                    <td className="px-6 py-4 text-[#52525B] tabular-nums">
+                    <td className="px-6 py-4 text-[#4A4A4A] tabular-nums">
                       <span title={format(new Date(survey.createdAt), 'MMM d, yyyy')}>
                         {formatDistanceToNow(new Date(survey.createdAt), { addSuffix: true })}
                       </span>
@@ -456,7 +457,7 @@ export default function Surveys() {
                             {canPause && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setConfirming({ survey, action: 'pause' }); }}
-                                className="p-1.5 text-[#71717A] hover:text-[#B45309] hover:bg-[#FFFBEB] rounded-md transition-colors cursor-pointer"
+                                className="p-1.5 text-[#616161] hover:text-[#B45309] hover:bg-[#FFFBEB] rounded-md transition-colors cursor-pointer"
                                 title={t('Pause survey')}
                               >
                                 <Pause className="w-4 h-4" />
@@ -465,7 +466,7 @@ export default function Surveys() {
                             {canResume && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setConfirming({ survey, action: 'resume' }); }}
-                                className="p-1.5 text-[#71717A] hover:text-[#047857] hover:bg-[#ECFDF5] rounded-md transition-colors cursor-pointer"
+                                className="p-1.5 text-[#616161] hover:text-[#047857] hover:bg-[#ECFDF5] rounded-md transition-colors cursor-pointer"
                                 title={t('Resume survey')}
                               >
                                 <Play className="w-4 h-4" />
@@ -474,7 +475,7 @@ export default function Surveys() {
                             {canReject && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setConfirming({ survey, action: 'reject' }); }}
-                                className="p-1.5 text-[#71717A] hover:text-[#B91C1C] hover:bg-[#FEF2F2] rounded-md transition-colors cursor-pointer"
+                                className="p-1.5 text-[#616161] hover:text-[#B91C1C] hover:bg-[#FEF2F2] rounded-md transition-colors cursor-pointer"
                                 title={t('Reject survey')}
                               >
                                 <XCircle className="w-4 h-4" />
@@ -492,21 +493,21 @@ export default function Surveys() {
         </div>
 
         {/* Pagination Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[#F4F4F5] bg-white">
-          <span className="text-sm text-[#71717A]">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[#F3F3F3] bg-white">
+          <span className="text-sm text-[#616161]">
             {t('Showing')} 1 {t('to')} {visibleSurveys.length} {t('of')} {surveys.length} {t('surveys')}
           </span>
           <div className="flex items-center gap-1">
             <button
               disabled
-              className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#E4E4E7] rounded-md bg-white text-[#71717A] hover:bg-[#F4F4F5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#EBEBEB] rounded-md bg-white text-[#616161] hover:bg-[#F3F3F3] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {t('Previous')}
             </button>
             <button className="h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border border-[#FF3C21] rounded-md bg-[#FF3C21] text-white tabular-nums cursor-default">
               1
             </button>
-            <button className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#E4E4E7] rounded-md bg-white text-[#52525B] hover:bg-[#F4F4F5] transition-colors cursor-pointer">
+            <button className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#EBEBEB] rounded-md bg-white text-[#4A4A4A] hover:bg-[#F3F3F3] transition-colors cursor-pointer">
               {t('Next')}
             </button>
           </div>
@@ -514,13 +515,14 @@ export default function Surveys() {
       </div>
 
       {/* Confirm Modal */}
+      <Portal>
       <AnimatePresence>
         {confirming && actionMeta && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#0A0A0A]/30 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-[#1A1A1A]/30 flex items-center justify-center z-50 p-4"
             onClick={() => setConfirming(null)}
           >
             <motion.div
@@ -528,25 +530,25 @@ export default function Surveys() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
               transition={{ type: 'spring', duration: 0.3 }}
-              className="bg-white rounded-md w-full max-w-sm shadow-none border border-[#F4F4F5] flex flex-col overflow-hidden"
+              className="bg-white rounded-md w-full max-w-sm shadow-none border border-[#F3F3F3] flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#F4F4F5]">
-                <h2 className="text-lg font-semibold text-[#0A0A0A]">{actionMeta.title}</h2>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#F3F3F3]">
+                <h2 className="text-lg font-medium text-[#1A1A1A]">{actionMeta.title}</h2>
                 <button
                   onClick={() => setConfirming(null)}
-                  className="text-[#71717A] hover:text-[#0A0A0A] hover:bg-[#F4F4F5] rounded-md transition-colors p-1 cursor-pointer"
+                  className="text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors p-1 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="p-6">
-                <p className="text-[#52525B] text-sm leading-relaxed">{actionMeta.description}</p>
-                <div className="mt-3 p-3 bg-white border border-[#E4E4E7] rounded-md">
-                  <div className="font-medium text-[#0A0A0A] text-sm">{confirming.survey.title}</div>
-                  <div className="text-[#71717A] text-xs mt-1">
-                    {confirming.survey.companyName} · {t(confirming.survey.category)} · <span className="font-medium text-[#0A0A0A]">{formatMnt(confirming.survey.rewardMnt)}</span>
+                <p className="text-[#4A4A4A] text-sm leading-relaxed">{actionMeta.description}</p>
+                <div className="mt-3 p-3 bg-white border border-[#EBEBEB] rounded-md">
+                  <div className="font-medium text-[#1A1A1A] text-sm">{confirming.survey.title}</div>
+                  <div className="text-[#616161] text-xs mt-1">
+                    {confirming.survey.companyName} · {t(confirming.survey.category)} · <span className="font-medium text-[#1A1A1A]">{formatMnt(confirming.survey.rewardMnt)}</span>
                   </div>
                 </div>
                 {actionMeta.tone === 'danger' && (
@@ -557,10 +559,10 @@ export default function Surveys() {
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#F4F4F5]">
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#F3F3F3]">
                 <button
                   onClick={() => setConfirming(null)}
-                  className="px-4 py-2 text-sm font-medium text-[#52525B] bg-white border border-[#E4E4E7] rounded-md hover:bg-[#F4F4F5] transition-colors cursor-pointer"
+                  className="px-4 py-2 text-sm font-medium text-[#4A4A4A] bg-white border border-[#EBEBEB] rounded-md hover:bg-[#F3F3F3] transition-colors cursor-pointer"
                 >
                   {t('Cancel')}
                 </button>
@@ -581,6 +583,7 @@ export default function Surveys() {
           </motion.div>
         )}
       </AnimatePresence>
+      </Portal>
     </motion.div>
   );
 }

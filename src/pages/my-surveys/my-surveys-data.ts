@@ -1,0 +1,161 @@
+import type { SurveyCategory } from '@/pages/survey-feed/survey-feed-data';
+
+export type FilledStatus = 'paid' | 'held' | 'under-review' | 'rejected';
+
+export interface FilledSurvey {
+  id: string;
+  surveyId: string;
+  companyName: string;
+  companyInitials: string;
+  companyColor: string;
+  title: string;
+  category: SurveyCategory;
+  rewardMnt: number;
+  durationMin: number;
+  status: FilledStatus;
+  completedAt: string;
+  qualityScore: number;
+}
+
+export const DEMO_FILLED_SURVEYS: FilledSurvey[] = [
+  {
+    id: 'fs-001',
+    surveyId: 'fd-001',
+    companyName: 'MCS Group',
+    companyInitials: 'MC',
+    companyColor: '#047857',
+    title: 'Social Responsibility Survey',
+    category: 'Social',
+    rewardMnt: 15_000,
+    durationMin: 12,
+    status: 'paid',
+    completedAt: '2026-04-22T09:12:00',
+    qualityScore: 92,
+  },
+  {
+    id: 'fs-002',
+    surveyId: 'fd-010',
+    companyName: 'Khan Bank',
+    companyInitials: 'KB',
+    companyColor: '#B45309',
+    title: 'Customer Loyalty Pulse',
+    category: 'Finance',
+    rewardMnt: 8_000,
+    durationMin: 9,
+    status: 'held',
+    completedAt: '2026-04-21T18:04:00',
+    qualityScore: 88,
+  },
+  {
+    id: 'fs-003',
+    surveyId: 'fd-009',
+    companyName: 'Mongolia Telecom',
+    companyInitials: 'MT',
+    companyColor: '#1D4ED8',
+    title: 'Service Quality Assessment',
+    category: 'Brand',
+    rewardMnt: 3_000,
+    durationMin: 18,
+    status: 'paid',
+    completedAt: '2026-04-14T10:45:00',
+    qualityScore: 95,
+  },
+  {
+    id: 'fs-004',
+    surveyId: 'fd-002',
+    companyName: 'Mongolia Telecom',
+    companyInitials: 'MT',
+    companyColor: '#1D4ED8',
+    title: 'Digital Transformation Survey',
+    category: 'Other',
+    rewardMnt: 1_000,
+    durationMin: 13,
+    status: 'paid',
+    completedAt: '2026-04-10T16:18:00',
+    qualityScore: 90,
+  },
+  {
+    id: 'fs-005',
+    surveyId: 'fd-005',
+    companyName: 'Tenger Insurance',
+    companyInitials: 'TI',
+    companyColor: '#7C3AED',
+    title: 'Organizational Culture Survey',
+    category: 'Brand',
+    rewardMnt: 10_000,
+    durationMin: 16,
+    status: 'paid',
+    completedAt: '2026-04-04T16:22:00',
+    qualityScore: 87,
+  },
+  {
+    id: 'fs-006',
+    surveyId: 'fd-011',
+    companyName: 'Golomt Bank',
+    companyInitials: 'GB',
+    companyColor: '#B91C1C',
+    title: 'Mobile App Usability Study',
+    category: 'Product',
+    rewardMnt: 5_000,
+    durationMin: 8,
+    status: 'under-review',
+    completedAt: '2026-04-22T07:40:00',
+    qualityScore: 0,
+  },
+  {
+    id: 'fs-007',
+    surveyId: 'fd-012',
+    companyName: 'MCS Group',
+    companyInitials: 'MC',
+    companyColor: '#047857',
+    title: 'Retail Experience Survey',
+    category: 'Product',
+    rewardMnt: 4_500,
+    durationMin: 11,
+    status: 'paid',
+    completedAt: '2026-03-28T12:00:00',
+    qualityScore: 91,
+  },
+  {
+    id: 'fs-008',
+    surveyId: 'fd-007',
+    companyName: 'Golomt Bank',
+    companyInitials: 'GB',
+    companyColor: '#B91C1C',
+    title: 'Service Quality Assessment',
+    category: 'Other',
+    rewardMnt: 2_000,
+    durationMin: 10,
+    status: 'rejected',
+    completedAt: '2026-03-20T09:00:00',
+    qualityScore: 42,
+  },
+  {
+    id: 'fs-009',
+    surveyId: 'fd-003',
+    companyName: 'Khan Bank',
+    companyInitials: 'KB',
+    companyColor: '#B45309',
+    title: 'Brand Awareness Survey',
+    category: 'Brand',
+    rewardMnt: 15_000,
+    durationMin: 17,
+    status: 'paid',
+    completedAt: '2026-03-14T14:30:00',
+    qualityScore: 94,
+  },
+  {
+    id: 'fs-010',
+    surveyId: 'fd-004',
+    companyName: 'Golomt Bank',
+    companyInitials: 'GB',
+    companyColor: '#B91C1C',
+    title: 'New Product Feedback Survey',
+    category: 'HR',
+    rewardMnt: 15_000,
+    durationMin: 6,
+    status: 'paid',
+    completedAt: '2026-03-02T09:18:00',
+    qualityScore: 89,
+  },
+];
