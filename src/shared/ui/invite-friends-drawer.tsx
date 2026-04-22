@@ -4,26 +4,11 @@ import { X, Copy, Check, Mail, MessageCircle, Share2, Gift } from 'lucide-react'
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/shared/ui/drawer';
 import { cn } from '@/shared/lib/cn';
 
-type ReferralStatus = 'invited' | 'signed_up' | 'qualified';
-
-type Referral = {
-  id: string;
-  initial: string;
-  phoneLast2: string;
-  status: ReferralStatus;
-  date: string;
+const referralStats = {
+  invited: 8,
+  qualified: 3,
+  earnedMnt: 15_000,
 };
-
-const DEMO_REFERRALS: Referral[] = [
-  { id: 'r-1', initial: 'S', phoneLast2: '58', status: 'invited', date: 'Apr 22' },
-  { id: 'r-2', initial: 'N', phoneLast2: '06', status: 'invited', date: 'Apr 21' },
-  { id: 'r-3', initial: 'E', phoneLast2: '77', status: 'signed_up', date: 'Apr 20' },
-  { id: 'r-4', initial: 'D', phoneLast2: '91', status: 'invited', date: 'Apr 19' },
-  { id: 'r-5', initial: 'B', phoneLast2: '45', status: 'qualified', date: 'Apr 18' },
-  { id: 'r-6', initial: 'M', phoneLast2: '33', status: 'signed_up', date: 'Apr 16' },
-  { id: 'r-7', initial: 'T', phoneLast2: '89', status: 'qualified', date: 'Apr 14' },
-  { id: 'r-8', initial: 'A', phoneLast2: '12', status: 'qualified', date: 'Apr 10' },
-];
 
 export function InviteFriendsDrawer({
   open,
@@ -150,12 +135,20 @@ export function InviteFriendsDrawer({
             </div>
           </div>
 
-          {/* Referrals list */}
+          {/* Referrals stats */}
           <div className="px-6 pb-6">
             <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">
               {t('Your referrals')}
             </h3>
-            <ReferralList referrals={DEMO_REFERRALS} />
+            <div className="grid grid-cols-3 gap-2">
+              <StatCard label={t('Invited')} value={String(referralStats.invited)} />
+              <StatCard label={t('Qualified')} value={String(referralStats.qualified)} />
+              <StatCard
+                label={t('Earned')}
+                value={`₮${referralStats.earnedMnt.toLocaleString('en-US')}`}
+                accent
+              />
+            </div>
           </div>
 
           {/* How it works */}
@@ -219,6 +212,30 @@ function ShareButton({
   );
 }
 
+function StatCard({
+  label,
+  value,
+  accent = false,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="bg-white border border-[#EBEBEB] rounded-md p-3">
+      <div className="text-[11px] text-[#616161] mb-1">{label}</div>
+      <div
+        className={cn(
+          'text-lg font-medium tabular-nums',
+          accent ? 'text-[#FF3C21]' : 'text-[#1A1A1A]',
+        )}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
 function Step({
   n,
   title,
@@ -241,62 +258,3 @@ function Step({
   );
 }
 
-function ReferralList({ referrals }: { referrals: Referral[] }) {
-  const { t } = useTranslation();
-
-  return (
-    <div className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden max-h-96 overflow-y-auto">
-      {referrals.length === 0 ? (
-        <div className="px-4 py-6 text-center text-xs text-[#616161]">
-          {t('No referrals yet. Share your link to invite a friend.')}
-        </div>
-      ) : (
-        <ul className="divide-y divide-[#F3F3F3]">
-          {referrals.map((r) => (
-            <li key={r.id} className="flex items-center gap-3 px-3 py-2.5">
-              <div className="w-7 h-7 rounded-full bg-[#F3F3F3] flex items-center justify-center shrink-0 text-[11px] font-medium text-[#4A4A4A]">
-                {r.initial}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm text-[#1A1A1A] tabular-nums">
-                  {r.initial}. ••{r.phoneLast2}
-                </div>
-                <div className="text-[11px] text-[#616161] mt-0.5 tabular-nums">{r.date}</div>
-              </div>
-              <StatusPill status={r.status} />
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function StatusPill({ status }: { status: ReferralStatus }) {
-  const { t } = useTranslation();
-  const map: Record<ReferralStatus, { label: string; className: string }> = {
-    invited: {
-      label: t('Invited'),
-      className: 'bg-[#F3F3F3] text-[#4A4A4A]',
-    },
-    signed_up: {
-      label: t('Signed up'),
-      className: 'bg-[#EFF6FF] text-[#1D4ED8]',
-    },
-    qualified: {
-      label: `${t('Qualified')} · ₮5,000`,
-      className: 'bg-[#ECFDF5] text-[#047857]',
-    },
-  };
-  const { label, className } = map[status];
-  return (
-    <span
-      className={cn(
-        'px-2 py-0.5 rounded-md text-[10px] font-medium whitespace-nowrap shrink-0 tabular-nums',
-        className,
-      )}
-    >
-      {label}
-    </span>
-  );
-}
