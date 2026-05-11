@@ -50,9 +50,9 @@ import { DEMO_SURVEYS, type Survey, type SurveyStatus } from '@/pages/surveys/su
 import { Portal } from '@/shared/ui/portal';
 
 function formatMnt(value: number): string {
-  if (value >= 1_000_000) return `₮${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `₮${Math.round(value / 1_000)}K`;
-  return `₮${value}`;
+  if (value >= 1_000_000) return `₩${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `₩${Math.round(value / 1_000)}K`;
+  return `₩${value}`;
 }
 
 function getStatusStyles(status: CompanyStatus) {

@@ -33,7 +33,7 @@ import { DEMO_SURVEYS } from './survey-data';
 import { Portal } from '@/shared/ui/portal';
 
 function formatMnt(value: number): string {
-  return `₮${value.toLocaleString('en-US')}`;
+  return `₩${value.toLocaleString('en-US')}`;
 }
 
 function getStatusStyles(status: SurveyStatus) {

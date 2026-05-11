@@ -49,13 +49,13 @@ import { TRUST_LEVELS } from '@/shared/config/business';
 type RangeKey = '7d' | '30d' | 'this_month' | 'last_month';
 
 function formatMnt(value: number): string {
-  return `₮${value.toLocaleString('en-US')}`;
+  return `₩${value.toLocaleString('en-US')}`;
 }
 
 function formatMntCompact(value: number): string {
-  if (value >= 1_000_000) return `₮${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `₮${Math.round(value / 1_000)}K`;
-  return `₮${value}`;
+  if (value >= 1_000_000) return `₩${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `₩${Math.round(value / 1_000)}K`;
+  return `₩${value}`;
 }
 
 const USER_FIRST_NAME = 'Hein';

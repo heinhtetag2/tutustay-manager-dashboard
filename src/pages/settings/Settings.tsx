@@ -14,6 +14,8 @@ import { ChangePasswordDrawer } from '@/shared/ui/change-password-drawer';
 import { TwoStepDrawer } from '@/shared/ui/two-step-drawer';
 import { DeleteAccountDrawer } from '@/shared/ui/delete-account-drawer';
 import { BlockedCompaniesDrawer } from '@/shared/ui/blocked-companies-drawer';
+import { useCurrency } from '@/shared/hooks/useCurrency';
+import { CURRENCIES, type CurrencyCode } from '@/shared/lib/currency';
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
@@ -446,10 +448,10 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
             </div>
             <div>
               <span className="block text-sm font-medium text-[#1A1A1A] mb-1">
-                {t('Earn ₮5,000 per qualified friend')}
+                {t('Earn ₩5,000 per qualified friend')}
               </span>
               <p className="text-sm text-[#616161]">
-                {t('They complete one paid survey — you both get ₮5,000. No limit.')}
+                {t('They complete one paid survey — you both get ₩5,000. No limit.')}
               </p>
             </div>
           </div>
@@ -595,15 +597,15 @@ function DemographicsPanel({ t }: { t: TFn }) {
 
         <div>
           <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
-            {t('Monthly household income (MNT)')}
+            {t('Monthly household income (KRW)')}
           </label>
           <div className="relative">
             <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
-              <option>{t('Under ₮500,000')}</option>
-              <option>₮500,000 – ₮1,000,000</option>
-              <option>₮1,000,000 – ₮2,000,000</option>
-              <option>₮2,000,000 – ₮5,000,000</option>
-              <option>{t('Over ₮5,000,000')}</option>
+              <option>{t('Under ₩500,000')}</option>
+              <option>₩500,000 – ₩1,000,000</option>
+              <option>₩1,000,000 – ₩2,000,000</option>
+              <option>₩2,000,000 – ₩5,000,000</option>
+              <option>{t('Over ₩5,000,000')}</option>
               <option>{t('Prefer not to say')}</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
@@ -659,10 +661,10 @@ function SurveyPreferencesPanel({ t }: { t: TFn }) {
               <div className="relative">
                 <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
                   <option>{t('Any')}</option>
-                  <option>₮1,000+</option>
-                  <option>₮5,000+</option>
-                  <option>₮10,000+</option>
-                  <option>₮15,000+</option>
+                  <option>₩1,000+</option>
+                  <option>₩5,000+</option>
+                  <option>₩10,000+</option>
+                  <option>₩15,000+</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
               </div>
@@ -807,9 +809,7 @@ function LanguageRegionPanel({ t, i18n }: { t: TFn; i18n: { language: string; ch
                 onChange={(e) => i18n.changeLanguage(e.target.value)}
               >
                 <option value="en">English</option>
-                <option value="mn">Монгол</option>
                 <option value="ko">한국어</option>
-                <option value="zh">中文</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
             </div>
@@ -833,20 +833,7 @@ function LanguageRegionPanel({ t, i18n }: { t: TFn; i18n: { language: string; ch
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
-              {t('Currency display')}
-            </label>
-            <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
-                <option>₮ MNT</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
-            </div>
-            <p className="text-xs text-[#616161] mt-2">
-              {t('Rewards are always paid in MNT.')}
-            </p>
-          </div>
+          <CurrencyPicker t={t} />
           <div>
             <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
               {t('Date format')}
@@ -862,6 +849,35 @@ function LanguageRegionPanel({ t, i18n }: { t: TFn; i18n: { language: string; ch
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function CurrencyPicker({ t }: { t: TFn }) {
+  const { currency, setCurrency, format } = useCurrency();
+  const codes = Object.keys(CURRENCIES) as CurrencyCode[];
+  return (
+    <div>
+      <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+        {t('Currency display')}
+      </label>
+      <div className="relative">
+        <select
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+          className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer"
+        >
+          {codes.map((c) => (
+            <option key={c} value={c}>
+              {CURRENCIES[c].symbol} {c} – {t(CURRENCIES[c].label)}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+      </div>
+      <p className="text-xs text-[#616161] mt-2">
+        {t('Preview:')} <span className="font-medium text-[#1A1A1A] tabular-nums">{format(15000)}</span>
+      </p>
     </div>
   );
 }

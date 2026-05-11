@@ -27,21 +27,25 @@ import {
   GATEWAY_LABEL,
 } from '@/shared/state/payment-method';
 import { DEMO_WALLET, type WalletTx } from './wallet-data';
+import { useCurrency } from '@/shared/hooks/useCurrency';
+import { CURRENCIES, formatMoney, readStoredCurrency } from '@/shared/lib/currency';
 
 function formatMnt(value: number): string {
-  return `₮${value.toLocaleString('en-US')}`;
+  return formatMoney(value, readStoredCurrency());
 }
 
 function formatMntCompact(value: number): string {
-  if (value >= 1_000_000) return `₮${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `₮${Math.round(value / 1_000)}K`;
-  return `₮${value}`;
+  const sym = CURRENCIES[readStoredCurrency()].symbol;
+  if (value >= 1_000_000) return `${sym}${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${sym}${Math.round(value / 1_000)}K`;
+  return `${sym}${value}`;
 }
 
 type Filter = 'all' | 'reward' | 'withdrawal' | 'bonus';
 
 export default function Wallet() {
   const { t } = useTranslation();
+  useCurrency(); // subscribe so the page re-renders when currency changes
   const navigate = useNavigate();
   const method = usePaymentMethod();
   const [w, setW] = useState(DEMO_WALLET);
@@ -283,6 +287,7 @@ export default function Wallet() {
 
 function TxRow({ tx, highlight }: { tx: WalletTx; highlight?: boolean }) {
   const { t } = useTranslation();
+  useCurrency();
   const incoming = tx.kind !== 'withdrawal';
 
   const iconCircle = (() => {
@@ -373,6 +378,7 @@ function WithdrawDrawer({
   onDone: (txId: string) => void;
 }) {
   const { t } = useTranslation();
+  const { symbol } = useCurrency();
   const [amount, setAmount] = useState<string>(String(available));
   const [stage, setStage] = useState<DrawerStage>('form');
   const [txId, setTxId] = useState<string | null>(null);
@@ -459,7 +465,7 @@ function WithdrawDrawer({
                   </div>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-serif text-[#616161] pointer-events-none">
-                      ₮
+                      {symbol}
                     </span>
                     <input
                       type="text"

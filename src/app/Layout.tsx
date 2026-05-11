@@ -5,7 +5,7 @@ import { Menu, Bell } from 'lucide-react';
 import { Sidebar } from '@/widgets/sidebar';
 
 export default function Layout() {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileNotifOpen, setIsMobileNotifOpen] = useState(false);
   const location = useLocation();

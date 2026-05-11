@@ -48,7 +48,7 @@ import {
 } from './questions';
 
 function formatMnt(value: number): string {
-  return `₮${value.toLocaleString('en-US')}`;
+  return `₩${value.toLocaleString('en-US')}`;
 }
 
 export default function SurveyPlay() {
@@ -569,7 +569,7 @@ const TRUST_LEVEL_PERKS: Record<number, string> = {
 };
 
 function formatMntPlain(v: number): string {
-  return `₮${v.toLocaleString('en-US')}`;
+  return `₩${v.toLocaleString('en-US')}`;
 }
 
 function SuccessScreen({

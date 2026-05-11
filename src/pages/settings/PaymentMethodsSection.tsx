@@ -253,7 +253,7 @@ function LinkedAccount({
   const { t } = useTranslation();
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-      <div className="flex items-center gap-4 min-w-0">
+      <div className="flex items-center gap-4 min-w-0 sm:flex-1">
         <GatewayGlyph gateway={method.gateway} size="lg" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">

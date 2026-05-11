@@ -96,7 +96,7 @@ export const HELP_ARTICLES: HelpArticleMeta[] = [
   { slug: 'demographics', categorySlug: 'account-privacy', title: 'Why your demographics matter', description: 'They decide which surveys match you — keep them accurate.', readTime: '3 min', updatedAt: 'Apr 18, 2026' },
   { slug: 'notifications', categorySlug: 'account-privacy', title: 'Customizing notifications', description: 'Push, email, in-app, and setting quiet hours.', readTime: '2 min', updatedAt: 'Apr 14, 2026' },
   { slug: 'privacy-data', categorySlug: 'account-privacy', title: 'Privacy and your data', description: 'What is shared with companies and how to export or delete it.', readTime: '4 min', updatedAt: 'Apr 10, 2026' },
-  { slug: 'referrals', categorySlug: 'account-privacy', title: 'Inviting friends and earning bonuses', description: 'How the referral program works — ₮5,000 each per qualified friend.', readTime: '2 min', updatedAt: 'Apr 04, 2026' },
+  { slug: 'referrals', categorySlug: 'account-privacy', title: 'Inviting friends and earning bonuses', description: 'How the referral program works — ₩5,000 each per qualified friend.', readTime: '2 min', updatedAt: 'Apr 04, 2026' },
 ];
 
 export function getCategoryBySlug(slug: string | undefined): HelpCategoryMeta | undefined {

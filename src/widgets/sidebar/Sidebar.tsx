@@ -65,6 +65,20 @@ export function Sidebar({
   // always render the full labels when not on desktop.
   const effectiveCollapsed = isDesktop ? isCollapsed : false;
 
+  // Notif panel content stagger — items glide up after the panel opens.
+  // On exit, items fade out together (no reverse stagger) so the close
+  // feels like one smooth motion, not a cascade fighting the panel collapse.
+  const notifContainerVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.045, delayChildren: 0.12 } },
+    exit: { transition: { staggerChildren: 0, when: 'afterChildren' as const } },
+  };
+  const notifItemVariants = {
+    hidden: { opacity: 0, y: 8 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
+    exit: { opacity: 0, transition: { duration: 0.18, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] } },
+  };
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -262,27 +276,41 @@ export function Sidebar({
           {/* Mobile backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            animate={{ opacity: 1, transition: { duration: 0.24, ease: [0.22, 1, 0.36, 1] } }}
+            exit={{ opacity: 0, transition: { duration: 0.32, ease: [0.4, 0, 0.2, 1] } }}
             onClick={closeNotif}
             className="md:hidden fixed inset-0 bg-black/40 z-40"
           />
           <motion.div
-            initial={{ x: '100%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            initial={isDesktop ? { width: 0, opacity: 0 } : { x: '100%' }}
+            animate={
+              isDesktop
+                ? { width: 320, opacity: 1, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }
+                : { x: 0, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }
+            }
+            exit={
+              isDesktop
+                ? { width: 0, opacity: 0, transition: { duration: 0.32, ease: [0.4, 0, 0.2, 1] } }
+                : { x: '100%', transition: { duration: 0.32, ease: [0.4, 0, 0.2, 1] } }
+            }
             className={cn(
               'bg-white overflow-hidden flex flex-col',
               // Mobile: full-screen overlay
               'fixed inset-0 z-50',
-              // Desktop: inline next to sidebar, 320px wide
-              'md:relative md:inset-auto md:h-full md:w-[320px] md:border-r md:border-[#EBEBEB] md:flex-shrink-0 md:z-10',
+              // Desktop: inline next to sidebar (width is animated, not set via class)
+              'md:relative md:inset-auto md:h-full md:border-r md:border-[#EBEBEB] md:flex-shrink-0 md:z-10',
+              // Keep inner content at full 320px width during the desktop width animation
+              'md:min-w-[320px]',
             )}
           >
             {/* Header */}
-          <div className="h-16 flex items-center justify-between px-6 border-b border-[#EBEBEB] shrink-0">
+          <motion.div
+            variants={notifItemVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="h-16 flex items-center justify-between px-6 border-b border-[#EBEBEB] shrink-0"
+          >
             <h2 className="text-base font-medium text-[#1A1A1A] tracking-tight">{t("Notifications")}</h2>
             <button
               onClick={closeNotif}
@@ -290,13 +318,19 @@ export function Sidebar({
             >
               <X className="w-4 h-4" />
             </button>
-          </div>
-          
+          </motion.div>
+
           {/* Content area - Notifications List */}
-          <div className="flex-1 overflow-y-auto bg-white">
+          <motion.div
+            variants={notifContainerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="flex-1 overflow-y-auto bg-white"
+          >
             {/* Unread Section */}
             {hasUnread && (
-              <div className="px-5 py-3">
+              <motion.div variants={notifItemVariants} className="px-5 py-3">
                 <h3 className="text-xs font-medium text-[#616161] uppercase tracking-wider mb-3">
                   {t("New")}
                 </h3>
@@ -310,7 +344,7 @@ export function Sidebar({
                       </div>
                       <div className="flex-1 pr-4">
                         <p className="text-sm text-[#1A1A1A] leading-snug">
-                          <span className="font-medium">{t("Khan Bank")}</span> — {t("Brand Awareness Survey is a 95% match.")} <span className="font-medium">{t("₮15,000 reward.")}</span>
+                          <span className="font-medium">{t("Khan Bank")}</span> — {t("Brand Awareness Survey is a 95% match.")} <span className="font-medium">{t("₩15,000 reward.")}</span>
                         </p>
                         <span className="text-xs text-[#616161] mt-1.5 block">
                           {t("10 mins ago")}
@@ -329,7 +363,7 @@ export function Sidebar({
                       <div className="flex-1 pr-4">
                         <p className="text-sm text-[#1A1A1A] leading-snug">
                           {t("Your ")}
-                          <span className="font-medium">{t("₮15,000")}</span>
+                          <span className="font-medium">{t("₩15,000")}</span>
                           {t(" reward for Service Quality Assessment cleared the 24-hour hold.")}
                         </p>
                         <span className="text-xs text-[#616161] mt-1.5 block">
@@ -339,11 +373,11 @@ export function Sidebar({
                     </div>
                   </NavLink>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Earlier Section */}
-            <div className={cn("px-5 py-3", hasUnread ? "border-t border-[#EBEBEB]" : "")}>
+            <motion.div variants={notifItemVariants} className={cn("px-5 py-3", hasUnread ? "border-t border-[#EBEBEB]" : "")}>
               <h3 className="text-xs font-medium text-[#616161] uppercase tracking-wider mb-3">
                 {hasUnread ? t("Earlier") : t("Recent")}
               </h3>
@@ -357,7 +391,7 @@ export function Sidebar({
                         </div>
                         <div className="flex-1">
                           <p className="text-sm text-[#4A4A4A] leading-snug">
-                            <span className="font-medium text-[#1A1A1A]">{t("Khan Bank")}</span> — {t("Brand Awareness Survey is a 95% match.")} <span className="font-medium text-[#1A1A1A]">{t("₮15,000 reward.")}</span>
+                            <span className="font-medium text-[#1A1A1A]">{t("Khan Bank")}</span> — {t("Brand Awareness Survey is a 95% match.")} <span className="font-medium text-[#1A1A1A]">{t("₩15,000 reward.")}</span>
                           </p>
                           <span className="text-xs text-[#616161] mt-1.5 block">
                             {t("10 mins ago")}
@@ -374,7 +408,7 @@ export function Sidebar({
                         <div className="flex-1">
                           <p className="text-sm text-[#4A4A4A] leading-snug">
                             {t("Your ")}
-                            <span className="font-medium text-[#1A1A1A]">{t("₮15,000")}</span>
+                            <span className="font-medium text-[#1A1A1A]">{t("₩15,000")}</span>
                             {t(" reward for Service Quality Assessment cleared the 24-hour hold.")}
                           </p>
                           <span className="text-xs text-[#616161] mt-1.5 block">
@@ -395,7 +429,7 @@ export function Sidebar({
                     <div className="flex-1">
                       <p className="text-sm text-[#4A4A4A] leading-snug">
                         {t("Withdrawal of ")}
-                        <span className="font-medium text-[#1A1A1A]">{t("₮50,000")}</span>
+                        <span className="font-medium text-[#1A1A1A]">{t("₩50,000")}</span>
                         {t(" to QPay ••12 was successful.")}
                       </p>
                       <span className="text-xs text-[#616161] mt-1.5 block">
@@ -433,7 +467,7 @@ export function Sidebar({
                     <div className="flex-1">
                       <p className="text-sm text-[#4A4A4A] leading-snug">
                         <span className="font-medium text-[#1A1A1A]">{t("7-day streak")}</span>
-                        {t(" bonus of ₮1,000 applied to your wallet.")}
+                        {t(" bonus of ₩1,000 applied to your wallet.")}
                       </p>
                       <span className="text-xs text-[#616161] mt-1.5 block">
                         {t("Apr 14")}
@@ -470,7 +504,7 @@ export function Sidebar({
                     <div className="flex-1">
                       <p className="text-sm text-[#4A4A4A] leading-snug">
                         <span className="font-medium text-[#1A1A1A]">{t("Bataa")}</span>
-                        {t(" completed their first paid survey. You both earned ₮5,000.")}
+                        {t(" completed their first paid survey. You both earned ₩5,000.")}
                       </p>
                       <span className="text-xs text-[#616161] mt-1.5 block">
                         {t("Apr 10")}
@@ -479,19 +513,25 @@ export function Sidebar({
                   </div>
                 </NavLink>
               </div>
-            </div>
-          </div>
-          
+            </motion.div>
+          </motion.div>
+
           {/* Footer Actions */}
           {hasUnread && (
-            <div className="p-4 border-t border-[#EBEBEB] bg-white mt-auto shrink-0">
+            <motion.div
+              variants={notifItemVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="p-4 border-t border-[#EBEBEB] bg-white mt-auto shrink-0"
+            >
               <button
                 onClick={() => setHasUnread(false)}
                 className="w-full py-2 px-4 bg-transparent border border-[#EBEBEB] text-[#1A1A1A] text-sm font-medium rounded-md hover:bg-[#F3F3F3] transition-colors"
               >
                 {t("Mark all as read")}
               </button>
-            </div>
+            </motion.div>
           )}
           </motion.div>
         </>

@@ -192,7 +192,7 @@ function MainView({
           <StatCard label={t('Surveys run')} value={String(company.totalSurveys)} />
           <StatCard
             label={t('Avg. reward')}
-            value={`₮${Math.round(company.avgRewardMnt / 1000)}K`}
+            value={`₩${Math.round(company.avgRewardMnt / 1000)}K`}
           />
           <StatCard
             label={t('Acceptance')}

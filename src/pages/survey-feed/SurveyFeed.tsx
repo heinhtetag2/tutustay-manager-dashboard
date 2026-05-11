@@ -26,7 +26,7 @@ type CategoryFilter = 'all' | SurveyCategory;
 type SortKey = 'recommended' | 'reward' | 'duration' | 'newest';
 
 function formatMnt(value: number): string {
-  return `₮${value.toLocaleString('en-US')}`;
+  return `₩${value.toLocaleString('en-US')}`;
 }
 
 function matchTone(percent: number): string {

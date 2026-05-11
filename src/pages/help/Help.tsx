@@ -74,7 +74,7 @@ function ArticleBody({ article }: { article: HelpArticleMeta }) {
       <ul className="list-disc list-outside pl-5 space-y-2">
         <li>Track earnings, trust level, and your streak on the <span className="font-medium text-[#1A1A1A]">Dashboard</span>.</li>
         <li>Level up your trust to unlock higher-paying gated surveys in the feed.</li>
-        <li>Invite friends from Settings — you both earn ₮5,000 when they complete a paid survey.</li>
+        <li>Invite friends from Settings — you both earn ₩5,000 when they complete a paid survey.</li>
       </ul>
 
       <div className="bg-[#FAFAFA] border border-[#EBEBEB] rounded-md p-4">
