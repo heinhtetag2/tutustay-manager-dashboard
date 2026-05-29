@@ -44,27 +44,27 @@ function formatMnt(value: number): string {
 function getStatusStyles(status: RespondentStatus) {
   switch (status) {
     case 'Active':
-      return { badge: 'bg-[#ECFDF5] text-[#047857] border border-[#D1FAE5]', Icon: CheckCircle };
+      return { badge: 'bg-[var(--success-tint)] text-[var(--success)]', Icon: CheckCircle };
     case 'Warned':
-      return { badge: 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]', Icon: AlertTriangle };
+      return { badge: 'bg-[var(--warning-tint)] text-[var(--warning)]', Icon: AlertTriangle };
     case 'Suspended':
-      return { badge: 'bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]', Icon: Ban };
+      return { badge: 'bg-[var(--danger-tint)] text-[var(--danger)]', Icon: Ban };
   }
 }
 
 function getQualityStyles(score: number) {
-  if (score >= 80) return { bar: 'bg-[#059669]', text: 'text-[#047857]' };
-  if (score >= 60) return { bar: 'bg-[#D97706]', text: 'text-[#B45309]' };
-  return { bar: 'bg-[#DC2626]', text: 'text-[#B91C1C]' };
+  if (score >= 80) return { bar: 'bg-[var(--success-strong)]', text: 'text-[var(--success)]' };
+  if (score >= 60) return { bar: 'bg-[var(--warning-strong)]', text: 'text-[var(--warning)]' };
+  return { bar: 'bg-[var(--danger-strong)]', text: 'text-[var(--danger)]' };
 }
 
 function getLevelColor(level: TrustLevel): string {
   switch (level) {
-    case 'L1': return 'bg-[#DC2626]';
-    case 'L2': return 'bg-[#FF3C21]';
-    case 'L3': return 'bg-[#D97706]';
-    case 'L4': return 'bg-[#1D4ED8]';
-    case 'L5': return 'bg-[#059669]';
+    case 'L1': return 'bg-[var(--danger-strong)]';
+    case 'L2': return 'bg-[var(--brand-primary)]';
+    case 'L3': return 'bg-[var(--warning-strong)]';
+    case 'L4': return 'bg-[var(--brand-primary-hover)]';
+    case 'L5': return 'bg-[var(--success-strong)]';
   }
 }
 
@@ -81,11 +81,11 @@ function TrustMeter({ level }: { level: TrustLevel }) {
         {[1, 2, 3, 4, 5].map((i) => (
           <span
             key={i}
-            className={`w-1.5 h-1.5 rounded-full ${i <= filled ? color : 'bg-[#EBEBEB]'}`}
+            className={`w-1.5 h-1.5 rounded-full ${i <= filled ? color : 'bg-[var(--border-default)]'}`}
           />
         ))}
       </div>
-      <span className="text-xs font-medium text-[#4A4A4A] tabular-nums">{level}</span>
+      <span className="text-xs font-medium text-[var(--text-tertiary)] tabular-nums">{level}</span>
     </div>
   );
 }
@@ -218,18 +218,18 @@ export default function Respondents() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[#FAFAFA]"
+      className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)]"
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-[#1A1A1A]">{t('Respondents')}</h1>
-          <p className="text-sm text-[#616161] mt-1">
+          <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Respondents')}</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             {counts.total} {t('registered respondents')} · {counts.warned} {t('warned')} · {counts.suspended} {t('suspended')}
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors bg-white shadow-none cursor-pointer">
+          <button className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors bg-white shadow-none cursor-pointer">
             <Download className="w-4 h-4" />
             {t('Export CSV')}
           </button>
@@ -244,16 +244,16 @@ export default function Respondents() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="bg-white border border-[#EBEBEB] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#FFC1B5] transition-colors group"
+            className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
             <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[#616161]">{t(card.title)}</span>
-              <div className="p-2 bg-[#F3F3F3] rounded-md text-[#4A4A4A] group-hover:bg-[#FF3C21] group-hover:text-white transition-colors">
+              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[#1A1A1A]">{card.value}</div>
-            <div className="text-xs text-[#4A4A4A] mt-2">{card.subtitle}</div>
+            <div className="text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
@@ -261,13 +261,13 @@ export default function Respondents() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('Search respondents...')}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161]"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
           />
         </div>
 
@@ -317,7 +317,7 @@ export default function Respondents() {
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center justify-center w-9 h-9 text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-full transition-colors border border-transparent hover:border-[#EBEBEB] shadow-none cursor-pointer flex-shrink-0"
+              className="flex items-center justify-center w-9 h-9 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-full transition-colors border border-transparent hover:border-[var(--border-default)] shadow-none cursor-pointer flex-shrink-0"
               title={t('Clear filters')}
             >
               <X className="w-4 h-4" />
@@ -327,11 +327,11 @@ export default function Respondents() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-md border border-[#F3F3F3] overflow-hidden shadow-none">
+      <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
-              <tr className="border-b border-[#EBEBEB] text-[#4A4A4A] font-medium bg-[#F3F3F3]">
+              <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
                 <th className="pl-6 pr-3 py-4 font-medium text-[11px] tracking-wider uppercase">{t('User')}</th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Trust')}</th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Surveys')}</th>
@@ -343,10 +343,10 @@ export default function Respondents() {
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase text-right">{t('Actions')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F3F3F3]">
+            <tbody className="divide-y divide-[var(--surface-subtle)]">
               {visible.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-[#616161]">
+                  <td colSpan={9} className="px-6 py-12 text-center text-[var(--text-secondary)]">
                     {t('No respondents match these filters.')}
                   </td>
                 </tr>
@@ -361,17 +361,17 @@ export default function Respondents() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: index * 0.02 }}
                       onClick={() => navigate(`/respondents/${r.id.toLowerCase()}`)}
-                      className="hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                      className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
                     >
                       {/* User */}
                       <td className="pl-6 pr-3 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-sm font-medium shrink-0">
+                          <div className="w-9 h-9 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0">
                             {r.initial}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-medium text-[#1A1A1A] truncate">{r.name}</div>
-                            <div className="text-xs text-[#616161] truncate mt-0.5">{r.email}</div>
+                            <div className="font-medium text-[var(--text-primary)] truncate">{r.name}</div>
+                            <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{r.email}</div>
                           </div>
                         </div>
                       </td>
@@ -382,14 +382,14 @@ export default function Respondents() {
                       </td>
 
                       {/* Surveys */}
-                      <td className="px-6 py-4 text-[#1A1A1A] tabular-nums font-medium">
+                      <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums font-medium">
                         {r.surveys}
                       </td>
 
                       {/* Quality score */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-24 h-1.5 bg-[#F3F3F3] rounded-full overflow-hidden">
+                          <div className="relative w-24 h-1.5 bg-[var(--surface-subtle)] rounded-full overflow-hidden">
                             <div
                               className={`absolute inset-y-0 left-0 ${quality.bar} rounded-full`}
                               style={{ width: `${r.qualityScore}%` }}
@@ -402,12 +402,12 @@ export default function Respondents() {
                       </td>
 
                       {/* Earned */}
-                      <td className="px-6 py-4 text-[#1A1A1A] tabular-nums font-medium">
+                      <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums font-medium">
                         {formatMnt(r.earnedMnt)}
                       </td>
 
                       {/* Last active */}
-                      <td className="px-6 py-4 text-[#4A4A4A] tabular-nums">
+                      <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">
                         <span title={format(new Date(r.lastActive), 'MMM d, yyyy')}>
                           {formatDistanceToNow(new Date(r.lastActive), { addSuffix: true })}
                         </span>
@@ -415,7 +415,7 @@ export default function Respondents() {
 
                       {/* Warnings */}
                       <td className="px-6 py-4 tabular-nums">
-                        <span className={r.warnings === 0 ? 'text-[#616161]' : 'text-[#B91C1C] font-medium'}>
+                        <span className={r.warnings === 0 ? 'text-[var(--text-secondary)]' : 'text-[var(--danger)] font-medium'}>
                           {r.warnings}
                         </span>
                       </td>
@@ -436,7 +436,7 @@ export default function Respondents() {
                           {r.status !== 'Suspended' && (
                             <button
                               onClick={(e) => { e.stopPropagation(); setConfirming({ respondent: r, action: 'warn' }); }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] hover:bg-[#FDE68A] transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--warning-tint)] text-[var(--warning)] hover:bg-[var(--warning-border)] transition-colors cursor-pointer"
                               title={t('Warn respondent')}
                             >
                               <AlertTriangle className="w-3 h-3" />
@@ -446,7 +446,7 @@ export default function Respondents() {
                           {r.status !== 'Suspended' ? (
                             <button
                               onClick={(e) => { e.stopPropagation(); setConfirming({ respondent: r, action: 'suspend' }); }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA] hover:bg-[#FECACA] transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--danger-tint)] text-[var(--danger)] hover:bg-[var(--danger-border)] transition-colors cursor-pointer"
                               title={t('Suspend respondent')}
                             >
                               <Ban className="w-3 h-3" />
@@ -455,7 +455,7 @@ export default function Respondents() {
                           ) : (
                             <button
                               onClick={(e) => { e.stopPropagation(); setConfirming({ respondent: r, action: 'reinstate' }); }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[#ECFDF5] text-[#047857] border border-[#D1FAE5] hover:bg-[#D1FAE5] transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--success-tint)] text-[var(--success)] hover:bg-[var(--success-tint-2)] transition-colors cursor-pointer"
                               title={t('Reinstate respondent')}
                             >
                               <CheckCircle className="w-3 h-3" />
@@ -473,21 +473,21 @@ export default function Respondents() {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[#F3F3F3] bg-white">
-          <span className="text-sm text-[#616161]">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
+          <span className="text-sm text-[var(--text-secondary)]">
             {t('Showing')} 1 {t('to')} {visible.length} {t('of')} {counts.total} {t('respondents')}
           </span>
           <div className="flex items-center gap-1">
             <button
               disabled
-              className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#EBEBEB] rounded-md bg-white text-[#616161] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {t('Previous')}
             </button>
-            <button className="h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border border-[#FF3C21] rounded-md bg-[#FF3C21] text-white tabular-nums cursor-default">
+            <button className="h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border border-[var(--brand-primary)] rounded-md bg-[var(--brand-primary)] text-white tabular-nums cursor-default">
               1
             </button>
-            <button className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[#EBEBEB] rounded-md bg-white text-[#4A4A4A] hover:bg-[#F3F3F3] transition-colors cursor-pointer">
+            <button className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
               {t('Next')}
             </button>
           </div>
@@ -502,7 +502,7 @@ export default function Respondents() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#1A1A1A]/30 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-[var(--text-primary)]/30 flex items-center justify-center z-50 p-4"
             onClick={() => setConfirming(null)}
           >
             <motion.div
@@ -510,42 +510,42 @@ export default function Respondents() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
               transition={{ type: 'spring', duration: 0.3 }}
-              className="bg-white rounded-md w-full max-w-sm shadow-none border border-[#F3F3F3] flex flex-col overflow-hidden"
+              className="bg-white rounded-md w-full max-w-sm shadow-none border border-[var(--surface-subtle)] flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#F3F3F3]">
-                <h2 className="text-lg font-medium text-[#1A1A1A]">{actionMeta.title}</h2>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)]">
+                <h2 className="text-lg font-medium text-[var(--text-primary)]">{actionMeta.title}</h2>
                 <button
                   onClick={() => setConfirming(null)}
-                  className="text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors p-1 cursor-pointer"
+                  className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors p-1 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="p-6">
-                <p className="text-[#4A4A4A] text-sm leading-relaxed">{actionMeta.description}</p>
-                <div className="mt-3 p-3 bg-white border border-[#EBEBEB] rounded-md flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-sm font-medium shrink-0">
+                <p className="text-[var(--text-tertiary)] text-sm leading-relaxed">{actionMeta.description}</p>
+                <div className="mt-3 p-3 bg-white border border-[var(--border-default)] rounded-md flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0">
                     {confirming.respondent.initial}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-medium text-[#1A1A1A] text-sm truncate">{confirming.respondent.name}</div>
-                    <div className="text-[#616161] text-xs truncate">{confirming.respondent.email}</div>
+                    <div className="font-medium text-[var(--text-primary)] text-sm truncate">{confirming.respondent.name}</div>
+                    <div className="text-[var(--text-secondary)] text-xs truncate">{confirming.respondent.email}</div>
                   </div>
                 </div>
                 {actionMeta.tone === 'danger' && (
-                  <p className="mt-4 text-[#B91C1C] text-xs font-medium flex items-center gap-1.5">
+                  <p className="mt-4 text-[var(--danger)] text-xs font-medium flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4" />
                     {t('This can be reversed from the Suspended tab.')}
                   </p>
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#F3F3F3]">
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--surface-subtle)]">
                 <button
                   onClick={() => setConfirming(null)}
-                  className="px-4 py-2 text-sm font-medium text-[#4A4A4A] bg-white border border-[#EBEBEB] rounded-md hover:bg-[#F3F3F3] transition-colors cursor-pointer"
+                  className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
                 >
                   {t('Cancel')}
                 </button>
@@ -553,10 +553,10 @@ export default function Respondents() {
                   onClick={applyAction}
                   className={`px-4 py-2 text-sm font-medium text-white rounded-md transition-colors cursor-pointer ${
                     actionMeta.tone === 'danger'
-                      ? 'bg-[#DC2626] hover:bg-[#B91C1C]'
+                      ? 'bg-[var(--danger-strong)] hover:bg-[var(--danger)]'
                       : actionMeta.tone === 'warning'
-                        ? 'bg-[#D97706] hover:bg-[#B45309]'
-                        : 'bg-[#059669] hover:bg-[#047857]'
+                        ? 'bg-[var(--warning-strong)] hover:bg-[var(--warning)]'
+                        : 'bg-[var(--success-strong)] hover:bg-[var(--success)]'
                   }`}
                 >
                   {actionMeta.cta}

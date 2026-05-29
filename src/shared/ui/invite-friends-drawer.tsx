@@ -35,15 +35,15 @@ export function InviteFriendsDrawer({
 
   return (
     <Drawer direction="right" open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[#EBEBEB]">
+      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[var(--border-default)]">
         {/* Header */}
-        <div className="h-14 flex items-center justify-between px-5 border-b border-[#EBEBEB] shrink-0">
-          <DrawerTitle className="text-base font-medium text-[#1A1A1A]">
+        <div className="h-14 flex items-center justify-between px-5 border-b border-[var(--border-default)] shrink-0">
+          <DrawerTitle className="text-base font-medium text-[var(--text-primary)]">
             {t('Invite friends')}
           </DrawerTitle>
           <button
             onClick={() => onOpenChange(false)}
-            className="p-1.5 text-[#616161] hover:bg-[#F3F3F3] rounded-md transition-colors"
+            className="p-1.5 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors"
             aria-label={t('Close')}
           >
             <X className="w-4 h-4" strokeWidth={1.75} />
@@ -57,15 +57,15 @@ export function InviteFriendsDrawer({
 
           {/* Hero */}
           <div className="px-6 pt-6 pb-5">
-            <div className="bg-[#F3F3F3] rounded-md p-5 flex items-start gap-4">
+            <div className="bg-[var(--surface-subtle)] rounded-md p-5 flex items-start gap-4">
               <div className="w-10 h-10 rounded-md bg-white flex items-center justify-center shrink-0">
-                <Gift className="w-4 h-4 text-[#FF3C21]" strokeWidth={1.75} />
+                <Gift className="w-4 h-4 text-[var(--brand-primary)]" strokeWidth={1.75} />
               </div>
               <div className="min-w-0">
-                <div className="text-base font-medium text-[#1A1A1A] mb-1">
+                <div className="text-base font-medium text-[var(--text-primary)] mb-1">
                   {t('Earn ₩5,000 per qualified friend')}
                 </div>
-                <p className="text-sm text-[#4A4A4A] leading-relaxed">
+                <p className="text-sm text-[var(--text-tertiary)] leading-relaxed">
                   {t("Share your link. When your friend completes their first paid survey, you both get ₩5,000. There's no limit — invite as many as you want.")}
                 </p>
               </div>
@@ -74,11 +74,11 @@ export function InviteFriendsDrawer({
 
           {/* Referral link */}
           <div className="px-6 pb-6">
-            <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">
+            <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-3">
               {t('Your referral link')}
             </h3>
             <div className="flex items-center gap-2">
-              <div className="flex-1 min-w-0 px-3 py-2.5 bg-[#F3F3F3] rounded-md text-sm text-[#1A1A1A] truncate tabular-nums">
+              <div className="flex-1 min-w-0 px-3 py-2.5 bg-[var(--surface-subtle)] rounded-md text-sm text-[var(--text-primary)] truncate tabular-nums">
                 {referralUrl}
               </div>
               <button
@@ -87,8 +87,8 @@ export function InviteFriendsDrawer({
                 className={cn(
                   'inline-flex items-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-colors shrink-0',
                   copied
-                    ? 'bg-[#ECFDF5] text-[#047857]'
-                    : 'bg-[#FF3C21] hover:bg-[#E63419] text-white',
+                    ? 'bg-[var(--success-tint)] text-[var(--success)]'
+                    : 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white',
                 )}
               >
                 {copied ? (
@@ -137,7 +137,7 @@ export function InviteFriendsDrawer({
 
           {/* Referrals stats */}
           <div className="px-6 pb-6">
-            <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">
+            <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-3">
               {t('Your referrals')}
             </h3>
             <div className="grid grid-cols-3 gap-2">
@@ -153,7 +153,7 @@ export function InviteFriendsDrawer({
 
           {/* How it works */}
           <div className="px-6 pb-6">
-            <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">
+            <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-3">
               {t('How it works')}
             </h3>
             <ol className="space-y-3">
@@ -181,7 +181,7 @@ export function InviteFriendsDrawer({
           </div>
 
           <div className="px-6 pb-8">
-            <p className="text-xs text-[#616161] leading-relaxed">
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
               {t('Referrals must be real people with unique phone numbers. Self-referrals, duplicate devices, or fraud-flagged accounts do not qualify. iDap may adjust rewards if we detect abuse.')}
             </p>
           </div>
@@ -204,10 +204,10 @@ function ShareButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-md border border-[#EBEBEB] bg-white hover:border-[#FFC1B5] transition-colors"
+      className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-md border border-[var(--border-default)] bg-white hover:border-[var(--brand-border)] transition-colors"
     >
-      <Icon className="w-4 h-4 text-[#4A4A4A]" strokeWidth={1.75} />
-      <span className="text-xs font-medium text-[#1A1A1A]">{label}</span>
+      <Icon className="w-4 h-4 text-[var(--text-tertiary)]" strokeWidth={1.75} />
+      <span className="text-xs font-medium text-[var(--text-primary)]">{label}</span>
     </button>
   );
 }
@@ -222,12 +222,12 @@ function StatCard({
   accent?: boolean;
 }) {
   return (
-    <div className="bg-white border border-[#EBEBEB] rounded-md p-3">
-      <div className="text-[11px] text-[#616161] mb-1">{label}</div>
+    <div className="bg-white border border-[var(--border-default)] rounded-md p-3">
+      <div className="text-[11px] text-[var(--text-secondary)] mb-1">{label}</div>
       <div
         className={cn(
           'text-lg font-medium tabular-nums',
-          accent ? 'text-[#FF3C21]' : 'text-[#1A1A1A]',
+          accent ? 'text-[var(--brand-primary)]' : 'text-[var(--text-primary)]',
         )}
       >
         {value}
@@ -247,12 +247,12 @@ function Step({
 }) {
   return (
     <li className="flex items-start gap-3">
-      <div className="w-6 h-6 rounded-full bg-[#F3F3F3] flex items-center justify-center shrink-0 text-[11px] font-medium text-[#4A4A4A] tabular-nums">
+      <div className="w-6 h-6 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0 text-[11px] font-medium text-[var(--text-tertiary)] tabular-nums">
         {n}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-[#1A1A1A]">{title}</div>
-        <p className="text-xs text-[#616161] mt-0.5 leading-relaxed">{description}</p>
+        <div className="text-sm font-medium text-[var(--text-primary)]">{title}</div>
+        <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{description}</p>
       </div>
     </li>
   );

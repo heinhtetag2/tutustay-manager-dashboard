@@ -49,39 +49,39 @@ function formatMnt(value: number): string {
 
 function getStatusStyles(status: RespondentStatus) {
   switch (status) {
-    case 'Active':    return { badge: 'bg-[#ECFDF5] text-[#047857] border border-[#D1FAE5]', Icon: CheckCircle2 };
-    case 'Warned':    return { badge: 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]', Icon: AlertTriangle };
-    case 'Suspended': return { badge: 'bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]', Icon: Ban };
+    case 'Active':    return { badge: 'bg-[var(--success-tint)] text-[var(--success)]', Icon: CheckCircle2 };
+    case 'Warned':    return { badge: 'bg-[var(--warning-tint)] text-[var(--warning)]', Icon: AlertTriangle };
+    case 'Suspended': return { badge: 'bg-[var(--danger-tint)] text-[var(--danger)]', Icon: Ban };
   }
 }
 
 function getQualityStyles(score: number) {
-  if (score >= 80) return { bar: 'bg-[#059669]', text: 'text-[#047857]' };
-  if (score >= 60) return { bar: 'bg-[#D97706]', text: 'text-[#B45309]' };
-  return { bar: 'bg-[#DC2626]', text: 'text-[#B91C1C]' };
+  if (score >= 80) return { bar: 'bg-[var(--success-strong)]', text: 'text-[var(--success)]' };
+  if (score >= 60) return { bar: 'bg-[var(--warning-strong)]', text: 'text-[var(--warning)]' };
+  return { bar: 'bg-[var(--danger-strong)]', text: 'text-[var(--danger)]' };
 }
 
 function getLevelColor(level: TrustLevel): string {
   switch (level) {
-    case 'L1': return 'bg-[#DC2626]';
-    case 'L2': return 'bg-[#FF3C21]';
-    case 'L3': return 'bg-[#D97706]';
-    case 'L4': return 'bg-[#1D4ED8]';
-    case 'L5': return 'bg-[#059669]';
+    case 'L1': return 'bg-[var(--danger-strong)]';
+    case 'L2': return 'bg-[var(--brand-primary)]';
+    case 'L3': return 'bg-[var(--warning-strong)]';
+    case 'L4': return 'bg-[var(--brand-primary-hover)]';
+    case 'L5': return 'bg-[var(--success-strong)]';
   }
 }
 
 function getSurveyStatusStyles(status: RespondentSurvey['status']) {
   return status === 'Accepted'
-    ? 'bg-[#ECFDF5] text-[#047857] border border-[#D1FAE5]'
-    : 'bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]';
+    ? 'bg-[var(--success-tint)] text-[var(--success)]'
+    : 'bg-[var(--danger-tint)] text-[var(--danger)]';
 }
 
 function getPayoutStatusStyles(status: RespondentPayout['status']) {
   switch (status) {
-    case 'Paid':    return 'bg-[#ECFDF5] text-[#047857] border border-[#D1FAE5]';
-    case 'Pending': return 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]';
-    case 'Failed':  return 'bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]';
+    case 'Paid':    return 'bg-[var(--success-tint)] text-[var(--success)]';
+    case 'Pending': return 'bg-[var(--warning-tint)] text-[var(--warning)]';
+    case 'Failed':  return 'bg-[var(--danger-tint)] text-[var(--danger)]';
   }
 }
 
@@ -94,23 +94,23 @@ function TrustMeter({ level }: { level: TrustLevel }) {
         {[1, 2, 3, 4, 5].map((i) => (
           <span
             key={i}
-            className={`w-1.5 h-1.5 rounded-full ${i <= filled ? color : 'bg-[#EBEBEB]'}`}
+            className={`w-1.5 h-1.5 rounded-full ${i <= filled ? color : 'bg-[var(--border-default)]'}`}
           />
         ))}
       </div>
-      <span className="text-xs font-medium text-[#4A4A4A] tabular-nums">{level}</span>
+      <span className="text-xs font-medium text-[var(--text-tertiary)] tabular-nums">{level}</span>
     </div>
   );
 }
 
 function eventIcon(kind: RespondentEvent['kind']) {
   switch (kind) {
-    case 'joined':    return { Icon: UserCircle2,  tone: 'bg-[#F3F3F3] text-[#4A4A4A]' };
-    case 'survey':    return { Icon: ClipboardList, tone: 'bg-[#FFF1EE] text-[#FF3C21]' };
-    case 'payout':    return { Icon: Receipt,      tone: 'bg-[#EFF6FF] text-[#1D4ED8]' };
-    case 'warning':   return { Icon: AlertTriangle, tone: 'bg-[#FFFBEB] text-[#B45309]' };
-    case 'suspended': return { Icon: Ban,          tone: 'bg-[#FEF2F2] text-[#B91C1C]' };
-    case 'milestone': return { Icon: Sparkles,     tone: 'bg-[#ECFDF5] text-[#047857]' };
+    case 'joined':    return { Icon: UserCircle2,  tone: 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]' };
+    case 'survey':    return { Icon: ClipboardList, tone: 'bg-[var(--brand-tint)] text-[var(--brand-primary)]' };
+    case 'payout':    return { Icon: Receipt,      tone: 'bg-[var(--brand-tint)] text-[var(--brand-primary-hover)]' };
+    case 'warning':   return { Icon: AlertTriangle, tone: 'bg-[var(--warning-tint)] text-[var(--warning)]' };
+    case 'suspended': return { Icon: Ban,          tone: 'bg-[var(--danger-tint)] text-[var(--danger)]' };
+    case 'milestone': return { Icon: Sparkles,     tone: 'bg-[var(--success-tint)] text-[var(--success)]' };
   }
 }
 
@@ -129,28 +129,28 @@ export default function RespondentDetail() {
 
   if (!respondent) {
     return (
-      <div className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[#FAFAFA] min-h-full">
-        <nav className="flex items-center gap-2 text-sm text-[#616161] mb-4">
+      <div className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)] min-h-full">
+        <nav className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-4">
           <button
             onClick={() => navigate('/respondents')}
-            className="font-normal hover:text-[#1A1A1A] transition-colors cursor-pointer"
+            className="font-normal hover:text-[var(--text-primary)] transition-colors cursor-pointer"
           >
             {t('Respondents')}
           </button>
-          <span className="text-[#D4D4D4]">/</span>
-          <span className="text-[#1A1A1A] font-medium">{t('Not found')}</span>
+          <span className="text-[var(--border-strong)]">/</span>
+          <span className="text-[var(--text-primary)] font-medium">{t('Not found')}</span>
         </nav>
         <div className="max-w-md mx-auto text-center mt-16">
-          <div className="w-12 h-12 rounded-full bg-[#F3F3F3] flex items-center justify-center mx-auto mb-4">
-            <Users className="w-5 h-5 text-[#616161]" />
+          <div className="w-12 h-12 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center mx-auto mb-4">
+            <Users className="w-5 h-5 text-[var(--text-secondary)]" />
           </div>
-          <h2 className="text-lg font-medium text-[#1A1A1A]">{t('Respondent not found')}</h2>
-          <p className="text-sm text-[#616161] mt-1">
+          <h2 className="text-lg font-medium text-[var(--text-primary)]">{t('Respondent not found')}</h2>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             {t('This respondent may have been removed or the link is invalid.')}
           </p>
           <button
             onClick={() => navigate('/respondents')}
-            className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-[#FF3C21] rounded-md text-sm font-medium text-white hover:bg-[#E63419] transition-colors cursor-pointer"
+            className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-[var(--brand-primary)] rounded-md text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             {t('Back to Respondents')}
@@ -231,28 +231,28 @@ export default function RespondentDetail() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[#FAFAFA] min-h-full"
+      className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)] min-h-full"
     >
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-[#616161] mb-4">
+      <nav className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-4">
         <button
           onClick={() => navigate('/respondents')}
-          className="font-normal hover:text-[#1A1A1A] transition-colors cursor-pointer"
+          className="font-normal hover:text-[var(--text-primary)] transition-colors cursor-pointer"
         >
           {t('Respondents')}
         </button>
-        <span className="text-[#D4D4D4]">/</span>
-        <span className="text-[#1A1A1A] font-medium">{respondent.name}</span>
+        <span className="text-[var(--border-strong)]">/</span>
+        <span className="text-[var(--text-primary)] font-medium">{respondent.name}</span>
       </nav>
 
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-8">
         <div className="flex items-start gap-4 min-w-0">
-          <div className="w-14 h-14 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-xl font-medium shrink-0">
+          <div className="w-14 h-14 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-xl font-medium shrink-0">
             {respondent.initial}
           </div>
           <div className="min-w-0">
-            <h1 className="text-3xl font-serif text-[#1A1A1A] leading-tight mb-1.5">
+            <h1 className="text-3xl font-serif text-[var(--text-primary)] leading-tight mb-1.5">
               {respondent.name}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
@@ -261,8 +261,8 @@ export default function RespondentDetail() {
                 {t(respondent.status)}
               </span>
               <TrustMeter level={respondent.trustLevel} />
-              <span className="text-sm text-[#616161]">·</span>
-              <span className="text-sm text-[#4A4A4A]">{respondent.email}</span>
+              <span className="text-sm text-[var(--text-secondary)]">·</span>
+              <span className="text-sm text-[var(--text-tertiary)]">{respondent.email}</span>
             </div>
           </div>
         </div>
@@ -271,7 +271,7 @@ export default function RespondentDetail() {
           {respondent.status !== 'Suspended' && (
             <button
               onClick={() => setConfirming({ action: 'warn' })}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#B45309] bg-white border border-[#FDE68A] rounded-md hover:bg-[#FFFBEB] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--warning)] bg-white border border-[var(--warning-border)] rounded-md hover:bg-[var(--warning-tint)] transition-colors cursor-pointer"
             >
               <AlertTriangle className="w-4 h-4" />
               {t('Warn')}
@@ -280,7 +280,7 @@ export default function RespondentDetail() {
           {respondent.status !== 'Suspended' ? (
             <button
               onClick={() => setConfirming({ action: 'suspend' })}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#B91C1C] bg-white border border-[#FECACA] rounded-md hover:bg-[#FEF2F2] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer"
             >
               <Ban className="w-4 h-4" />
               {t('Suspend')}
@@ -288,7 +288,7 @@ export default function RespondentDetail() {
           ) : (
             <button
               onClick={() => setConfirming({ action: 'reinstate' })}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#059669] rounded-md hover:bg-[#047857] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--success-strong)] rounded-md hover:bg-[var(--success)] transition-colors cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4" />
               {t('Reinstate')}
@@ -298,7 +298,7 @@ export default function RespondentDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-[#EBEBEB] mb-6 overflow-x-auto">
+      <div className="flex gap-1 border-b border-[var(--border-default)] mb-6 overflow-x-auto">
         {([
           { id: 'overview', Icon: LayoutDashboard, label: t('Overview') },
           { id: 'surveys',  Icon: ClipboardList,   label: t('Surveys'),  count: respondent.surveys },
@@ -310,16 +310,16 @@ export default function RespondentDetail() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
-                isActive ? 'text-[#1A1A1A]' : 'text-[#4A4A4A] hover:text-[#1A1A1A]'
+                isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'
               }`}
             >
               <tab.Icon className="w-4 h-4" />
               {tab.label}
               {'count' in tab && tab.count !== undefined && (
-                <span className="text-[#616161] font-normal tabular-nums">({tab.count})</span>
+                <span className="text-[var(--text-secondary)] font-normal tabular-nums">({tab.count})</span>
               )}
               {isActive && (
-                <span className="absolute left-0 right-0 -bottom-[1px] h-0.5 bg-[#FF3C21] rounded-full" />
+                <span className="absolute left-0 right-0 -bottom-[1px] h-0.5 bg-[var(--brand-primary)] rounded-full" />
               )}
             </button>
           );
@@ -342,60 +342,60 @@ export default function RespondentDetail() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.08 }}
-                className="bg-white border border-[#EBEBEB] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#FFC1B5] transition-colors group"
+                className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
               >
                 <div className="flex justify-between items-start mb-4">
-                  <span className="text-sm font-medium text-[#616161]">{t(card.title)}</span>
-                  <div className="p-2 bg-[#F3F3F3] rounded-md text-[#4A4A4A] group-hover:bg-[#FF3C21] group-hover:text-white transition-colors">
+                  <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+                  <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                     <card.Icon className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-2xl font-medium text-[#1A1A1A]">{card.value}</div>
-                <div className="text-xs text-[#4A4A4A] mt-2">{card.subtitle}</div>
+                <div className="text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+                <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
               </motion.div>
             ))}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             {/* Profile */}
-            <section className="lg:col-span-2 bg-white border border-[#EBEBEB] rounded-md shadow-none overflow-hidden">
-              <div className="px-6 py-4 border-b border-[#F3F3F3]">
-                <h2 className="text-base font-medium text-[#1A1A1A]">{t('Profile')}</h2>
-                <p className="text-xs text-[#616161] mt-0.5">{t('Demographic and account info')}</p>
+            <section className="lg:col-span-2 bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
+              <div className="px-6 py-4 border-b border-[var(--surface-subtle)]">
+                <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Profile')}</h2>
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Demographic and account info')}</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 px-6 py-5">
                 <InfoRow Icon={Mail} label={t('Email')}>
                   <a
                     href={`mailto:${respondent.email}`}
-                    className="text-sm text-[#1A1A1A] hover:text-[#FF3C21] transition-colors break-all"
+                    className="text-sm text-[var(--text-primary)] hover:text-[var(--brand-primary)] transition-colors break-all"
                   >
                     {respondent.email}
                   </a>
                 </InfoRow>
                 <InfoRow Icon={Phone} label={t('Phone')}>
-                  <span className="text-sm text-[#1A1A1A] tabular-nums">{respondent.phone}</span>
+                  <span className="text-sm text-[var(--text-primary)] tabular-nums">{respondent.phone}</span>
                 </InfoRow>
                 <InfoRow Icon={UserCircle2} label={t('Age · Gender')}>
-                  <span className="text-sm text-[#1A1A1A]">
+                  <span className="text-sm text-[var(--text-primary)]">
                     {respondent.age} · {t(respondent.gender)}
                   </span>
                 </InfoRow>
                 <InfoRow Icon={MapPin} label={t('Location')}>
-                  <span className="text-sm text-[#1A1A1A]">
+                  <span className="text-sm text-[var(--text-primary)]">
                     {respondent.district}, {t('Ulaanbaatar')}
                   </span>
                 </InfoRow>
                 <InfoRow Icon={Briefcase} label={t('Occupation')}>
-                  <span className="text-sm text-[#1A1A1A]">{respondent.occupation}</span>
+                  <span className="text-sm text-[var(--text-primary)]">{respondent.occupation}</span>
                 </InfoRow>
                 <InfoRow Icon={Smartphone} label={t('Device preference')}>
-                  <span className="text-sm text-[#1A1A1A]">{t(respondent.devicePref)}</span>
+                  <span className="text-sm text-[var(--text-primary)]">{t(respondent.devicePref)}</span>
                 </InfoRow>
                 <InfoRow Icon={Wallet} label={t('Payout method')}>
-                  <span className="text-sm text-[#1A1A1A]">{respondent.preferredPayout}</span>
+                  <span className="text-sm text-[var(--text-primary)]">{respondent.preferredPayout}</span>
                 </InfoRow>
                 <InfoRow Icon={Clock} label={t('Avg. completion')}>
-                  <span className="text-sm text-[#1A1A1A] tabular-nums">
+                  <span className="text-sm text-[var(--text-primary)] tabular-nums">
                     {respondent.avgCompletionMin} {t('min')}
                   </span>
                 </InfoRow>
@@ -404,26 +404,26 @@ export default function RespondentDetail() {
 
             {/* Right column */}
             <div className="space-y-4">
-              <section className="bg-white border border-[#EBEBEB] rounded-md shadow-none overflow-hidden">
-                <div className="px-6 py-4 border-b border-[#F3F3F3]">
-                  <h2 className="text-base font-medium text-[#1A1A1A]">{t('Trust & quality')}</h2>
+              <section className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
+                <div className="px-6 py-4 border-b border-[var(--surface-subtle)]">
+                  <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Trust & quality')}</h2>
                 </div>
                 <div className="px-6 py-5 space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-[#616161]">{t('Trust level')}</span>
+                      <span className="text-xs text-[var(--text-secondary)]">{t('Trust level')}</span>
                       <TrustMeter level={respondent.trustLevel} />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs text-[#616161]">{t('Quality score')}</span>
+                      <span className="text-xs text-[var(--text-secondary)]">{t('Quality score')}</span>
                       <span className={`text-sm font-medium tabular-nums ${quality.text}`}>
                         {respondent.qualityScore}%
                       </span>
                     </div>
-                    <div className="relative w-full h-1.5 bg-[#F3F3F3] rounded-full overflow-hidden">
+                    <div className="relative w-full h-1.5 bg-[var(--surface-subtle)] rounded-full overflow-hidden">
                       <div
                         className={`absolute inset-y-0 left-0 ${quality.bar} rounded-full`}
                         style={{ width: `${respondent.qualityScore}%` }}
@@ -431,18 +431,18 @@ export default function RespondentDetail() {
                     </div>
                   </div>
 
-                  <div className="h-px bg-[#F3F3F3]" />
+                  <div className="h-px bg-[var(--surface-subtle)]" />
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <div className="text-xs text-[#616161]">{t('Warnings')}</div>
-                      <div className={`text-base font-medium tabular-nums ${respondent.warnings > 0 ? 'text-[#B91C1C]' : 'text-[#1A1A1A]'}`}>
+                      <div className="text-xs text-[var(--text-secondary)]">{t('Warnings')}</div>
+                      <div className={`text-base font-medium tabular-nums ${respondent.warnings > 0 ? 'text-[var(--danger)]' : 'text-[var(--text-primary)]'}`}>
                         {respondent.warnings}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-[#616161]">{t('Rejected')}</div>
-                      <div className="text-base font-medium text-[#1A1A1A] tabular-nums">
+                      <div className="text-xs text-[var(--text-secondary)]">{t('Rejected')}</div>
+                      <div className="text-base font-medium text-[var(--text-primary)] tabular-nums">
                         {respondent.rejectedResponses}
                       </div>
                     </div>
@@ -450,10 +450,10 @@ export default function RespondentDetail() {
                 </div>
               </section>
 
-              <section className="bg-white border border-[#EBEBEB] rounded-md shadow-none overflow-hidden">
-                <div className="px-6 py-4 border-b border-[#F3F3F3]">
-                  <h2 className="text-base font-medium text-[#1A1A1A]">{t('Activity')}</h2>
-                  <p className="text-xs text-[#616161] mt-0.5">{t('Recent account events')}</p>
+              <section className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
+                <div className="px-6 py-4 border-b border-[var(--surface-subtle)]">
+                  <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Activity')}</h2>
+                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Recent account events')}</p>
                 </div>
                 <ol className="px-6 py-5 space-y-5">
                   {respondent.events.map((event, i) => {
@@ -464,11 +464,11 @@ export default function RespondentDetail() {
                           <Icon className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-[#1A1A1A]">{t(event.label)}</div>
+                          <div className="text-sm font-medium text-[var(--text-primary)]">{t(event.label)}</div>
                           {event.detail && (
-                            <div className="text-xs text-[#616161] mt-0.5">{event.detail}</div>
+                            <div className="text-xs text-[var(--text-secondary)] mt-0.5">{event.detail}</div>
                           )}
-                          <div className="text-xs text-[#616161] mt-1 tabular-nums">
+                          <div className="text-xs text-[var(--text-secondary)] mt-1 tabular-nums">
                             {format(new Date(event.date), 'MMM d, yyyy')}
                           </div>
                         </div>
@@ -489,18 +489,18 @@ export default function RespondentDetail() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
-          className="bg-white border border-[#EBEBEB] rounded-md shadow-none overflow-hidden"
+          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
         >
-          <div className="px-6 py-4 border-b border-[#F3F3F3]">
-            <h2 className="text-base font-medium text-[#1A1A1A]">{t('Recent surveys')}</h2>
-            <p className="text-xs text-[#616161] mt-0.5">
+          <div className="px-6 py-4 border-b border-[var(--surface-subtle)]">
+            <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Recent surveys')}</h2>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
               {t('Surveys this respondent has completed')}
             </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
-                <tr className="border-b border-[#EBEBEB] text-[#4A4A4A] font-medium bg-[#F3F3F3]">
+                <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
                   <th className="pl-6 pr-3 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Survey')}</th>
                   <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Company')}</th>
                   <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Quality')}</th>
@@ -509,16 +509,16 @@ export default function RespondentDetail() {
                   <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase text-right">{t('Status')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F3F3F3]">
+              <tbody className="divide-y divide-[var(--surface-subtle)]">
                 {respondent.recentSurveys.map((s) => {
                   const q = getQualityStyles(s.qualityScore);
                   return (
-                    <tr key={s.id} className="hover:bg-[#FAFAFA] transition-colors">
-                      <td className="pl-6 pr-3 py-4 font-medium text-[#1A1A1A]">{s.title}</td>
-                      <td className="px-6 py-4 text-[#4A4A4A]">{s.company}</td>
+                    <tr key={s.id} className="hover:bg-[var(--surface-muted)] transition-colors">
+                      <td className="pl-6 pr-3 py-4 font-medium text-[var(--text-primary)]">{s.title}</td>
+                      <td className="px-6 py-4 text-[var(--text-tertiary)]">{s.company}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <div className="relative w-20 h-1.5 bg-[#F3F3F3] rounded-full overflow-hidden">
+                          <div className="relative w-20 h-1.5 bg-[var(--surface-subtle)] rounded-full overflow-hidden">
                             <div
                               className={`absolute inset-y-0 left-0 ${q.bar} rounded-full`}
                               style={{ width: `${s.qualityScore}%` }}
@@ -529,10 +529,10 @@ export default function RespondentDetail() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-medium text-[#1A1A1A] tabular-nums">
+                      <td className="px-6 py-4 font-medium text-[var(--text-primary)] tabular-nums">
                         {formatMnt(s.rewardMnt)}
                       </td>
-                      <td className="px-6 py-4 text-[#4A4A4A] tabular-nums">
+                      <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">
                         {format(new Date(s.completedAt), 'MMM d, yyyy')}
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -558,18 +558,18 @@ export default function RespondentDetail() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
-          className="bg-white border border-[#EBEBEB] rounded-md shadow-none overflow-hidden"
+          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
         >
-          <div className="px-6 py-4 border-b border-[#F3F3F3] flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between">
             <div>
-              <h2 className="text-base font-medium text-[#1A1A1A]">{t('Payouts')}</h2>
-              <p className="text-xs text-[#616161] mt-0.5">
+              <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Payouts')}</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                 {t('Payment history and preferred method')}
               </p>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-[#616161]">{t('Prefers')}:</span>
-              <span className="px-2 py-0.5 rounded-full bg-[#F3F3F3] text-[#1A1A1A] font-medium">
+              <span className="text-[var(--text-secondary)]">{t('Prefers')}:</span>
+              <span className="px-2 py-0.5 rounded-full bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium">
                 {respondent.preferredPayout}
               </span>
             </div>
@@ -577,7 +577,7 @@ export default function RespondentDetail() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
-                <tr className="border-b border-[#EBEBEB] text-[#4A4A4A] font-medium bg-[#F3F3F3]">
+                <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
                   <th className="pl-6 pr-3 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Payout ID')}</th>
                   <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Method')}</th>
                   <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Date')}</th>
@@ -585,15 +585,15 @@ export default function RespondentDetail() {
                   <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase text-right">{t('Status')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F3F3F3]">
+              <tbody className="divide-y divide-[var(--surface-subtle)]">
                 {respondent.recentPayouts.map((p) => (
-                  <tr key={p.id} className="hover:bg-[#FAFAFA] transition-colors">
-                    <td className="pl-6 pr-3 py-4 font-medium text-[#1A1A1A] tabular-nums">{p.id.toUpperCase()}</td>
-                    <td className="px-6 py-4 text-[#4A4A4A]">{p.method}</td>
-                    <td className="px-6 py-4 text-[#4A4A4A] tabular-nums">
+                  <tr key={p.id} className="hover:bg-[var(--surface-muted)] transition-colors">
+                    <td className="pl-6 pr-3 py-4 font-medium text-[var(--text-primary)] tabular-nums">{p.id.toUpperCase()}</td>
+                    <td className="px-6 py-4 text-[var(--text-tertiary)]">{p.method}</td>
+                    <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">
                       {format(new Date(p.date), 'MMM d, yyyy')}
                     </td>
-                    <td className="px-6 py-4 font-medium text-[#1A1A1A] tabular-nums">
+                    <td className="px-6 py-4 font-medium text-[var(--text-primary)] tabular-nums">
                       {formatMnt(p.amountMnt)}
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -619,7 +619,7 @@ export default function RespondentDetail() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#1A1A1A]/30 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-[var(--text-primary)]/30 flex items-center justify-center z-50 p-4"
             onClick={() => setConfirming(null)}
           >
             <motion.div
@@ -627,42 +627,42 @@ export default function RespondentDetail() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
               transition={{ type: 'spring', duration: 0.3 }}
-              className="bg-white rounded-md w-full max-w-sm shadow-none border border-[#F3F3F3] flex flex-col overflow-hidden"
+              className="bg-white rounded-md w-full max-w-sm shadow-none border border-[var(--surface-subtle)] flex flex-col overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#F3F3F3]">
-                <h2 className="text-lg font-medium text-[#1A1A1A]">{actionMeta.title}</h2>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)]">
+                <h2 className="text-lg font-medium text-[var(--text-primary)]">{actionMeta.title}</h2>
                 <button
                   onClick={() => setConfirming(null)}
-                  className="text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors p-1 cursor-pointer"
+                  className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors p-1 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="p-6">
-                <p className="text-[#4A4A4A] text-sm leading-relaxed">{actionMeta.description}</p>
-                <div className="mt-3 p-3 bg-white border border-[#EBEBEB] rounded-md flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-md bg-[#FFF1EE] text-[#FF3C21] flex items-center justify-center text-sm font-medium shrink-0">
+                <p className="text-[var(--text-tertiary)] text-sm leading-relaxed">{actionMeta.description}</p>
+                <div className="mt-3 p-3 bg-white border border-[var(--border-default)] rounded-md flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0">
                     {respondent.initial}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-medium text-[#1A1A1A] text-sm truncate">{respondent.name}</div>
-                    <div className="text-[#616161] text-xs truncate">{respondent.email}</div>
+                    <div className="font-medium text-[var(--text-primary)] text-sm truncate">{respondent.name}</div>
+                    <div className="text-[var(--text-secondary)] text-xs truncate">{respondent.email}</div>
                   </div>
                 </div>
                 {actionMeta.tone === 'danger' && (
-                  <p className="mt-4 text-[#B91C1C] text-xs font-medium flex items-center gap-1.5">
+                  <p className="mt-4 text-[var(--danger)] text-xs font-medium flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4" />
                     {t('This can be reversed later.')}
                   </p>
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#F3F3F3]">
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--surface-subtle)]">
                 <button
                   onClick={() => setConfirming(null)}
-                  className="px-4 py-2 text-sm font-medium text-[#4A4A4A] bg-white border border-[#EBEBEB] rounded-md hover:bg-[#F3F3F3] transition-colors cursor-pointer"
+                  className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
                 >
                   {t('Cancel')}
                 </button>
@@ -670,10 +670,10 @@ export default function RespondentDetail() {
                   onClick={applyAction}
                   className={`px-4 py-2 text-sm font-medium text-white rounded-md transition-colors cursor-pointer ${
                     actionMeta.tone === 'danger'
-                      ? 'bg-[#DC2626] hover:bg-[#B91C1C]'
+                      ? 'bg-[var(--danger-strong)] hover:bg-[var(--danger)]'
                       : actionMeta.tone === 'warning'
-                        ? 'bg-[#D97706] hover:bg-[#B45309]'
-                        : 'bg-[#059669] hover:bg-[#047857]'
+                        ? 'bg-[var(--warning-strong)] hover:bg-[var(--warning)]'
+                        : 'bg-[var(--success-strong)] hover:bg-[var(--success)]'
                   }`}
                 >
                   {actionMeta.cta}
@@ -699,11 +699,11 @@ function InfoRow({
 }) {
   return (
     <div className="flex gap-3">
-      <div className="w-8 h-8 rounded-md bg-[#F3F3F3] flex items-center justify-center text-[#4A4A4A] shrink-0 mt-0.5">
+      <div className="w-8 h-8 rounded-md bg-[var(--surface-subtle)] flex items-center justify-center text-[var(--text-tertiary)] shrink-0 mt-0.5">
         <Icon className="w-4 h-4" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-xs text-[#616161] mb-0.5">{label}</div>
+        <div className="text-xs text-[var(--text-secondary)] mb-0.5">{label}</div>
         {children}
       </div>
     </div>

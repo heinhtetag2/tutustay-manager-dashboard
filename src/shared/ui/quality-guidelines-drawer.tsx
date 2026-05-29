@@ -14,15 +14,15 @@ export function QualityGuidelinesDrawer({
 
   return (
     <Drawer direction="right" open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[#EBEBEB]">
+      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[var(--border-default)]">
         {/* Header */}
-        <div className="h-14 flex items-center justify-between px-5 border-b border-[#EBEBEB] shrink-0">
-          <DrawerTitle className="text-base font-medium text-[#1A1A1A]">
+        <div className="h-14 flex items-center justify-between px-5 border-b border-[var(--border-default)] shrink-0">
+          <DrawerTitle className="text-base font-medium text-[var(--text-primary)]">
             {t('Quality Guidelines')}
           </DrawerTitle>
           <button
             onClick={() => onOpenChange(false)}
-            className="p-1.5 text-[#616161] hover:bg-[#F3F3F3] rounded-md transition-colors"
+            className="p-1.5 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors"
             aria-label={t('Close')}
           >
             <X className="w-4 h-4" strokeWidth={1.75} />
@@ -30,10 +30,10 @@ export function QualityGuidelinesDrawer({
         </div>
 
         {/* Meta */}
-        <div className="px-6 pt-5 pb-2 flex items-center gap-2 text-xs text-[#616161] shrink-0">
+        <div className="px-6 pt-5 pb-2 flex items-center gap-2 text-xs text-[var(--text-secondary)] shrink-0">
           <Clock className="w-3.5 h-3.5" strokeWidth={1.75} />
           <span>3 {t('min read')}</span>
-          <span className="text-[#D4D4D4]">·</span>
+          <span className="text-[var(--border-strong)]">·</span>
           <span>{t('Updated Apr 22, 2026')}</span>
         </div>
 
@@ -43,7 +43,7 @@ export function QualityGuidelinesDrawer({
             {t('How quality scores work and what raises or lowers them.')}
           </DrawerDescription>
 
-          <div className="space-y-6 text-sm leading-relaxed text-[#4A4A4A]">
+          <div className="space-y-6 text-sm leading-relaxed text-[var(--text-tertiary)]">
             <p>
               {t("Every response you submit is scored from 0 to 100. That score decides whether you get paid instantly, wait 24 hours, or don't get paid. Here's what iDap looks for.")}
             </p>
@@ -53,28 +53,28 @@ export function QualityGuidelinesDrawer({
               <div className="space-y-2">
                 <ScoreRow
                   Icon={Zap}
-                  iconColor="text-[#047857]"
+                  iconColor="text-[var(--success)]"
                   label={t('80 – 100')}
                   title={t('Paid instantly')}
                   description={t('Reward lands in your wallet in seconds.')}
                 />
                 <ScoreRow
                   Icon={Clock}
-                  iconColor="text-[#B45309]"
+                  iconColor="text-[var(--warning)]"
                   label={t('50 – 79')}
                   title={t('Held for 24 hours')}
                   description={t('Released automatically after review.')}
                 />
                 <ScoreRow
                   Icon={XCircle}
-                  iconColor="text-[#B91C1C]"
+                  iconColor="text-[var(--danger)]"
                   label={t('20 – 49')}
                   title={t('No reward')}
                   description={t('Response does not meet the quality bar.')}
                 />
                 <ScoreRow
                   Icon={AlertTriangle}
-                  iconColor="text-[#B91C1C]"
+                  iconColor="text-[var(--danger)]"
                   label={t('0 – 19')}
                   title={t('Flagged')}
                   description={t('Repeated flags can lower your trust level.')}
@@ -103,9 +103,9 @@ export function QualityGuidelinesDrawer({
             </Section>
 
             {/* Tip */}
-            <div className="bg-[#FFF1EE] rounded-md p-4 flex gap-3">
-              <span className="text-[#FF3C21] font-medium shrink-0">{t('Tip')}</span>
-              <p className="text-[#4A4A4A]">
+            <div className="bg-[var(--brand-tint)] rounded-md p-4 flex gap-3">
+              <span className="text-[var(--brand-primary)] font-medium shrink-0">{t('Tip')}</span>
+              <p className="text-[var(--text-tertiary)]">
                 {t('One rejection does not drop your trust level. A thoughtful next response resets the pattern and keeps your level on track.')}
               </p>
             </div>
@@ -125,7 +125,7 @@ export function QualityGuidelinesDrawer({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">{title}</h3>
+      <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-3">{title}</h3>
       {children}
     </section>
   );
@@ -146,15 +146,15 @@ function ScoreRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="w-8 h-8 rounded-md bg-[#F3F3F3] flex items-center justify-center shrink-0">
+      <div className="w-8 h-8 rounded-md bg-[var(--surface-subtle)] flex items-center justify-center shrink-0">
         <Icon className={cn('w-4 h-4', iconColor)} strokeWidth={1.75} />
       </div>
       <div className="flex-1 min-w-0 pt-0.5">
         <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-sm font-medium text-[#1A1A1A]">{title}</span>
-          <span className="text-[11px] text-[#616161] tabular-nums">{label}</span>
+          <span className="text-sm font-medium text-[var(--text-primary)]">{title}</span>
+          <span className="text-[11px] text-[var(--text-secondary)] tabular-nums">{label}</span>
         </div>
-        <p className="text-xs text-[#616161]">{description}</p>
+        <p className="text-xs text-[var(--text-secondary)]">{description}</p>
       </div>
     </div>
   );

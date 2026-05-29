@@ -121,13 +121,13 @@ export default function Wallet() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[#FAFAFA]"
+      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[var(--surface-muted)]"
     >
       {/* Header */}
       <div className="flex justify-between items-start mb-6 gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A]">{t('Wallet')}</h1>
-          <p className="text-sm text-[#616161] mt-1">
+          <h1 className="text-2xl sm:text-3xl font-serif text-[var(--text-primary)]">{t('Wallet')}</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             {t('Track your rewards, pending earnings, and withdrawals in one place.')}
           </p>
         </div>
@@ -138,23 +138,23 @@ export default function Wallet() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05 }}
-        className="bg-white border border-[#EBEBEB] rounded-md p-5 mb-4 flex flex-col justify-center shadow-none hover:border-[#FFC1B5] transition-colors"
+        className="bg-white border border-[var(--border-default)] rounded-md p-5 mb-4 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors"
       >
         <div className="flex justify-between items-start gap-4 flex-wrap">
           <div>
-            <span className="text-sm font-medium text-[#616161]">
+            <span className="text-sm font-medium text-[var(--text-secondary)]">
               {t('Available balance')}
             </span>
-            <div className="text-3xl font-medium text-[#1A1A1A] tabular-nums lining-nums mt-3 leading-none">
-              <span className="text-[#FF3C21]">{formatMnt(w.availableMnt)}</span>
+            <div className="text-3xl font-medium text-[var(--text-primary)] tabular-nums lining-nums mt-3 leading-none">
+              <span className="text-[var(--brand-primary)]">{formatMnt(w.availableMnt)}</span>
             </div>
             <div className="text-xs flex items-center gap-1.5 font-medium mt-3">
-              <span className="text-[#047857] flex items-center gap-0.5">
+              <span className="text-[var(--success)] flex items-center gap-0.5">
                 <ArrowUpRight className="w-3 h-3" />
                 +{formatMntCompact(15_000)} {t('today')}
               </span>
-              <span className="text-[#D4D4D4]">•</span>
-              <span className="text-[#616161] font-normal">
+              <span className="text-[var(--border-strong)]">•</span>
+              <span className="text-[var(--text-secondary)] font-normal">
                 {t('Min. withdraw')} {formatMntCompact(WITHDRAWAL.minMnt)}
               </span>
             </div>
@@ -169,8 +169,8 @@ export default function Wallet() {
                   className={cn(
                     'h-10 px-5 inline-flex items-center justify-center gap-2 text-sm font-medium rounded-md transition-colors w-full sm:w-auto',
                     canWithdraw
-                      ? 'bg-[#FF3C21] hover:bg-[#E63419] text-white cursor-pointer'
-                      : 'bg-[#F3F3F3] text-[#8A8A8A] cursor-not-allowed',
+                      ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white cursor-pointer'
+                      : 'bg-[var(--surface-subtle)] text-[var(--text-muted)] cursor-not-allowed',
                   )}
                 >
                   {t('Withdraw')}
@@ -178,7 +178,7 @@ export default function Wallet() {
                 </button>
                 <button
                   onClick={() => navigate('/settings')}
-                  className="text-xs text-[#616161] hover:text-[#1A1A1A] flex items-center justify-center sm:justify-start gap-1.5 transition-colors cursor-pointer"
+                  className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center justify-center sm:justify-start gap-1.5 transition-colors cursor-pointer"
                 >
                   <Smartphone className="w-3.5 h-3.5" />
                   {methodLabel}
@@ -188,12 +188,12 @@ export default function Wallet() {
               <>
                 <button
                   onClick={() => navigate('/settings')}
-                  className="h-10 px-5 inline-flex items-center justify-center gap-2 bg-[#FF3C21] hover:bg-[#E63419] text-white text-sm font-medium rounded-md transition-colors cursor-pointer w-full sm:w-auto"
+                  className="h-10 px-5 inline-flex items-center justify-center gap-2 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium rounded-md transition-colors cursor-pointer w-full sm:w-auto"
                 >
                   <Plus className="w-4 h-4" />
                   {t('Link payment method')}
                 </button>
-                <div className="text-xs text-[#616161] text-center sm:text-right">
+                <div className="text-xs text-[var(--text-secondary)] text-center sm:text-right">
                   {t('Required to withdraw')}
                 </div>
               </>
@@ -210,18 +210,18 @@ export default function Wallet() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 + i * 0.05 }}
-            className="bg-white border border-[#EBEBEB] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#FFC1B5] transition-colors group"
+            className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
             <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[#616161]">{s.label}</span>
-              <div className="p-2 bg-[#F3F3F3] rounded-md text-[#4A4A4A] group-hover:bg-[#FF3C21] group-hover:text-white transition-colors">
+              <span className="text-sm font-medium text-[var(--text-secondary)]">{s.label}</span>
+              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <s.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[#1A1A1A] tabular-nums lining-nums">
+            <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums lining-nums">
               {s.value}
             </div>
-            <div className="text-xs text-[#4A4A4A] mt-2">{s.hint}</div>
+            <div className="text-xs text-[var(--text-tertiary)] mt-2">{s.hint}</div>
           </motion.div>
         ))}
       </div>
@@ -231,14 +231,14 @@ export default function Wallet() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.25 }}
-        className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden"
+        className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden"
       >
         <div className="px-6 pt-5 pb-4 flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h2 className="text-base font-medium text-[#1A1A1A]">
+            <h2 className="text-base font-medium text-[var(--text-primary)]">
               {t('Activity')}
             </h2>
-            <p className="text-xs text-[#616161] mt-0.5">
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
               {t('Rewards, bonuses, and withdrawals')}
             </p>
           </div>
@@ -257,11 +257,11 @@ export default function Wallet() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="px-6 py-12 text-center text-sm text-[#616161] border-t border-[#F3F3F3]">
+          <div className="px-6 py-12 text-center text-sm text-[var(--text-secondary)] border-t border-[var(--surface-subtle)]">
             {t('No activity to show yet.')}
           </div>
         ) : (
-          <ol className="divide-y divide-[#F3F3F3] border-t border-[#F3F3F3]">
+          <ol className="divide-y divide-[var(--surface-subtle)] border-t border-[var(--surface-subtle)]">
             {filtered.map((tx) => (
               <TxRow key={tx.id} tx={tx} highlight={tx.id === highlightTxId} />
             ))}
@@ -292,15 +292,15 @@ function TxRow({ tx, highlight }: { tx: WalletTx; highlight?: boolean }) {
 
   const iconCircle = (() => {
     if (tx.kind === 'withdrawal') {
-      return { tone: 'bg-[#F3F3F3] text-[#4A4A4A]', Icon: ArrowUpRight };
+      return { tone: 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]', Icon: ArrowUpRight };
     }
     if (tx.status === 'held') {
-      return { tone: 'bg-[#F3F3F3] text-[#4A4A4A]', Icon: Clock };
+      return { tone: 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]', Icon: Clock };
     }
     if (tx.kind === 'bonus') {
-      return { tone: 'bg-[#F3F3F3] text-[#4A4A4A]', Icon: Trophy };
+      return { tone: 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]', Icon: Trophy };
     }
-    return { tone: 'bg-[#F3F3F3] text-[#4A4A4A]', Icon: CheckCircle2 };
+    return { tone: 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]', Icon: CheckCircle2 };
   })();
 
   const { Icon, tone } = iconCircle;
@@ -308,11 +308,11 @@ function TxRow({ tx, highlight }: { tx: WalletTx; highlight?: boolean }) {
   const statusPill = (() => {
     switch (tx.status) {
       case 'held':
-        return { tone: 'text-[#B45309] bg-[#FFFBEB]', label: t('Held') };
+        return { tone: 'text-[var(--warning)] bg-[var(--warning-tint)]', label: t('Held') };
       case 'processing':
-        return { tone: 'text-[#1D4ED8] bg-[#EFF6FF]', label: t('Processing') };
+        return { tone: 'text-[var(--brand-primary-hover)] bg-[var(--brand-tint)]', label: t('Processing') };
       case 'failed':
-        return { tone: 'text-[#B91C1C] bg-[#FEF2F2]', label: t('Failed') };
+        return { tone: 'text-[var(--danger)] bg-[var(--danger-tint)]', label: t('Failed') };
       case 'paid':
       default:
         return null;
@@ -331,7 +331,7 @@ function TxRow({ tx, highlight }: { tx: WalletTx; highlight?: boolean }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-[#1A1A1A] truncate">
+          <span className="text-sm font-medium text-[var(--text-primary)] truncate">
             {tx.primary}
           </span>
           {statusPill && (
@@ -345,14 +345,14 @@ function TxRow({ tx, highlight }: { tx: WalletTx; highlight?: boolean }) {
             </span>
           )}
         </div>
-        <div className="text-xs text-[#616161] mt-0.5 tabular-nums">
+        <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">
           {tx.secondary} · {format(new Date(tx.date), 'MMM d, yyyy · h:mm a')}
         </div>
       </div>
       <div
         className={cn(
           'text-sm font-medium tabular-nums lining-nums shrink-0',
-          incoming ? 'text-[#047857]' : 'text-[#1A1A1A]',
+          incoming ? 'text-[var(--success)]' : 'text-[var(--text-primary)]',
         )}
       >
         {incoming ? '+' : '−'}
@@ -428,10 +428,10 @@ function WithdrawDrawer({
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 bg-white border-l border-[#EBEBEB] flex flex-col"
+        className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 bg-white border-l border-[var(--border-default)] flex flex-col"
       >
-        <div className="h-16 flex items-center justify-between px-6 border-b border-[#EBEBEB]">
-          <h2 className="text-base font-medium text-[#1A1A1A]">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-[var(--border-default)]">
+          <h2 className="text-base font-medium text-[var(--text-primary)]">
             {stage === 'success' ? t('Withdrawal sent') : t('Withdraw')}
           </h2>
           <button
@@ -440,8 +440,8 @@ function WithdrawDrawer({
             className={cn(
               'p-1.5 rounded-md transition-colors',
               stage === 'processing'
-                ? 'text-[#D4D4D4] cursor-not-allowed'
-                : 'text-[#616161] hover:bg-[#F3F3F3] cursor-pointer',
+                ? 'text-[var(--border-strong)] cursor-not-allowed'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] cursor-pointer',
             )}
           >
             <X className="w-4 h-4" />
@@ -460,11 +460,11 @@ function WithdrawDrawer({
             >
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="mb-5">
-                  <div className="text-xs font-medium text-[#616161] mb-1.5">
+                  <div className="text-xs font-medium text-[var(--text-secondary)] mb-1.5">
                     {t('Amount')}
                   </div>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-serif text-[#616161] pointer-events-none">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-serif text-[var(--text-secondary)] pointer-events-none">
                       {symbol}
                     </span>
                     <input
@@ -474,58 +474,58 @@ function WithdrawDrawer({
                       onChange={(e) =>
                         setAmount(e.target.value.replace(/\D+/g, ''))
                       }
-                      className="w-full h-12 pl-8 pr-4 bg-white border border-[#EBEBEB] rounded-md text-lg font-medium text-[#1A1A1A] tabular-nums lining-nums focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] transition-colors"
+                      className="w-full h-12 pl-8 pr-4 bg-white border border-[var(--border-default)] rounded-md text-lg font-medium text-[var(--text-primary)] tabular-nums lining-nums focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] transition-colors"
                     />
                   </div>
-                  <div className="text-xs text-[#616161] mt-1.5 flex items-center justify-between">
+                  <div className="text-xs text-[var(--text-secondary)] mt-1.5 flex items-center justify-between">
                     <span>
                       {t('Available')}: {formatMnt(available)}
                     </span>
                     <button
                       type="button"
                       onClick={() => setAmount(String(available))}
-                      className="font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors cursor-pointer"
+                      className="font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer"
                     >
                       {t('Use max')}
                     </button>
                   </div>
                   {tooSmall && numericAmount > 0 && (
-                    <div className="text-xs text-[#B91C1C] mt-2 flex items-center gap-1">
+                    <div className="text-xs text-[var(--danger)] mt-2 flex items-center gap-1">
                       <AlertTriangle className="w-3.5 h-3.5" />
                       {t('Minimum withdrawal is')} {formatMnt(WITHDRAWAL.minMnt)}
                     </div>
                   )}
                   {tooLarge && (
-                    <div className="text-xs text-[#B91C1C] mt-2 flex items-center gap-1">
+                    <div className="text-xs text-[var(--danger)] mt-2 flex items-center gap-1">
                       <AlertTriangle className="w-3.5 h-3.5" />
                       {t('Exceeds available balance')}
                     </div>
                   )}
                 </div>
 
-                <div className="bg-[#FAFAFA] border border-[#EBEBEB] rounded-md p-4 mb-5">
-                  <div className="text-xs font-medium text-[#616161] mb-2">
+                <div className="bg-[var(--surface-muted)] border border-[var(--border-default)] rounded-md p-4 mb-5">
+                  <div className="text-xs font-medium text-[var(--text-secondary)] mb-2">
                     {t('Deposit to')}
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-md bg-white border border-[#EBEBEB] flex items-center justify-center shrink-0">
-                      <Smartphone className="w-4 h-4 text-[#4A4A4A]" />
+                    <div className="w-8 h-8 rounded-md bg-white border border-[var(--border-default)] flex items-center justify-center shrink-0">
+                      <Smartphone className="w-4 h-4 text-[var(--text-tertiary)]" />
                     </div>
-                    <div className="text-sm font-medium text-[#1A1A1A]">{method}</div>
+                    <div className="text-sm font-medium text-[var(--text-primary)]">{method}</div>
                   </div>
                 </div>
 
-                <ul className="space-y-1.5 text-xs text-[#616161]">
+                <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
                   <li>• {t('Funds arrive within minutes on weekdays.')}</li>
                   <li>• {t('Amounts earned in the last 24h remain pending until released.')}</li>
                   <li>• {t('No fee on withdrawals to QPay.')}</li>
                 </ul>
               </div>
 
-              <div className="p-4 border-t border-[#EBEBEB] flex gap-3">
+              <div className="p-4 border-t border-[var(--border-default)] flex gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 h-10 px-4 border border-[#EBEBEB] text-sm font-medium text-[#4A4A4A] hover:bg-[#F3F3F3] hover:text-[#1A1A1A] rounded-md transition-colors cursor-pointer"
+                  className="flex-1 h-10 px-4 border border-[var(--border-default)] text-sm font-medium text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] rounded-md transition-colors cursor-pointer"
                 >
                   {t('Cancel')}
                 </button>
@@ -535,8 +535,8 @@ function WithdrawDrawer({
                   className={cn(
                     'flex-1 h-10 px-4 text-sm font-medium rounded-md transition-colors',
                     invalid
-                      ? 'bg-[#EBEBEB] text-[#8A8A8A] cursor-not-allowed'
-                      : 'bg-[#FF3C21] hover:bg-[#E63419] text-white cursor-pointer',
+                      ? 'bg-[var(--border-default)] text-[var(--text-muted)] cursor-not-allowed'
+                      : 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white cursor-pointer',
                   )}
                 >
                   {t('Withdraw')}{' '}
@@ -562,14 +562,14 @@ function WithdrawDrawer({
                   repeat: Infinity,
                   ease: 'linear',
                 }}
-                className="mb-5 text-[#FF3C21]"
+                className="mb-5 text-[var(--brand-primary)]"
               >
                 <Loader2 className="w-10 h-10" />
               </motion.div>
-              <div className="text-lg font-serif text-[#1A1A1A] mb-1">
+              <div className="text-lg font-serif text-[var(--text-primary)] mb-1">
                 {t('Sending')} {formatMnt(numericAmount)}
               </div>
-              <div className="text-sm text-[#616161] max-w-[260px]">
+              <div className="text-sm text-[var(--text-secondary)] max-w-[260px]">
                 {t('Reaching')} {method}…
               </div>
             </motion.div>
@@ -593,26 +593,26 @@ function WithdrawDrawer({
                     stiffness: 260,
                     damping: 18,
                   }}
-                  className="relative w-14 h-14 rounded-full bg-[#ECFDF5] text-[#047857] flex items-center justify-center mb-4"
+                  className="relative w-14 h-14 rounded-full bg-[var(--success-tint)] text-[var(--success)] flex items-center justify-center mb-4"
                 >
                   <Check className="w-7 h-7" strokeWidth={3} />
                   <motion.span
                     initial={{ scale: 0.9, opacity: 0.6 }}
                     animate={{ scale: 1.6, opacity: 0 }}
                     transition={{ duration: 1.2, ease: 'easeOut' }}
-                    className="absolute inset-0 rounded-full border-2 border-[#047857]"
+                    className="absolute inset-0 rounded-full border-2 border-[var(--success)]"
                   />
                 </motion.div>
 
-                <h3 className="text-2xl font-serif text-[#1A1A1A] mb-1">
+                <h3 className="text-2xl font-serif text-[var(--text-primary)] mb-1">
                   {t('Withdrawal on its way')}
                 </h3>
-                <p className="text-sm text-[#4A4A4A] leading-relaxed max-w-[320px] mb-6">
+                <p className="text-sm text-[var(--text-tertiary)] leading-relaxed max-w-[320px] mb-6">
                   {formatMnt(numericAmount)} {t('will land in')} {method}{' '}
                   {t('within a few minutes.')}
                 </p>
 
-                <div className="w-full bg-[#FAFAFA] border border-[#EBEBEB] rounded-md p-4 text-left">
+                <div className="w-full bg-[var(--surface-muted)] border border-[var(--border-default)] rounded-md p-4 text-left">
                   <Row
                     label={t('Amount')}
                     value={formatMnt(numericAmount)}
@@ -622,7 +622,7 @@ function WithdrawDrawer({
                   <Row
                     label={t('Status')}
                     value={
-                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md text-[#1D4ED8] bg-[#EFF6FF]">
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md text-[var(--brand-primary-hover)] bg-[var(--brand-tint)]">
                         {t('Processing')}
                       </span>
                     }
@@ -635,17 +635,17 @@ function WithdrawDrawer({
                 </div>
               </div>
 
-              <div className="p-4 border-t border-[#EBEBEB] flex gap-3">
+              <div className="p-4 border-t border-[var(--border-default)] flex gap-3">
                 <button
                   onClick={() => onClose()}
-                  className="flex-1 h-10 px-4 border border-[#EBEBEB] text-sm font-medium text-[#4A4A4A] hover:bg-[#F3F3F3] hover:text-[#1A1A1A] rounded-md transition-colors cursor-pointer"
+                  className="flex-1 h-10 px-4 border border-[var(--border-default)] text-sm font-medium text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] rounded-md transition-colors cursor-pointer"
                 >
                   {t('Close')}
                 </button>
                 <button
                   id="withdraw-done-btn"
                   onClick={() => txId && onDone(txId)}
-                  className="flex-1 h-10 px-4 inline-flex items-center justify-center gap-2 bg-[#FF3C21] hover:bg-[#E63419] text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
+                  className="flex-1 h-10 px-4 inline-flex items-center justify-center gap-2 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
                 >
                   {t('View activity')}
                   <ArrowRight className="w-4 h-4" />
@@ -675,16 +675,16 @@ function Row({
     <div
       className={cn(
         'flex items-center justify-between py-2.5',
-        !last && 'border-b border-[#F3F3F3]',
+        !last && 'border-b border-[var(--surface-subtle)]',
       )}
     >
-      <span className="text-xs text-[#616161]">{label}</span>
+      <span className="text-xs text-[var(--text-secondary)]">{label}</span>
       <span
         className={cn(
           'text-sm tabular-nums lining-nums',
           emphasis
-            ? 'font-medium text-[#FF3C21]'
-            : 'font-medium text-[#1A1A1A]',
+            ? 'font-medium text-[var(--brand-primary)]'
+            : 'font-medium text-[var(--text-primary)]',
         )}
       >
         {value}

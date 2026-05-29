@@ -47,14 +47,14 @@ export function ChangePasswordDrawer({
 
   return (
     <Drawer direction="right" open={open} onOpenChange={handleOpenChange}>
-      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[#EBEBEB]">
-        <div className="h-14 flex items-center justify-between px-5 border-b border-[#EBEBEB] shrink-0">
-          <DrawerTitle className="text-base font-medium text-[#1A1A1A]">
+      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[var(--border-default)]">
+        <div className="h-14 flex items-center justify-between px-5 border-b border-[var(--border-default)] shrink-0">
+          <DrawerTitle className="text-base font-medium text-[var(--text-primary)]">
             {t('Change password')}
           </DrawerTitle>
           <button
             onClick={() => handleOpenChange(false)}
-            className="p-1.5 text-[#616161] hover:bg-[#F3F3F3] rounded-md transition-colors"
+            className="p-1.5 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors"
             aria-label={t('Close')}
           >
             <X className="w-4 h-4" strokeWidth={1.75} />
@@ -101,7 +101,7 @@ export function ChangePasswordDrawer({
                 showToggle={false}
               />
 
-              <div className="bg-[#F3F3F3] rounded-md p-4 space-y-2">
+              <div className="bg-[var(--surface-subtle)] rounded-md p-4 space-y-2">
                 <CheckItem ok={checks.length} label={t('At least 8 characters')} />
                 <CheckItem ok={checks.letter} label={t('Contains a letter')} />
                 <CheckItem ok={checks.number} label={t('Contains a number')} />
@@ -112,7 +112,7 @@ export function ChangePasswordDrawer({
                 <button
                   type="button"
                   onClick={() => handleOpenChange(false)}
-                  className="flex-1 h-10 rounded-md border border-[#EBEBEB] text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors"
+                  className="flex-1 h-10 rounded-md border border-[var(--border-default)] text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors"
                 >
                   {t('Cancel')}
                 </button>
@@ -122,8 +122,8 @@ export function ChangePasswordDrawer({
                   className={cn(
                     'flex-1 h-10 rounded-md text-sm font-medium transition-colors inline-flex items-center justify-center gap-2',
                     canSubmit
-                      ? 'bg-[#FF3C21] hover:bg-[#E63419] text-white cursor-pointer'
-                      : 'bg-[#F3F3F3] text-[#8A8A8A] cursor-not-allowed',
+                      ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white cursor-pointer'
+                      : 'bg-[var(--surface-subtle)] text-[var(--text-muted)] cursor-not-allowed',
                   )}
                 >
                   {t('Update password')}
@@ -133,19 +133,19 @@ export function ChangePasswordDrawer({
             </form>
           ) : (
             <div className="pt-6 flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-full bg-[#F3F3F3] flex items-center justify-center mb-5">
-                <CheckCircle2 className="w-6 h-6 text-[#047857]" strokeWidth={1.75} />
+              <div className="w-14 h-14 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center mb-5">
+                <CheckCircle2 className="w-6 h-6 text-[var(--success)]" strokeWidth={1.75} />
               </div>
-              <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">
+              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
                 {t('Password updated')}
               </h3>
-              <p className="text-sm text-[#4A4A4A] leading-relaxed max-w-sm mb-6">
+              <p className="text-sm text-[var(--text-tertiary)] leading-relaxed max-w-sm mb-6">
                 {t("You've been signed out of other sessions. Use your new password next time you sign in on another device.")}
               </p>
               <button
                 type="button"
                 onClick={() => handleOpenChange(false)}
-                className="px-5 h-10 rounded-md bg-[#FF3C21] hover:bg-[#E63419] text-white text-sm font-medium transition-colors"
+                className="px-5 h-10 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium transition-colors"
               >
                 {t('Done')}
               </button>
@@ -176,7 +176,7 @@ function PasswordInput({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-[#1A1A1A] mb-2">{label}</label>
+      <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{label}</label>
       <div className="relative">
         <input
           type={show ? 'text' : 'password'}
@@ -184,13 +184,13 @@ function PasswordInput({
           onChange={(e) => onChange(e.target.value)}
           autoFocus={autoFocus}
           placeholder="••••••••"
-          className="w-full px-3 py-2.5 pr-10 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] placeholder:text-[#8A8A8A] focus:outline-none focus:border-[#FF3C21] transition-colors"
+          className="w-full px-3 py-2.5 pr-10 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
         />
         {showToggle && (
           <button
             type="button"
             onClick={onToggle}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[#616161] hover:text-[#1A1A1A] transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           >
             {show ? <EyeOff className="w-4 h-4" strokeWidth={1.75} /> : <Eye className="w-4 h-4" strokeWidth={1.75} />}
           </button>
@@ -206,12 +206,12 @@ function CheckItem({ ok, label }: { ok: boolean; label: string }) {
       <div
         className={cn(
           'w-4 h-4 rounded-full flex items-center justify-center shrink-0',
-          ok ? 'bg-[#047857] text-white' : 'bg-white text-[#8A8A8A]',
+          ok ? 'bg-[var(--success)] text-white' : 'bg-white text-[var(--text-muted)]',
         )}
       >
         {ok && <Check className="w-2.5 h-2.5" strokeWidth={3} />}
       </div>
-      <span className={cn(ok ? 'text-[#1A1A1A]' : 'text-[#616161]')}>{label}</span>
+      <span className={cn(ok ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]')}>{label}</span>
     </div>
   );
 }

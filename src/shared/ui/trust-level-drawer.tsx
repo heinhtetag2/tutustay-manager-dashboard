@@ -34,15 +34,15 @@ export function TrustLevelDrawer({
 
   return (
     <Drawer direction="right" open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[#EBEBEB]">
+      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[var(--border-default)]">
         {/* Header */}
-        <div className="h-14 flex items-center justify-between px-5 border-b border-[#EBEBEB] shrink-0">
-          <DrawerTitle className="text-base font-medium text-[#1A1A1A]">
+        <div className="h-14 flex items-center justify-between px-5 border-b border-[var(--border-default)] shrink-0">
+          <DrawerTitle className="text-base font-medium text-[var(--text-primary)]">
             {t('Trust Level')}
           </DrawerTitle>
           <button
             onClick={() => onOpenChange(false)}
-            className="p-1.5 text-[#616161] hover:bg-[#F3F3F3] rounded-md transition-colors"
+            className="p-1.5 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors"
             aria-label={t('Close')}
           >
             <X className="w-4 h-4" strokeWidth={1.75} />
@@ -56,14 +56,14 @@ export function TrustLevelDrawer({
 
           {/* Current level card */}
           <div className="px-6 pt-6 pb-5">
-            <div className="bg-[#F3F3F3] rounded-md p-5">
+            <div className="bg-[var(--surface-subtle)] rounded-md p-5">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-md bg-white flex items-center justify-center shrink-0">
-                  <Trophy className="w-4 h-4 text-[#FF3C21]" strokeWidth={1.75} />
+                  <Trophy className="w-4 h-4 text-[var(--brand-primary)]" strokeWidth={1.75} />
                 </div>
                 <div>
-                  <div className="text-xs text-[#616161] mb-0.5">{t('You are here')}</div>
-                  <div className="text-base font-medium text-[#1A1A1A]">
+                  <div className="text-xs text-[var(--text-secondary)] mb-0.5">{t('You are here')}</div>
+                  <div className="text-base font-medium text-[var(--text-primary)]">
                     L{current.level} · {current.label}
                   </div>
                 </div>
@@ -71,7 +71,7 @@ export function TrustLevelDrawer({
 
               {next ? (
                 <div className="space-y-3">
-                  <div className="text-xs text-[#616161]">
+                  <div className="text-xs text-[var(--text-secondary)]">
                     {t('Progress to')} L{next.level} · {next.label}
                   </div>
                   <ProgressItem
@@ -88,7 +88,7 @@ export function TrustLevelDrawer({
                   )}
                 </div>
               ) : (
-                <div className="text-xs text-[#616161]">
+                <div className="text-xs text-[var(--text-secondary)]">
                   {t("You've reached the top level. Keep earning quality rewards.")}
                 </div>
               )}
@@ -97,7 +97,7 @@ export function TrustLevelDrawer({
 
           {/* Ladder */}
           <div className="px-6 pb-6">
-            <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">
+            <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-3">
               {t('All levels')}
             </h3>
             <div className="space-y-2">
@@ -114,10 +114,10 @@ export function TrustLevelDrawer({
 
           {/* How to level up */}
           <div className="px-6 pb-6">
-            <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">
+            <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-3">
               {t('How to level up')}
             </h3>
-            <ul className="list-disc list-outside pl-5 space-y-2 text-sm text-[#4A4A4A] leading-relaxed">
+            <ul className="list-disc list-outside pl-5 space-y-2 text-sm text-[var(--text-tertiary)] leading-relaxed">
               <li>
                 {t('Complete more surveys — each quality response counts toward your total.')}
               </li>
@@ -132,9 +132,9 @@ export function TrustLevelDrawer({
 
           {/* Benefits note */}
           <div className="px-6 pb-8">
-            <div className="bg-[#FFF1EE] rounded-md p-4 flex gap-3">
-              <span className="text-[#FF3C21] font-medium shrink-0">{t('Why it matters')}</span>
-              <p className="text-sm text-[#4A4A4A]">
+            <div className="bg-[var(--brand-tint)] rounded-md p-4 flex gap-3">
+              <span className="text-[var(--brand-primary)] font-medium shrink-0">{t('Why it matters')}</span>
+              <p className="text-sm text-[var(--text-tertiary)]">
                 {t('Higher trust levels unlock higher-paying surveys, faster payouts, and invite-only paid panels.')}
               </p>
             </div>
@@ -149,12 +149,12 @@ function ProgressItem({ label, value, pct }: { label: string; value: string; pct
   return (
     <div>
       <div className="flex items-center justify-between text-xs mb-1.5">
-        <span className="text-[#4A4A4A]">{label}</span>
-        <span className="font-medium text-[#1A1A1A] tabular-nums">{value}</span>
+        <span className="text-[var(--text-tertiary)]">{label}</span>
+        <span className="font-medium text-[var(--text-primary)] tabular-nums">{value}</span>
       </div>
       <div className="h-1.5 bg-white rounded-full overflow-hidden">
         <div
-          className="h-full bg-[#FF3C21] rounded-full transition-all"
+          className="h-full bg-[var(--brand-primary)] rounded-full transition-all"
           style={{ width: `${Math.round(pct * 100)}%` }}
         />
       </div>
@@ -183,39 +183,39 @@ function LevelRow({
       className={cn(
         'flex items-start gap-3 p-3 rounded-md border transition-colors',
         isCurrent
-          ? 'border-[#FFC1B5] bg-[#FFF1EE]'
-          : 'border-[#EBEBEB] bg-white',
+          ? 'border-[var(--brand-border)] bg-[var(--brand-tint)]'
+          : 'border-[var(--border-default)] bg-white',
       )}
     >
       <div
         className={cn(
           'w-8 h-8 rounded-md flex items-center justify-center shrink-0',
-          'bg-[#F3F3F3]',
+          'bg-[var(--surface-subtle)]',
         )}
       >
         {isUnlocked ? (
-          <Check className="w-4 h-4 text-[#4A4A4A]" strokeWidth={1.75} />
+          <Check className="w-4 h-4 text-[var(--text-tertiary)]" strokeWidth={1.75} />
         ) : (
-          <Lock className="w-4 h-4 text-[#4A4A4A]" strokeWidth={1.75} />
+          <Lock className="w-4 h-4 text-[var(--text-tertiary)]" strokeWidth={1.75} />
         )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-sm font-medium text-[#1A1A1A]">
+          <span className="text-sm font-medium text-[var(--text-primary)]">
             L{lvl.level} · {lvl.label}
           </span>
           {isCurrent && (
-            <span className="text-[10px] font-medium text-[#FF3C21] bg-white px-1.5 py-0.5 rounded-md">
+            <span className="text-[10px] font-medium text-[var(--brand-primary)] bg-white px-1.5 py-0.5 rounded-md">
               Current
             </span>
           )}
         </div>
-        <div className="text-xs text-[#616161]">
+        <div className="text-xs text-[var(--text-secondary)]">
           {lvl.minResponses === 0
             ? 'Starting level'
             : `${lvl.minResponses}+ responses${lvl.minAvgQuality ? ` · ${lvl.minAvgQuality}%+ quality` : ''}`}
         </div>
-        <div className="text-xs text-[#4A4A4A] mt-1">{benefits[lvl.level]}</div>
+        <div className="text-xs text-[var(--text-tertiary)] mt-1">{benefits[lvl.level]}</div>
       </div>
     </div>
   );

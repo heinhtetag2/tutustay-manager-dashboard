@@ -213,7 +213,7 @@ export default function Dashboard() {
   }, [t]);
 
   const feedIcon = (kind: FeedEvent['kind']) => {
-    const tone = 'bg-[#F3F3F3] text-[#4A4A4A]';
+    const tone = 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]';
     switch (kind) {
       case 'paid':
         return { Icon: CheckCircle2, tone };
@@ -231,13 +231,13 @@ export default function Dashboard() {
   const feedPill = (kind: FeedEvent['kind']): { tone: string; label: string } | null => {
     switch (kind) {
       case 'held-release':
-        return { tone: 'text-[#B45309] bg-[#FFFBEB]', label: t('Held') };
+        return { tone: 'text-[var(--warning)] bg-[var(--warning-tint)]', label: t('Held') };
       case 'under-review':
-        return { tone: 'text-[#1D4ED8] bg-[#EFF6FF]', label: t('Under review') };
+        return { tone: 'text-[var(--brand-primary-hover)] bg-[var(--brand-tint)]', label: t('Under review') };
       case 'level-up':
-        return { tone: 'text-[#FF3C21] bg-[#FFF1EE]', label: t('Level up') };
+        return { tone: 'text-[var(--brand-primary)] bg-[var(--brand-tint)]', label: t('Level up') };
       case 'new-match':
-        return { tone: 'text-[#FF3C21] bg-[#FFF1EE]', label: t('New match') };
+        return { tone: 'text-[var(--brand-primary)] bg-[var(--brand-tint)]', label: t('New match') };
       case 'paid':
       default:
         return null;
@@ -249,21 +249,21 @@ export default function Dashboard() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[#FAFAFA]"
+      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[var(--surface-muted)]"
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A]">
+          <h1 className="text-2xl sm:text-3xl font-serif text-[var(--text-primary)]">
             {t('Welcome back,')} {USER_FIRST_NAME}
           </h1>
-          <p className="text-sm text-[#616161] mt-1">
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             {t('Your earnings, progress, and surveys at a glance.')}
           </p>
         </div>
         <button
           onClick={() => navigate('/survey-feed')}
-          className="h-10 px-4 inline-flex items-center justify-center gap-2 bg-[#FF3C21] hover:bg-[#E63419] text-white text-sm font-medium rounded-md transition-colors cursor-pointer w-full sm:w-auto"
+          className="h-10 px-4 inline-flex items-center justify-center gap-2 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium rounded-md transition-colors cursor-pointer w-full sm:w-auto"
         >
           {t('Browse surveys')}
           <ArrowRight className="w-4 h-4" />
@@ -279,18 +279,18 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.06 }}
-            className="text-left bg-white border border-[#EBEBEB] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#FFC1B5] transition-colors group cursor-pointer"
+            className="text-left bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group cursor-pointer"
           >
             <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[#616161]">
+              <span className="text-sm font-medium text-[var(--text-secondary)]">
                 {t(stat.title)}
               </span>
               <div
                 className={cn(
                   'p-2 rounded-md transition-colors',
                   stat.accent
-                    ? 'bg-[#FFF1EE] text-[#FF3C21] group-hover:bg-[#FF3C21] group-hover:text-white'
-                    : 'bg-[#F3F3F3] text-[#4A4A4A] group-hover:bg-[#FF3C21] group-hover:text-white',
+                    ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white'
+                    : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white',
                 )}
               >
                 <stat.Icon className="w-4 h-4" />
@@ -299,16 +299,16 @@ export default function Dashboard() {
             <div
               className={cn(
                 'text-2xl font-medium tabular-nums lining-nums truncate',
-                stat.accent ? 'text-[#FF3C21]' : 'text-[#1A1A1A]',
+                stat.accent ? 'text-[var(--brand-primary)]' : 'text-[var(--text-primary)]',
               )}
             >
               {stat.value}
             </div>
-            <div className="text-xs text-[#4A4A4A] mt-2">{stat.subtitle}</div>
+            <div className="text-xs text-[var(--text-tertiary)] mt-2">{stat.subtitle}</div>
             {stat.progress !== undefined && (
-              <div className="h-1 w-full bg-[#F3F3F3] rounded-full overflow-hidden mt-3">
+              <div className="h-1 w-full bg-[var(--surface-subtle)] rounded-full overflow-hidden mt-3">
                 <div
-                  className="h-full bg-[#FF3C21] transition-all"
+                  className="h-full bg-[var(--brand-primary)] transition-all"
                   style={{ width: `${stat.progress}%` }}
                 />
               </div>
@@ -322,25 +322,25 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.25 }}
-        className="bg-white border border-[#EBEBEB] rounded-md p-4 sm:p-6 shadow-none mb-6"
+        className="bg-white border border-[var(--border-default)] rounded-md p-4 sm:p-6 shadow-none mb-6"
       >
         <div className="flex justify-between items-start mb-6 gap-3 flex-wrap">
           <div>
-            <h2 className="text-base font-medium text-[#1A1A1A]">
+            <h2 className="text-base font-medium text-[var(--text-primary)]">
               {t('Earnings')}
             </h2>
-            <p className="text-xs text-[#616161] mt-0.5 mb-3">
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5 mb-3">
               {t('Reward payments')} {t(rangeSubtitle)}
             </p>
             <div className="flex items-baseline gap-2">
-              <div className="text-2xl font-medium text-[#1A1A1A] tabular-nums lining-nums">
+              <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums lining-nums">
                 {formatMntCompact(rangeTotal)}
               </div>
               {rangeTrend !== null && (
                 <div
                   className={cn(
                     'text-xs font-medium flex items-center gap-0.5',
-                    rangeTrend >= 0 ? 'text-[#047857]' : 'text-[#DC2626]',
+                    rangeTrend >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger-strong)]',
                   )}
                 >
                   {rangeTrend >= 0 ? (
@@ -352,18 +352,18 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-[#616161] mt-2 tabular-nums flex-wrap">
+            <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mt-2 tabular-nums flex-wrap">
               <span>
                 {rangeSurveys} {rangeSurveys === 1 ? t('survey') : t('surveys')}
               </span>
-              <span className="text-[#D4D4D4]">·</span>
+              <span className="text-[var(--border-strong)]">·</span>
               <span>
                 {t('Avg')} {formatMntCompact(rangeAvgPerBucket)}{' '}
                 {bucketUnit === 'day' ? t('/ day') : t('/ week')}
               </span>
               {rangeSurveys > 0 && (
                 <>
-                  <span className="text-[#D4D4D4]">·</span>
+                  <span className="text-[var(--border-strong)]">·</span>
                   <span>
                     {formatMnt(Math.round(rangeTotal / rangeSurveys))} {t('per survey')}
                   </span>
@@ -390,38 +390,38 @@ export default function Dashboard() {
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#FF3C21" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#FF3C21" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F3F3" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-subtle)" />
               <XAxis
                 dataKey="name"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: '#616161' }}
+                tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
                 dy={10}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: '#616161' }}
+                tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
                 tickFormatter={(v: number) => (v >= 1000 ? `${v / 1000}K` : String(v))}
               />
               <Tooltip
-                cursor={{ stroke: '#EBEBEB', strokeWidth: 1, strokeDasharray: '4 4' }}
+                cursor={{ stroke: 'var(--border-default)', strokeWidth: 1, strokeDasharray: '4 4' }}
                 content={<EarningsTooltip bucketUnit={bucketUnit} t={t} />}
               />
               {rangeAvgPerBucket > 0 && (
                 <ReferenceLine
                   y={rangeAvgPerBucket}
-                  stroke="#8A8A8A"
+                  stroke="var(--text-muted)"
                   strokeDasharray="4 4"
                   strokeWidth={1}
                   label={{
                     value: `${t('Avg')} ${formatMntCompact(rangeAvgPerBucket)}`,
                     position: 'right',
-                    fill: '#616161',
+                    fill: 'var(--text-secondary)',
                     fontSize: 11,
                   }}
                 />
@@ -429,7 +429,7 @@ export default function Dashboard() {
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#FF3C21"
+                stroke="var(--brand-primary)"
                 strokeWidth={2}
                 fillOpacity={1}
                 fill="url(#colorEarnings)"
@@ -447,20 +447,20 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.3 }}
-          className="bg-white border border-[#EBEBEB] rounded-md shadow-none overflow-hidden"
+          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
         >
           <div className="px-4 sm:px-6 pt-5 pb-4 flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-base font-medium text-[#1A1A1A]">
+              <h2 className="text-base font-medium text-[var(--text-primary)]">
                 {t('Earnings by category')}
               </h2>
-              <p className="text-xs text-[#616161] mt-0.5">
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                 {t('Where your rewards come from')}
               </p>
             </div>
             <button
               onClick={() => navigate('/my-surveys')}
-              className="flex items-center gap-1 text-xs font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors cursor-pointer shrink-0"
+              className="flex items-center gap-1 text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer shrink-0"
             >
               {t('See all')}
               <ArrowRight className="w-3.5 h-3.5" />
@@ -468,11 +468,11 @@ export default function Dashboard() {
           </div>
 
           {categoryBreakdown.rows.length === 0 ? (
-            <div className="border-t border-[#F3F3F3] px-6 py-8 text-center text-sm text-[#616161]">
+            <div className="border-t border-[var(--surface-subtle)] px-6 py-8 text-center text-sm text-[var(--text-secondary)]">
               {t('No paid rewards yet.')}
             </div>
           ) : (
-            <ul className="border-t border-[#F3F3F3] px-4 sm:px-6 py-4 space-y-3.5">
+            <ul className="border-t border-[var(--surface-subtle)] px-4 sm:px-6 py-4 space-y-3.5">
               {categoryBreakdown.rows.map((row) => {
                 const pct = categoryBreakdown.max === 0
                   ? 0
@@ -480,20 +480,20 @@ export default function Dashboard() {
                 return (
                   <li key={row.category}>
                     <div className="flex items-center justify-between mb-1.5 text-xs">
-                      <span className="font-medium text-[#1A1A1A]">
+                      <span className="font-medium text-[var(--text-primary)]">
                         {row.category}
                       </span>
-                      <span className="flex items-center gap-2 text-[#616161] tabular-nums">
+                      <span className="flex items-center gap-2 text-[var(--text-secondary)] tabular-nums">
                         <span>
                           {row.count} {row.count === 1 ? t('survey') : t('surveys')}
                         </span>
-                        <span className="text-[#D4D4D4]">·</span>
-                        <span className="font-medium text-[#1A1A1A] lining-nums">
+                        <span className="text-[var(--border-strong)]">·</span>
+                        <span className="font-medium text-[var(--text-primary)] lining-nums">
                           {formatMnt(row.earned)}
                         </span>
                       </span>
                     </div>
-                    <div className="h-2 w-full bg-[#F3F3F3] rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-[var(--surface-subtle)] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
@@ -501,7 +501,7 @@ export default function Dashboard() {
                           duration: 0.7,
                           ease: [0.22, 1, 0.36, 1],
                         }}
-                        className="h-full bg-[#FF3C21] rounded-full"
+                        className="h-full bg-[var(--brand-primary)] rounded-full"
                       />
                     </div>
                   </li>
@@ -516,29 +516,29 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.35 }}
-          className="bg-white border border-[#EBEBEB] rounded-md shadow-none overflow-hidden"
+          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
         >
           <div className="px-4 sm:px-6 pt-5 pb-4 flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-base font-medium text-[#1A1A1A]">
+              <h2 className="text-base font-medium text-[var(--text-primary)]">
                 {t('Recent activity')}
               </h2>
-              <p className="text-xs text-[#616161] mt-0.5">
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                 {t('Latest rewards and status changes')}
               </p>
             </div>
             <button
               onClick={() => navigate('/my-surveys')}
-              className="flex items-center gap-1 text-xs font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors cursor-pointer shrink-0"
+              className="flex items-center gap-1 text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer shrink-0"
             >
               {t('View all')}
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <ol className="divide-y divide-[#F3F3F3] border-t border-[#F3F3F3]">
+          <ol className="divide-y divide-[var(--surface-subtle)] border-t border-[var(--surface-subtle)]">
             {activity.length === 0 ? (
-              <li className="px-6 py-8 text-center text-sm text-[#616161]">
+              <li className="px-6 py-8 text-center text-sm text-[var(--text-secondary)]">
                 {t('No recent activity.')}
               </li>
             ) : (
@@ -549,14 +549,14 @@ export default function Dashboard() {
                   <li key={`${ev.kind}-${i}`}>
                     <button
                       onClick={() => navigate(ev.href)}
-                      className="w-full flex items-center gap-3 px-4 sm:px-6 py-3.5 text-left hover:bg-[#FAFAFA] transition-colors cursor-pointer"
+                      className="w-full flex items-center gap-3 px-4 sm:px-6 py-3.5 text-left hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
                     >
                       <div className={cn('w-9 h-9 rounded-full flex items-center justify-center shrink-0', tone)}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-medium text-[#1A1A1A] truncate">
+                          <span className="text-sm font-medium text-[var(--text-primary)] truncate">
                             {ev.primary}
                           </span>
                           {pill && (
@@ -570,7 +570,7 @@ export default function Dashboard() {
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-[#616161] mt-0.5 tabular-nums">
+                        <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">
                           {ev.secondary} · {format(new Date(ev.date), 'MMM d')}
                         </div>
                       </div>
@@ -578,7 +578,7 @@ export default function Dashboard() {
                         <div
                           className={cn(
                             'text-sm font-medium tabular-nums lining-nums shrink-0',
-                            ev.kind === 'paid' ? 'text-[#047857]' : 'text-[#1A1A1A]',
+                            ev.kind === 'paid' ? 'text-[var(--success)]' : 'text-[var(--text-primary)]',
                           )}
                         >
                           {ev.kind === 'paid' ? '+' : ''}
@@ -620,10 +620,10 @@ function EarningsTooltip({
   const label =
     bucketUnit === 'day' ? format(p.date, 'EEE, MMM d') : `${p.name} · ${format(p.date, 'MMM d')}`;
   return (
-    <div className="bg-[#1A1A1A] text-white rounded-md px-3 py-2 text-xs shadow-lg">
-      <div className="text-[#8A8A8A] mb-1">{label}</div>
+    <div className="bg-[var(--text-primary)] text-white rounded-md px-3 py-2 text-xs shadow-lg">
+      <div className="text-[var(--text-muted)] mb-1">{label}</div>
       <div className="font-medium tabular-nums lining-nums">{formatMnt(p.value)}</div>
-      <div className="text-[#8A8A8A] mt-0.5 tabular-nums">
+      <div className="text-[var(--text-muted)] mt-0.5 tabular-nums">
         {p.surveys} {p.surveys === 1 ? t('survey') : t('surveys')}
       </div>
     </div>

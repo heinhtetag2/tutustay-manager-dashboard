@@ -15,6 +15,9 @@ import Companies from '@/pages/companies';
 import CompanyDetail from '@/pages/company-detail';
 import Respondents from '@/pages/respondents';
 import RespondentDetail from '@/pages/respondent-detail';
+import Reports from '@/pages/reports';
+import Agents from '@/pages/agents';
+import AgentDetail from '@/pages/agents/AgentDetail';
 import Help from '@/pages/help';
 import Settings from '@/pages/settings';
 import NotFound from '@/pages/not-found';
@@ -38,6 +41,9 @@ export const router = createBrowserRouter([
       { path: 'companies/:id', Component: CompanyDetail },
       { path: 'respondents', Component: Respondents },
       { path: 'respondents/:id', Component: RespondentDetail },
+      { path: 'reports', Component: Reports },
+      { path: 'agents', Component: Agents },
+      { path: 'agents/:id', Component: AgentDetail },
       { path: 'billing', Component: Billing },
       { path: 'payouts', Component: Payouts },
       { path: 'wallet', Component: Wallet },

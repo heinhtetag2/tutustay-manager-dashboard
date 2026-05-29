@@ -115,12 +115,12 @@ export default function Billing() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-y-auto w-full px-6 md:px-8 xl:px-12 py-8 bg-[#FAFAFA]"
+      className="flex-1 overflow-y-auto w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)]"
     >
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-serif text-[#1A1A1A]">{t('Billing & Credits')}</h1>
-        <p className="text-sm text-[#616161] mt-1">
+        <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Billing & Credits')}</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
           {t('Manage your credits and view transaction history.')}
         </p>
       </div>
@@ -130,11 +130,11 @@ export default function Billing() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05 }}
-        className="relative overflow-hidden bg-[#1A1A1A] rounded-md p-8 mb-8"
+        className="relative overflow-hidden bg-[var(--text-primary)] rounded-md p-8 mb-8"
       >
         {/* Soft brand glow */}
-        <div className="pointer-events-none absolute -right-32 -top-32 w-[420px] h-[420px] rounded-full bg-[#FF3C21]/25 blur-3xl" />
-        <div className="pointer-events-none absolute -left-40 bottom-0 w-[320px] h-[320px] rounded-full bg-[#FF3C21]/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-32 -top-32 w-[420px] h-[420px] rounded-full bg-[var(--brand-primary)]/25 blur-3xl" />
+        <div className="pointer-events-none absolute -left-40 bottom-0 w-[320px] h-[320px] rounded-full bg-[var(--brand-primary)]/10 blur-3xl" />
 
         <div className="relative flex items-start justify-between gap-4">
           <div>
@@ -157,11 +157,11 @@ export default function Billing() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="bg-white border border-[#EBEBEB] rounded-md p-6 mb-6 shadow-none"
+        className="bg-white border border-[var(--border-default)] rounded-md p-6 mb-6 shadow-none"
       >
         <div className="flex items-center gap-2 mb-5">
-          <Sparkles className="w-4 h-4 text-[#FF3C21]" />
-          <h3 className="text-base font-medium text-[#1A1A1A]">{t('Top Up Credits')}</h3>
+          <Sparkles className="w-4 h-4 text-[var(--brand-primary)]" />
+          <h3 className="text-base font-medium text-[var(--text-primary)]">{t('Top Up Credits')}</h3>
         </div>
 
         {/* Package grid */}
@@ -174,27 +174,27 @@ export default function Billing() {
                 onClick={() => setSelectedPkg(pkg.id)}
                 className={`relative text-left p-4 rounded-md border transition-colors cursor-pointer ${
                   isActive
-                    ? 'border-[#FF3C21] bg-[#FFF1EE]'
-                    : 'border-[#EBEBEB] bg-white hover:border-[#FFC1B5]'
+                    ? 'border-[var(--brand-primary)] bg-[var(--brand-tint)]'
+                    : 'border-[var(--border-default)] bg-white hover:border-[var(--brand-border)]'
                 }`}
               >
                 {pkg.badge && (
                   <span
                     className={`absolute -top-2 right-3 px-2 py-0.5 text-[10px] font-medium tracking-wide rounded-full ${
                       isActive
-                        ? 'bg-[#FF3C21] text-white'
-                        : 'bg-[#FFF1EE] text-[#FF3C21] border border-[#FFDED5]'
+                        ? 'bg-[var(--brand-primary)] text-white'
+                        : 'bg-[var(--brand-tint)] text-[var(--brand-primary)]'
                     }`}
                   >
                     {t(pkg.badge)}
                   </span>
                 )}
-                <div className="text-sm font-medium text-[#4A4A4A] mb-1">{t(pkg.name)}</div>
-                <div className={`text-2xl font-medium tabular-nums ${isActive ? 'text-[#FF3C21]' : 'text-[#1A1A1A]'}`}>
+                <div className="text-sm font-medium text-[var(--text-tertiary)] mb-1">{t(pkg.name)}</div>
+                <div className={`text-2xl font-medium tabular-nums ${isActive ? 'text-[var(--brand-primary)]' : 'text-[var(--text-primary)]'}`}>
                   {pkg.amount}
                 </div>
                 {pkg.bonus && (
-                  <div className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#047857]">
+                  <div className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--success)]">
                     <Sparkles className="w-3 h-3" />
                     {pkg.bonus}
                   </div>
@@ -206,7 +206,7 @@ export default function Billing() {
 
         {/* Payment methods */}
         <div className="mb-5">
-          <p className="text-xs font-medium text-[#616161] uppercase tracking-wider mb-2">
+          <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">
             {t('Payment method')}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -218,8 +218,8 @@ export default function Billing() {
                   onClick={() => setSelectedPayment(id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition-colors cursor-pointer ${
                     isActive
-                      ? 'border-[#FF3C21] bg-[#FFF1EE] text-[#FF3C21]'
-                      : 'border-[#EBEBEB] bg-white text-[#4A4A4A] hover:border-[#FFC1B5] hover:bg-[#FAFAFA]'
+                      ? 'border-[var(--brand-primary)] bg-[var(--brand-tint)] text-[var(--brand-primary)]'
+                      : 'border-[var(--border-default)] bg-white text-[var(--text-tertiary)] hover:border-[var(--brand-border)] hover:bg-[var(--surface-muted)]'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -235,8 +235,8 @@ export default function Billing() {
           disabled={!selectedPkg}
           className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium transition-colors ${
             selectedPkg
-              ? 'bg-[#FF3C21] text-white hover:bg-[#E63419] cursor-pointer'
-              : 'bg-[#F3F3F3] text-[#8A8A8A] cursor-not-allowed'
+              ? 'bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] cursor-pointer'
+              : 'bg-[var(--surface-subtle)] text-[var(--text-muted)] cursor-not-allowed'
           }`}
         >
           {selectedPackageObj
@@ -251,23 +251,23 @@ export default function Billing() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.15 }}
-        className="bg-white border border-[#EBEBEB] rounded-md p-6 mb-6 shadow-none"
+        className="bg-white border border-[var(--border-default)] rounded-md p-6 mb-6 shadow-none"
       >
         <div className="flex items-start justify-between gap-4 mb-5">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#F3F3F3] rounded-md text-[#4A4A4A]">
+            <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)]">
               <Building2 className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-medium text-[#1A1A1A]">
-                {t('Your Plan')} <span className="text-[#616161] font-normal">— {t('Growth')}</span>
+              <h3 className="text-base font-medium text-[var(--text-primary)]">
+                {t('Your Plan')} <span className="text-[var(--text-secondary)] font-normal">— {t('Growth')}</span>
               </h3>
-              <p className="text-xs text-[#616161] mt-0.5">
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                 {t('Next monthly invoice due')} <span className="tabular-nums">{renewsLabel}</span>
               </p>
             </div>
           </div>
-          <button className="flex items-center gap-1 text-sm font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors cursor-pointer">
+          <button className="flex items-center gap-1 text-sm font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer">
             {t('Upgrade plan')}
             <ArrowRight className="w-4 h-4" />
           </button>
@@ -282,8 +282,8 @@ export default function Billing() {
             'Demographic targeting',
             'Custom branding',
           ].map((feature) => (
-            <div key={feature} className="flex items-center gap-2.5 text-sm text-[#4A4A4A]">
-              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#ECFDF5] text-[#047857] shrink-0">
+            <div key={feature} className="flex items-center gap-2.5 text-sm text-[var(--text-tertiary)]">
+              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--success-tint)] text-[var(--success)] shrink-0">
                 <Check className="w-3 h-3" strokeWidth={3} />
               </span>
               {t(feature)}
@@ -297,11 +297,11 @@ export default function Billing() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.18 }}
-        className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden shadow-none"
+        className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden shadow-none"
       >
         <div className="px-6 pt-5 pb-4">
-          <h3 className="text-base font-medium text-[#1A1A1A]">{t('Billing Activity')}</h3>
-          <p className="text-xs text-[#616161] mt-0.5">
+          <h3 className="text-base font-medium text-[var(--text-primary)]">{t('Billing Activity')}</h3>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
             {t('Your subscription invoices and credit top-ups')}
           </p>
         </div>
@@ -309,7 +309,7 @@ export default function Billing() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
-              <tr className="border-b border-[#EBEBEB] text-[#4A4A4A] font-medium bg-[#F3F3F3]">
+              <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
                 <th className="px-6 py-3 font-medium">{t('Date')}</th>
                 <th className="px-6 py-3 font-medium">{t('Description')}</th>
                 <th className="px-6 py-3 font-medium">{t('Status')}</th>
@@ -317,14 +317,14 @@ export default function Billing() {
                 <th className="px-6 py-3 font-medium w-8"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F3F3F3]">
+            <tbody className="divide-y divide-[var(--surface-subtle)]">
               {ACTIVITY.map((item, index) => {
                 const statusBadge =
                   item.status === 'Paid'
-                    ? 'bg-[#ECFDF5] text-[#047857] border border-[#D1FAE5]'
+                    ? 'bg-[var(--success-tint)] text-[var(--success)]'
                     : item.status === 'Overdue'
-                    ? 'bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]'
-                    : 'bg-[#F3F3F3] text-[#4A4A4A] border border-[#EBEBEB]';
+                    ? 'bg-[var(--danger-tint)] text-[var(--danger-strong)]'
+                    : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]';
 
                 const Icon = item.kind === 'subscription' ? Receipt : Sparkles;
 
@@ -335,15 +335,15 @@ export default function Billing() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, delay: index * 0.03 }}
                     onClick={() => setOpenInvoice(item.invoice)}
-                    className="hover:bg-[#FAFAFA] transition-colors group cursor-pointer"
+                    className="hover:bg-[var(--surface-muted)] transition-colors group cursor-pointer"
                   >
-                    <td className="px-6 py-4 text-[#4A4A4A] tabular-nums">{item.date}</td>
+                    <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{item.date}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-md bg-[#F3F3F3] text-[#4A4A4A] shrink-0">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-md bg-[var(--surface-subtle)] text-[var(--text-tertiary)] shrink-0">
                           <Icon className="w-4 h-4" />
                         </span>
-                        <div className="font-medium text-[#1A1A1A]">{t(item.label)}</div>
+                        <div className="font-medium text-[var(--text-primary)]">{t(item.label)}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -351,11 +351,11 @@ export default function Billing() {
                         {t(item.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right font-medium tabular-nums text-[#1A1A1A]">
-                      {item.amount === null ? <span className="text-[#8A8A8A]">—</span> : formatMnt(item.amount)}
+                    <td className="px-6 py-4 text-right font-medium tabular-nums text-[var(--text-primary)]">
+                      {item.amount === null ? <span className="text-[var(--text-muted)]">—</span> : formatMnt(item.amount)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <ChevronRight className="w-4 h-4 text-[#8A8A8A] group-hover:text-[#4A4A4A] transition-colors" />
+                      <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)] transition-colors" />
                     </td>
                   </motion.tr>
                 );
@@ -374,7 +374,7 @@ export default function Billing() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setOpenInvoice(null)}
-            className="fixed inset-0 bg-[#1A1A1A]/30 z-50 flex justify-end"
+            className="fixed inset-0 bg-[var(--text-primary)]/30 z-50 flex justify-end"
           >
             <motion.div
               initial={{ x: '100%' }}
@@ -382,45 +382,45 @@ export default function Billing() {
               exit={{ x: '100%' }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-white h-full overflow-y-auto border-l border-[#EBEBEB] flex flex-col"
+              className="w-full max-w-md bg-white h-full overflow-y-auto border-l border-[var(--border-default)] flex flex-col"
             >
               {/* Header */}
-              <div className="px-6 py-5 border-b border-[#F3F3F3] flex items-start justify-between gap-4 shrink-0">
+              <div className="px-6 py-5 border-b border-[var(--surface-subtle)] flex items-start justify-between gap-4 shrink-0">
                 <div className="flex items-start gap-3 min-w-0">
                   <span
                     className={`flex items-center justify-center w-11 h-11 rounded-full shrink-0 ${
                       openInvoice.status === 'Paid'
-                        ? 'bg-[#ECFDF5] text-[#047857]'
+                        ? 'bg-[var(--success-tint)] text-[var(--success)]'
                         : openInvoice.status === 'Overdue'
-                        ? 'bg-[#FEF2F2] text-[#DC2626]'
-                        : 'bg-[#F3F3F3] text-[#4A4A4A]'
+                        ? 'bg-[var(--danger-tint)] text-[var(--danger-strong)]'
+                        : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]'
                     }`}
                   >
                     <Receipt className="w-5 h-5" />
                   </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-base font-medium text-[#1A1A1A]">{t(openInvoice.description)}</h2>
+                      <h2 className="text-base font-medium text-[var(--text-primary)]">{t(openInvoice.description)}</h2>
                       <span
                         className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${
                           openInvoice.status === 'Paid'
-                            ? 'bg-[#ECFDF5] text-[#047857] border border-[#D1FAE5]'
+                            ? 'bg-[var(--success-tint)] text-[var(--success)]'
                             : openInvoice.status === 'Overdue'
-                            ? 'bg-[#FEF2F2] text-[#DC2626] border border-[#FECACA]'
-                            : 'bg-[#F3F3F3] text-[#4A4A4A] border border-[#EBEBEB]'
+                            ? 'bg-[var(--danger-tint)] text-[var(--danger-strong)]'
+                            : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]'
                         }`}
                       >
                         {t(openInvoice.status)}
                       </span>
                     </div>
-                    <p className="text-sm text-[#616161] mt-1">
+                    <p className="text-sm text-[var(--text-secondary)] mt-1">
                       {t('Invoice issue date')} <span className="tabular-nums">{openInvoice.issueDate}</span>
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setOpenInvoice(null)}
-                  className="p-1 text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors cursor-pointer shrink-0"
+                  className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer shrink-0"
                   aria-label={t('Close')}
                 >
                   <X className="w-5 h-5" />
@@ -428,31 +428,31 @@ export default function Billing() {
               </div>
 
               {/* Meta grid */}
-              <div className="px-6 py-5 border-b border-[#F3F3F3] grid grid-cols-2 gap-x-6 gap-y-5">
+              <div className="px-6 py-5 border-b border-[var(--surface-subtle)] grid grid-cols-2 gap-x-6 gap-y-5">
                 <div>
-                  <p className="text-xs text-[#616161] mb-1">{t('Due date')}</p>
-                  <p className="text-sm font-medium text-[#1A1A1A] tabular-nums">{openInvoice.dueDate}</p>
+                  <p className="text-xs text-[var(--text-secondary)] mb-1">{t('Due date')}</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{openInvoice.dueDate}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#616161] mb-1">{t('Status')}</p>
-                  <p className="text-sm font-medium text-[#1A1A1A]">{t(openInvoice.status)}</p>
+                  <p className="text-xs text-[var(--text-secondary)] mb-1">{t('Status')}</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{t(openInvoice.status)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#616161] mb-1">{t('Invoice number')}</p>
-                  <button className="text-sm font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors tabular-nums cursor-pointer">
+                  <p className="text-xs text-[var(--text-secondary)] mb-1">{t('Invoice number')}</p>
+                  <button className="text-sm font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors tabular-nums cursor-pointer">
                     {openInvoice.id}
                   </button>
                 </div>
                 <div>
-                  <p className="text-xs text-[#616161] mb-1">{t('Payment method')}</p>
-                  <p className="text-sm font-medium text-[#1A1A1A]">{t(openInvoice.paymentMethod)}</p>
+                  <p className="text-xs text-[var(--text-secondary)] mb-1">{t('Payment method')}</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{t(openInvoice.paymentMethod)}</p>
                 </div>
               </div>
 
               {/* Monthly costs */}
-              <div className="px-6 py-5 border-b border-[#F3F3F3]">
-                <h3 className="text-base font-medium text-[#1A1A1A] mb-1">{t('Monthly costs')}</h3>
-                <p className="text-sm text-[#616161] mb-4">
+              <div className="px-6 py-5 border-b border-[var(--surface-subtle)]">
+                <h3 className="text-base font-medium text-[var(--text-primary)] mb-1">{t('Monthly costs')}</h3>
+                <p className="text-sm text-[var(--text-secondary)] mb-4">
                   {t('This covers your workspace from')}{' '}
                   <span className="tabular-nums">{openInvoice.periodStart}</span> {t('to')}{' '}
                   <span className="tabular-nums">{openInvoice.periodEnd}</span>.
@@ -460,35 +460,35 @@ export default function Billing() {
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-[#4A4A4A]">{t('Growth plan — monthly subscription')}</span>
-                    <span className="text-[#1A1A1A] font-medium tabular-nums">
+                    <span className="text-[var(--text-tertiary)]">{t('Growth plan — monthly subscription')}</span>
+                    <span className="text-[var(--text-primary)] font-medium tabular-nums">
                       {openInvoice.total !== null ? formatMnt(500_000) : formatMnt(500_000)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-[#4A4A4A]">{t('5,000 response credits included')}</span>
-                    <span className="text-[#1A1A1A] font-medium tabular-nums">₩0</span>
+                    <span className="text-[var(--text-tertiary)]">{t('5,000 response credits included')}</span>
+                    <span className="text-[var(--text-primary)] font-medium tabular-nums">₩0</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-[#4A4A4A]">{t('Additional top-up credits')}</span>
-                    <span className="text-[#1A1A1A] font-medium tabular-nums">₩0</span>
+                    <span className="text-[var(--text-tertiary)]">{t('Additional top-up credits')}</span>
+                    <span className="text-[var(--text-primary)] font-medium tabular-nums">₩0</span>
                   </div>
                 </div>
               </div>
 
               {/* Totals */}
-              <div className="px-6 py-5 border-b border-[#F3F3F3] space-y-2">
+              <div className="px-6 py-5 border-b border-[var(--surface-subtle)] space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#4A4A4A]">{t('Subtotal')}</span>
-                  <span className="text-[#1A1A1A] font-medium tabular-nums">{formatMnt(500_000)}</span>
+                  <span className="text-[var(--text-tertiary)]">{t('Subtotal')}</span>
+                  <span className="text-[var(--text-primary)] font-medium tabular-nums">{formatMnt(500_000)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-[#4A4A4A]">{t('VAT (0%)')}</span>
-                  <span className="text-[#1A1A1A] font-medium tabular-nums">₩0</span>
+                  <span className="text-[var(--text-tertiary)]">{t('VAT (0%)')}</span>
+                  <span className="text-[var(--text-primary)] font-medium tabular-nums">₩0</span>
                 </div>
-                <div className="flex items-center justify-between pt-3 mt-1 border-t border-[#F3F3F3]">
-                  <span className="text-base font-medium text-[#1A1A1A]">{t('Total')}</span>
-                  <span className="text-base font-medium text-[#1A1A1A] tabular-nums">
+                <div className="flex items-center justify-between pt-3 mt-1 border-t border-[var(--surface-subtle)]">
+                  <span className="text-base font-medium text-[var(--text-primary)]">{t('Total')}</span>
+                  <span className="text-base font-medium text-[var(--text-primary)] tabular-nums">
                     {openInvoice.total === null ? formatMnt(500_000) : formatMnt(openInvoice.total)}
                   </span>
                 </div>
@@ -500,15 +500,15 @@ export default function Billing() {
                   disabled={openInvoice.status === 'Upcoming'}
                   className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
                     openInvoice.status === 'Upcoming'
-                      ? 'bg-[#F3F3F3] text-[#8A8A8A] border border-[#EBEBEB] cursor-not-allowed'
-                      : 'bg-white text-[#1A1A1A] border border-[#EBEBEB] hover:bg-[#FAFAFA] cursor-pointer'
+                      ? 'bg-[var(--surface-subtle)] text-[var(--text-muted)] cursor-not-allowed'
+                      : 'bg-white text-[var(--text-primary)] border border-[var(--border-default)] hover:bg-[var(--surface-muted)] cursor-pointer'
                   }`}
                 >
                   <Download className="w-4 h-4" />
                   {t('Download invoice')}
                 </button>
                 {openInvoice.status === 'Upcoming' && (
-                  <p className="text-xs text-[#616161] mt-2 text-center">
+                  <p className="text-xs text-[var(--text-secondary)] mt-2 text-center">
                     {t('Available after this invoice is paid.')}
                   </p>
                 )}

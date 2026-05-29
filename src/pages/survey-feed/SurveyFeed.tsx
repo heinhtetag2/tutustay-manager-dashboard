@@ -30,9 +30,9 @@ function formatMnt(value: number): string {
 }
 
 function matchTone(percent: number): string {
-  if (percent >= 90) return 'text-[#047857] bg-[#ECFDF5]';
-  if (percent >= 75) return 'text-[#B45309] bg-[#FFFBEB]';
-  return 'text-[#4A4A4A] bg-[#F3F3F3]';
+  if (percent >= 90) return 'text-[var(--success)] bg-[var(--success-tint)]';
+  if (percent >= 75) return 'text-[var(--warning)] bg-[var(--warning-tint)]';
+  return 'text-[var(--text-tertiary)] bg-[var(--surface-subtle)]';
 }
 
 function spotsTone(left: number, total: number): {
@@ -40,9 +40,9 @@ function spotsTone(left: number, total: number): {
   label: string;
 } {
   const ratio = left / total;
-  if (ratio <= 0.15) return { bar: 'bg-[#B91C1C]', label: 'text-[#B91C1C]' };
-  if (ratio <= 0.5) return { bar: 'bg-[#FF3C21]', label: 'text-[#FF3C21]' };
-  return { bar: 'bg-[#047857]', label: 'text-[#047857]' };
+  if (ratio <= 0.15) return { bar: 'bg-[var(--danger)]', label: 'text-[var(--danger)]' };
+  if (ratio <= 0.5) return { bar: 'bg-[var(--brand-primary)]', label: 'text-[var(--brand-primary)]' };
+  return { bar: 'bg-[var(--success)]', label: 'text-[var(--success)]' };
 }
 
 export default function SurveyFeed() {
@@ -105,15 +105,15 @@ export default function SurveyFeed() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[#FAFAFA]"
+      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[var(--surface-muted)]"
     >
       {/* Header */}
       <div className="flex justify-between items-start mb-6 gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A]">
+          <h1 className="text-2xl sm:text-3xl font-serif text-[var(--text-primary)]">
             {t('Survey Feed')}
           </h1>
-          <p className="text-sm text-[#616161] mt-1">
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             {t('Surveys matched to your profile. Complete them to earn rewards and level up your trust.')}
           </p>
         </div>
@@ -121,12 +121,12 @@ export default function SurveyFeed() {
           <button
             type="button"
             onClick={() => setTrustOpen(true)}
-            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-white border border-[#EBEBEB] text-xs font-medium text-[#1A1A1A] hover:border-[#FFC1B5] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-white border border-[var(--border-default)] text-xs font-medium text-[var(--text-primary)] hover:border-[var(--brand-border)] transition-colors cursor-pointer"
           >
-            <Trophy className="w-3.5 h-3.5 text-[#FF3C21]" strokeWidth={1.75} />
+            <Trophy className="w-3.5 h-3.5 text-[var(--brand-primary)]" strokeWidth={1.75} />
             {t('Trust Lv.')} {USER_TRUST_LEVEL}
           </button>
-          <span className="text-xs text-[#616161] tabular-nums leading-7">
+          <span className="text-xs text-[var(--text-secondary)] tabular-nums leading-7">
             {availableCount} {t('of')} {filtered.length} {t('available')}
           </span>
         </div>
@@ -135,13 +135,13 @@ export default function SurveyFeed() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('Search surveys or companies...')}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161]"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
           />
         </div>
 
@@ -180,8 +180,8 @@ export default function SurveyFeed() {
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="bg-white border border-[#EBEBEB] rounded-md py-16 text-center">
-          <p className="text-sm text-[#616161]">{t('No surveys match your filters.')}</p>
+        <div className="bg-white border border-[var(--border-default)] rounded-md py-16 text-center">
+          <p className="text-sm text-[var(--text-secondary)]">{t('No surveys match your filters.')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -227,20 +227,20 @@ function SurveyCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay }}
       className={cn(
-        'relative text-left bg-white border border-[#EBEBEB] rounded-md p-5 flex flex-col transition-colors',
+        'relative text-left bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col transition-colors',
         locked
           ? 'cursor-not-allowed'
-          : 'hover:border-[#FFC1B5] cursor-pointer',
+          : 'hover:border-[var(--brand-border)] cursor-pointer',
       )}
     >
       <div className={cn('flex flex-col gap-4', locked && 'opacity-30')}>
         {/* Header */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-[#F3F3F3] flex items-center justify-center text-[#4A4A4A] text-[11px] font-medium shrink-0">
+            <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center text-[var(--text-tertiary)] text-[11px] font-medium shrink-0">
               {survey.companyInitials}
             </div>
-            <span className="text-sm font-medium text-[#1A1A1A] truncate">
+            <span className="text-sm font-medium text-[var(--text-primary)] truncate">
               {survey.companyName}
             </span>
           </div>
@@ -255,16 +255,16 @@ function SurveyCard({
         </div>
 
         {/* Title */}
-        <h3 className="text-base font-medium text-[#1A1A1A] leading-snug">
+        <h3 className="text-base font-medium text-[var(--text-primary)] leading-snug">
           {survey.title}
         </h3>
 
         {/* Reward + duration */}
         <div className="flex items-center gap-4 text-sm">
-          <span className="font-medium text-[#FF3C21] tabular-nums">
+          <span className="font-medium text-[var(--brand-primary)] tabular-nums">
             {formatMnt(survey.rewardMnt)}
           </span>
-          <span className="flex items-center gap-1 text-[#616161] tabular-nums">
+          <span className="flex items-center gap-1 text-[var(--text-secondary)] tabular-nums">
             <Clock className="w-3.5 h-3.5" />
             {survey.durationMin} {t('min')}
           </span>
@@ -273,7 +273,7 @@ function SurveyCard({
         {/* Spots left */}
         <div>
           <div className="flex items-center justify-between mb-1.5 text-xs">
-            <span className="flex items-center gap-1 text-[#616161]">
+            <span className="flex items-center gap-1 text-[var(--text-secondary)]">
               <Users className="w-3.5 h-3.5" />
               {t('Spots left')}
             </span>
@@ -281,7 +281,7 @@ function SurveyCard({
               {survey.spotsLeft}
             </span>
           </div>
-          <div className="h-1.5 w-full bg-[#F3F3F3] rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-[var(--surface-subtle)] rounded-full overflow-hidden">
             <div
               className={cn('h-full rounded-full transition-all', spots.bar)}
               style={{ width: `${filledRatio * 100}%` }}
@@ -291,7 +291,7 @@ function SurveyCard({
 
         {/* Category tag */}
         <div>
-          <span className="inline-flex text-xs font-medium text-[#4A4A4A] bg-[#F3F3F3] px-2 py-0.5 rounded-md">
+          <span className="inline-flex text-xs font-medium text-[var(--text-tertiary)] bg-[var(--surface-subtle)] px-2 py-0.5 rounded-md">
             {survey.category}
           </span>
         </div>
@@ -300,13 +300,13 @@ function SurveyCard({
       {/* Locked overlay */}
       {locked && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-md bg-white/70 backdrop-blur-[1px] px-6 text-center">
-          <div className="w-9 h-9 rounded-full bg-[#F3F3F3] flex items-center justify-center">
-            <Lock className="w-4 h-4 text-[#4A4A4A]" />
+          <div className="w-9 h-9 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center">
+            <Lock className="w-4 h-4 text-[var(--text-tertiary)]" />
           </div>
-          <div className="text-sm font-medium text-[#1A1A1A]">
+          <div className="text-sm font-medium text-[var(--text-primary)]">
             {t('Trust Level')} {survey.requiredTrustLevel} {t('required')}
           </div>
-          <div className="text-xs text-[#616161] leading-snug max-w-[240px]">
+          <div className="text-xs text-[var(--text-secondary)] leading-snug max-w-[240px]">
             {t('Complete more surveys to increase your trust level')}
           </div>
         </div>

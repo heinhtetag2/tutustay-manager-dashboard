@@ -233,33 +233,33 @@ export default function SurveyBuilder() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-y-auto w-full px-6 md:px-8 xl:px-12 py-8 bg-[#FAFAFA]"
+      className="flex-1 overflow-y-auto w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)]"
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <nav className="flex items-center gap-2 text-sm text-[#616161] mb-2">
+          <nav className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-2">
             <button
               onClick={() => navigate('/surveys')}
-              className="font-normal hover:text-[#1A1A1A] transition-colors cursor-pointer"
+              className="font-normal hover:text-[var(--text-primary)] transition-colors cursor-pointer"
             >
               {t('Surveys')}
             </button>
-            <span className="text-[#D4D4D4]">/</span>
-            <span className="text-[#1A1A1A] font-medium">{isEditing ? t('Edit Survey') : t('New Survey')}</span>
+            <span className="text-[var(--border-strong)]">/</span>
+            <span className="text-[var(--text-primary)] font-medium">{isEditing ? t('Edit Survey') : t('New Survey')}</span>
           </nav>
-          <h1 className="text-3xl font-serif text-[#1A1A1A]">{isEditing ? t('Edit Survey') : t('Survey Builder')}</h1>
+          <h1 className="text-3xl font-serif text-[var(--text-primary)]">{isEditing ? t('Edit Survey') : t('Survey Builder')}</h1>
         </div>
         <div className="flex gap-3">
           <button
-            className="flex items-center gap-2 px-4 py-2 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors bg-white shadow-none cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors bg-white shadow-none cursor-pointer"
             onClick={() => navigate('/surveys')}
           >
             <Save className="w-4 h-4" />
             {t('Save Draft')}
           </button>
           <button
-            className="flex items-center gap-2 px-4 py-2 bg-[#FF3C21] rounded-md text-sm font-medium text-white hover:bg-[#E63419] transition-colors shadow-none cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--brand-primary)] rounded-md text-sm font-medium text-white hover:bg-[var(--brand-primary-hover)] transition-colors shadow-none cursor-pointer"
             onClick={() => navigate('/surveys')}
           >
             {isEditing ? <Check className="w-4 h-4" /> : <Rocket className="w-4 h-4" />}
@@ -273,25 +273,25 @@ export default function SurveyBuilder() {
         {/* LEFT COLUMN */}
         <div className="space-y-6">
           {/* Survey Settings */}
-          <div className="bg-white rounded-md border border-[#EBEBEB] p-5">
-            <h2 className="text-base font-medium text-[#1A1A1A] mb-4">{t('Survey Settings')}</h2>
+          <div className="bg-white rounded-md border border-[var(--border-default)] p-5">
+            <h2 className="text-base font-medium text-[var(--text-primary)] mb-4">{t('Survey Settings')}</h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-[#4A4A4A] mb-1.5">
-                  {t('Title')} <span className="text-[#DC2626]">*</span>
+                <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
+                  {t('Title')} <span className="text-[var(--danger-strong)]">*</span>
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder={t('e.g. Customer Satisfaction 2025')}
-                  className="w-full px-3 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161]"
+                  className="w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#4A4A4A] mb-1.5">
+                <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
                   {t('Description')}
                 </label>
                 <textarea
@@ -299,12 +299,12 @@ export default function SurveyBuilder() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder={t('Tell respondents what this survey is about...')}
                   rows={3}
-                  className="w-full px-3 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161] resize-none"
+                  className="w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)] resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#4A4A4A] mb-1.5">
+                <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
                   {t('Category')}
                 </label>
                 <BrandSelect
@@ -317,21 +317,21 @@ export default function SurveyBuilder() {
           </div>
 
           {/* Reward & Limits */}
-          <div className="bg-white rounded-md border border-[#EBEBEB] p-5">
-            <h2 className="text-base font-medium text-[#1A1A1A] mb-4">{t('Reward & Limits')}</h2>
+          <div className="bg-white rounded-md border border-[var(--border-default)] p-5">
+            <h2 className="text-base font-medium text-[var(--text-primary)] mb-4">{t('Reward & Limits')}</h2>
 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-medium text-[#4A4A4A]">{t('Reward (₩)')}</label>
+                    <label className="text-xs font-medium text-[var(--text-tertiary)]">{t('Reward (₩)')}</label>
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
                         rewardFairness.tone === 'good'
-                          ? 'bg-[#ECFDF5] text-[#047857]'
+                          ? 'bg-[var(--success-tint)] text-[var(--success)]'
                           : rewardFairness.tone === 'fair'
-                          ? 'bg-[#FFFBEB] text-[#B45309]'
-                          : 'bg-[#FEF2F2] text-[#991B1B]'
+                          ? 'bg-[var(--warning-tint)] text-[var(--warning)]'
+                          : 'bg-[var(--danger-tint)] text-[var(--danger-deep)]'
                       }`}
                     >
                       {t(rewardFairness.label)}
@@ -342,13 +342,13 @@ export default function SurveyBuilder() {
                     min={0}
                     value={reward}
                     onChange={(e) => setReward(Math.max(0, Number(e.target.value) || 0))}
-                    className="w-full px-3 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21]"
+                    className="w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]"
                   />
-                  <p className="text-[11px] text-[#616161] mt-1">₩100/min · min ₩100</p>
+                  <p className="text-[11px] text-[var(--text-secondary)] mt-1">₩100/min · min ₩100</p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-[#4A4A4A] mb-1.5">
+                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
                     {t('Max Responses')}
                   </label>
                   <input
@@ -356,17 +356,17 @@ export default function SurveyBuilder() {
                     min={10}
                     value={maxResponses}
                     onChange={(e) => setMaxResponses(Math.max(10, Number(e.target.value) || 10))}
-                    className="w-full px-3 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21]"
+                    className="w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]"
                   />
-                  <p className="text-[11px] text-[#616161] mt-1">{t('min 10 responses')}</p>
+                  <p className="text-[11px] text-[var(--text-secondary)] mt-1">{t('min 10 responses')}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-medium text-[#4A4A4A]">{t('Est. Minutes')}</label>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F3F3F3] text-[#1A1A1A]">
+                    <label className="text-xs font-medium text-[var(--text-tertiary)]">{t('Est. Minutes')}</label>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--surface-subtle)] text-[var(--text-primary)]">
                       <Zap className="w-3 h-3" />
                       {t('Auto')} ({estMinutes}m)
                     </span>
@@ -376,13 +376,13 @@ export default function SurveyBuilder() {
                     min={1}
                     value={estMinutes}
                     onChange={(e) => setEstMinutes(Math.max(1, Number(e.target.value) || 1))}
-                    className="w-full px-3 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21]"
+                    className="w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]"
                   />
-                  <p className="text-[11px] text-[#616161] mt-1">{t('shown to respondents')}</p>
+                  <p className="text-[11px] text-[var(--text-secondary)] mt-1">{t('shown to respondents')}</p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-[#4A4A4A] mb-1.5">
+                  <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
                     {t('Min Trust Level')}
                   </label>
                   <BrandSelect
@@ -393,28 +393,28 @@ export default function SurveyBuilder() {
                       label: `${t('Level')} ${lvl.level} — ${t(lvl.label)}`,
                     }))}
                   />
-                  <p className="text-[11px] text-[#616161] mt-1">~{pool.toLocaleString()} {t('eligible respondents')}</p>
+                  <p className="text-[11px] text-[var(--text-secondary)] mt-1">~{pool.toLocaleString()} {t('eligible respondents')}</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#4A4A4A] mb-1.5">
+                <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
                   {t('End Date')}
                 </label>
                 <div className="relative" ref={endDateRef}>
                   <button
                     type="button"
                     onClick={() => setIsEndDateOpen((o) => !o)}
-                    className="w-full flex items-center gap-2 pl-9 pr-3 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] font-normal hover:bg-white focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] transition-colors cursor-pointer text-left relative"
+                    className="w-full flex items-center gap-2 pl-9 pr-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] font-normal hover:bg-white focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] transition-colors cursor-pointer text-left relative"
                   >
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161]" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                     {format(new Date(endDate), 'MMM d, yyyy')}
                   </button>
 
                   {isEndDateOpen && (
                     <div
-                      className="absolute top-full left-0 mt-2 bg-white border border-[#EBEBEB] rounded-md z-20 p-3"
-                      style={{ '--primary': '#FF3C21', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}
+                      className="absolute top-full left-0 mt-2 bg-white border border-[var(--border-default)] rounded-md z-20 p-3"
+                      style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}
                     >
                       <CalendarUI
                         mode="single"
@@ -431,7 +431,7 @@ export default function SurveyBuilder() {
                     </div>
                   )}
                 </div>
-                <p className={`text-[11px] mt-1 flex items-center gap-1 ${bufferDays >= 0 ? 'text-[#047857]' : 'text-[#DC2626]'}`}>
+                <p className={`text-[11px] mt-1 flex items-center gap-1 ${bufferDays >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger-strong)]'}`}>
                   <CheckCircle2 className="w-3 h-3" />
                   {t('Fills in')} ~{estDays}d · {bufferDays >= 0 ? `${bufferDays}d ${t('buffer')}` : t('not enough time')}
                 </p>
@@ -442,11 +442,11 @@ export default function SurveyBuilder() {
                   type="checkbox"
                   checked={anonymous}
                   onChange={(e) => setAnonymous(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-[#D4D4D4] text-[#1A1A1A] focus:ring-[#FF3C21] accent-[#1A1A1A] cursor-pointer"
+                  className="mt-0.5 w-4 h-4 rounded border-[var(--border-strong)] text-[var(--text-primary)] focus:ring-[var(--brand-primary)] accent-[var(--text-primary)] cursor-pointer"
                 />
                 <div>
-                  <div className="text-sm font-medium text-[#1A1A1A]">{t('Anonymous responses')}</div>
-                  <p className="text-[11px] text-[#616161] mt-0.5">
+                  <div className="text-sm font-medium text-[var(--text-primary)]">{t('Anonymous responses')}</div>
+                  <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
                     {t('Respondent names are hidden. Age, gender & region are still included in your reports.')}
                   </p>
                 </div>
@@ -455,33 +455,33 @@ export default function SurveyBuilder() {
           </div>
 
           {/* Estimated Cost */}
-          <div className="bg-white rounded-md border border-[#EBEBEB] p-5">
-            <h2 className="text-base font-medium text-[#1A1A1A] mb-4">{t('Estimated Cost')}</h2>
+          <div className="bg-white rounded-md border border-[var(--border-default)] p-5">
+            <h2 className="text-base font-medium text-[var(--text-primary)] mb-4">{t('Estimated Cost')}</h2>
 
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-[#4A4A4A]">
+              <div className="flex justify-between text-[var(--text-tertiary)]">
                 <span>{t('Respondent payouts')}</span>
                 <span className="tabular-nums">{formatMnt(payout)}</span>
               </div>
-              <div className="flex justify-between text-[#4A4A4A]">
+              <div className="flex justify-between text-[var(--text-tertiary)]">
                 <span>{t('Platform fee')} ({PLATFORM_FEE.defaultPct}%)</span>
                 <span className="tabular-nums">{formatMnt(platformFee)}</span>
               </div>
-              <div className="border-t border-[#F3F3F3] pt-3 mt-1 flex justify-between items-baseline">
-                <span className="font-medium text-[#1A1A1A]">{t('Total')}</span>
-                <span className="font-semibold text-xl text-[#1A1A1A] tabular-nums">{formatMnt(totalCost)}</span>
+              <div className="border-t border-[var(--surface-subtle)] pt-3 mt-1 flex justify-between items-baseline">
+                <span className="font-medium text-[var(--text-primary)]">{t('Total')}</span>
+                <span className="font-semibold text-xl text-[var(--text-primary)] tabular-nums">{formatMnt(totalCost)}</span>
               </div>
-              <p className="text-[11px] text-[#616161] pt-0.5">
+              <p className="text-[11px] text-[var(--text-secondary)] pt-0.5">
                 {maxResponses} {t('responses')} × {formatMnt(reward)} + {t('fees')}
               </p>
             </div>
 
-            <div className="mt-4 bg-white border border-[#F3F3F3] rounded-md p-3">
+            <div className="mt-4 bg-white border border-[var(--surface-subtle)] rounded-md p-3">
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#047857] shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-[var(--success)] shrink-0 mt-0.5" />
                 <div className="text-xs">
-                  <div className="font-medium text-[#1A1A1A] mb-1">{t('Campaign looks healthy')}</div>
-                  <div className="text-[#4A4A4A] leading-relaxed">
+                  <div className="font-medium text-[var(--text-primary)] mb-1">{t('Campaign looks healthy')}</div>
+                  <div className="text-[var(--text-tertiary)] leading-relaxed">
                     {t('Pool')}: ~{pool.toLocaleString()} {t('respondents at Level')} {trustLevel}+<br />
                     {t('Velocity')}: ~{estVelocity} {t('responses / day')}<br />
                     {t('Fill time')}: ~{estDays} {t('days to collect')} {maxResponses} {t('responses')}
@@ -494,7 +494,7 @@ export default function SurveyBuilder() {
 
         {/* RIGHT COLUMN — Questions */}
         <div>
-          <h2 className="text-lg font-medium text-[#1A1A1A] mb-4">
+          <h2 className="text-lg font-medium text-[var(--text-primary)] mb-4">
             {t('Questions')} ({questions.length})
           </h2>
 
@@ -523,7 +523,7 @@ export default function SurveyBuilder() {
 
           <button
             onClick={addQuestion}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-6 border-2 border-dashed border-[#D4D4D4] bg-white hover:bg-white hover:border-[#FF3C21] transition-colors rounded-md text-[#1A1A1A] font-medium text-sm cursor-pointer"
+            className="mt-4 w-full flex items-center justify-center gap-2 py-6 border-2 border-dashed border-[var(--border-strong)] bg-white hover:bg-white hover:border-[var(--brand-primary)] transition-colors rounded-md text-[var(--text-primary)] font-medium text-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             {t('Add Question')}
@@ -579,33 +579,33 @@ function QuestionCard({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className="bg-white rounded-md border border-[#EBEBEB] overflow-hidden"
+      className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden"
     >
       {/* Card header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-[#F3F3F3] bg-white">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--surface-subtle)] bg-white">
         <button
           {...listeners}
-          className="text-[#616161] hover:text-[#1A1A1A] cursor-grab active:cursor-grabbing touch-none"
+          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-grab active:cursor-grabbing touch-none"
           title={t('Drag to reorder')}
           aria-label={t('Drag to reorder')}
         >
           <GripVertical className="w-4 h-4" />
         </button>
-        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#F3F3F3] text-[#1A1A1A] text-xs font-medium">
+        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--surface-subtle)] text-[var(--text-primary)] text-xs font-medium">
           {index + 1}
         </div>
-        <span className="text-sm font-medium text-[#1A1A1A]">
+        <span className="text-sm font-medium text-[var(--text-primary)]">
           {question.text.trim() || `${t('Question')} ${index + 1}`}
         </span>
 
         <div className="ml-auto flex items-center gap-1">
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F3F3F3] text-[#4A4A4A] border border-[#EBEBEB]">
+          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[var(--surface-subtle)] text-[var(--text-tertiary)]">
             {t(QUESTION_TYPE_LABEL[question.type])}
           </span>
           <button
             onClick={() => onMove('up')}
             disabled={isFirst}
-            className="p-1.5 text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             title={t('Move up')}
           >
             <ChevronUp className="w-4 h-4" />
@@ -613,7 +613,7 @@ function QuestionCard({
           <button
             onClick={() => onMove('down')}
             disabled={isLast}
-            className="p-1.5 text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             title={t('Move down')}
           >
             <ChevronDown className="w-4 h-4" />
@@ -621,7 +621,7 @@ function QuestionCard({
           <button
             onClick={onRemove}
             disabled={!canRemove}
-            className="p-1.5 text-[#DC2626] hover:bg-[#FEF2F2] rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="p-1.5 text-[var(--danger-strong)] hover:bg-[var(--danger-tint)] rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             title={t('Delete question')}
           >
             <Trash2 className="w-4 h-4" />
@@ -633,7 +633,7 @@ function QuestionCard({
       <div className="p-4 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_200px] gap-4">
           <div>
-            <label className="block text-xs font-medium text-[#4A4A4A] mb-1.5">
+            <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
               {t('Question text')}
             </label>
             <input
@@ -641,11 +641,11 @@ function QuestionCard({
               value={question.text}
               onChange={(e) => onChange({ text: e.target.value })}
               placeholder={t('Enter your question...')}
-              className="w-full px-3 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161]"
+              className="w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#4A4A4A] mb-1.5">
+            <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">
               {t('Type')}
             </label>
             <BrandSelect
@@ -667,7 +667,7 @@ function QuestionCard({
 
         {showOptions && (
           <div>
-            <label className="block text-xs font-medium text-[#4A4A4A] mb-1.5">{t('Options')}</label>
+            <label className="block text-xs font-medium text-[var(--text-tertiary)] mb-1.5">{t('Options')}</label>
             <div className="space-y-2">
               {question.options.map((opt, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -676,12 +676,12 @@ function QuestionCard({
                     value={opt}
                     onChange={(e) => onUpdateOption(i, e.target.value)}
                     placeholder={`${t('Option')} ${i + 1}`}
-                    className="flex-1 px-3 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161]"
+                    className="flex-1 px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
                   />
                   <button
                     onClick={() => onRemoveOption(i)}
                     disabled={question.options.length <= 2}
-                    className="p-2 text-[#DC2626] hover:bg-[#FEF2F2] rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="p-2 text-[var(--danger-strong)] hover:bg-[var(--danger-tint)] rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     title={t('Remove option')}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -691,7 +691,7 @@ function QuestionCard({
             </div>
             <button
               onClick={onAddOption}
-              className="mt-2 flex items-center gap-1.5 text-sm font-medium text-[#1A1A1A] hover:text-[#000000] transition-colors cursor-pointer"
+              className="mt-2 flex items-center gap-1.5 text-sm font-medium text-[var(--text-primary)] hover:text-[var(--color-base-sand-90)] transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               {t('Add option')}
@@ -704,9 +704,9 @@ function QuestionCard({
             type="checkbox"
             checked={question.required}
             onChange={(e) => onChange({ required: e.target.checked })}
-            className="w-4 h-4 rounded border-[#D4D4D4] text-[#1A1A1A] focus:ring-[#FF3C21] accent-[#1A1A1A] cursor-pointer"
+            className="w-4 h-4 rounded border-[var(--border-strong)] text-[var(--text-primary)] focus:ring-[var(--brand-primary)] accent-[var(--text-primary)] cursor-pointer"
           />
-          <span className="text-sm text-[#1A1A1A]">{t('Required question')}</span>
+          <span className="text-sm text-[var(--text-primary)]">{t('Required question')}</span>
         </label>
       </div>
     </div>

@@ -54,9 +54,9 @@ export function CompanyInfoDrawer({
 
   return (
     <Drawer direction="right" open={open} onOpenChange={handleOpenChange}>
-      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[#EBEBEB]">
+      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[var(--border-default)]">
         {/* Header */}
-        <div className="h-14 flex items-center gap-3 px-5 border-b border-[#EBEBEB] shrink-0">
+        <div className="h-14 flex items-center gap-3 px-5 border-b border-[var(--border-default)] shrink-0">
           {view === 'report' && (
             <button
               onClick={() => {
@@ -64,18 +64,18 @@ export function CompanyInfoDrawer({
                 setReason('');
                 setNote('');
               }}
-              className="p-1.5 text-[#616161] hover:bg-[#F3F3F3] rounded-md transition-colors"
+              className="p-1.5 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors"
               aria-label={t('Back')}
             >
               <ArrowLeft className="w-4 h-4" strokeWidth={1.75} />
             </button>
           )}
-          <DrawerTitle className="text-base font-medium text-[#1A1A1A] flex-1">
+          <DrawerTitle className="text-base font-medium text-[var(--text-primary)] flex-1">
             {view === 'report' ? t('Report this company') : t('About this company')}
           </DrawerTitle>
           <button
             onClick={resetAndClose}
-            className="p-1.5 text-[#616161] hover:bg-[#F3F3F3] rounded-md transition-colors"
+            className="p-1.5 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors"
             aria-label={t('Close')}
           >
             <X className="w-4 h-4" strokeWidth={1.75} />
@@ -145,33 +145,33 @@ function MainView({
       {/* Identity */}
       <div className="px-6 pt-6 pb-5">
         <div className="flex items-start gap-4 mb-5">
-          <div className="w-14 h-14 rounded-full bg-[#F3F3F3] flex items-center justify-center text-[#4A4A4A] text-base font-medium shrink-0">
+          <div className="w-14 h-14 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center text-[var(--text-tertiary)] text-base font-medium shrink-0">
             {company.initials}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <h2 className="text-lg font-medium text-[#1A1A1A]">{company.name}</h2>
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#047857] bg-[#ECFDF5] px-1.5 py-0.5 rounded-md">
+              <h2 className="text-lg font-medium text-[var(--text-primary)]">{company.name}</h2>
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--success)] bg-[var(--success-tint)] px-1.5 py-0.5 rounded-md">
                 <ShieldCheck className="w-3 h-3" strokeWidth={2} />
                 {t('Verified')}
               </span>
               {blocked && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#B91C1C] bg-[#FEF2F2] px-1.5 py-0.5 rounded-md">
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--danger)] bg-[var(--danger-tint)] px-1.5 py-0.5 rounded-md">
                   <Slash className="w-3 h-3" strokeWidth={2} />
                   {t('Blocked')}
                 </span>
               )}
             </div>
-            <div className="text-sm text-[#616161]">{company.industry}</div>
+            <div className="text-sm text-[var(--text-secondary)]">{company.industry}</div>
           </div>
         </div>
 
-        <p className="text-sm text-[#4A4A4A] leading-relaxed">{company.description}</p>
+        <p className="text-sm text-[var(--text-tertiary)] leading-relaxed">{company.description}</p>
       </div>
 
       {/* Quick facts */}
       <div className="px-6 pb-6">
-        <div className="grid grid-cols-1 gap-0 bg-white border border-[#EBEBEB] rounded-md divide-y divide-[#F3F3F3]">
+        <div className="grid grid-cols-1 gap-0 bg-white border border-[var(--border-default)] rounded-md divide-y divide-[var(--surface-subtle)]">
           <FactRow Icon={Briefcase} label={t('Industry')} value={company.industry} />
           <FactRow Icon={MapPin} label={t('Headquarters')} value={company.headquarters} />
           <FactRow Icon={Users} label={t('Size')} value={`${company.employees} ${t('employees')}`} />
@@ -185,7 +185,7 @@ function MainView({
 
       {/* Track record */}
       <div className="px-6 pb-6">
-        <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">
+        <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-3">
           {t('Track record on iDap')}
         </h3>
         <div className="grid grid-cols-3 gap-2">
@@ -200,14 +200,14 @@ function MainView({
             tone="green"
           />
         </div>
-        <p className="text-xs text-[#616161] mt-2 leading-relaxed">
+        <p className="text-xs text-[var(--text-secondary)] mt-2 leading-relaxed">
           {t("Acceptance rate is the share of submitted responses that pass quality review. Higher means this company's surveys are well-designed.")}
         </p>
       </div>
 
       {/* Actions */}
       <div className="px-6 pb-6">
-        <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">{t('Actions')}</h3>
+        <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-3">{t('Actions')}</h3>
         <div className="space-y-2">
           {onViewMoreSurveys && (
             <ActionRow
@@ -257,7 +257,7 @@ function MainView({
       </div>
 
       <div className="px-6 pb-8">
-        <p className="text-xs text-[#616161] leading-relaxed">
+        <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
           {t("iDap verifies every company before they can run surveys. Individual responses are never shared with companies — only aggregated, anonymized results.")}
         </p>
       </div>
@@ -287,17 +287,17 @@ function ReportView({
 
   return (
     <div className="px-6 py-6 space-y-5">
-      <p className="text-sm text-[#4A4A4A] leading-relaxed">
+      <p className="text-sm text-[var(--text-tertiary)] leading-relaxed">
         {t('Your report goes to the iDap Trust team. We review every report within 48 hours and may pause the company while we investigate.')}{' '}
-        <span className="text-[#616161]">
+        <span className="text-[var(--text-secondary)]">
           {t("Reporting is anonymous to the company — they'll never see that it was you.")}
         </span>
       </p>
 
       <div>
-        <div className="text-sm font-medium text-[#1A1A1A] mb-2">
+        <div className="text-sm font-medium text-[var(--text-primary)] mb-2">
           {t("What's the issue with")}{' '}
-          <span className="text-[#FF3C21]">{companyName}</span>?
+          <span className="text-[var(--brand-primary)]">{companyName}</span>?
         </div>
         <div className="space-y-2">
           {REPORT_REASONS.map((r) => (
@@ -306,8 +306,8 @@ function ReportView({
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-md border cursor-pointer transition-colors',
                 reason === r
-                  ? 'border-[#FFC1B5] bg-[#FFF1EE]'
-                  : 'border-[#EBEBEB] bg-white hover:border-[#FFC1B5]',
+                  ? 'border-[var(--brand-border)] bg-[var(--brand-tint)]'
+                  : 'border-[var(--border-default)] bg-white hover:border-[var(--brand-border)]',
               )}
             >
               <input
@@ -316,27 +316,27 @@ function ReportView({
                 value={r}
                 checked={reason === r}
                 onChange={() => setReason(r)}
-                className="accent-[#FF3C21]"
+                className="accent-[var(--brand-primary)]"
               />
-              <span className="text-sm text-[#1A1A1A]">{r}</span>
+              <span className="text-sm text-[var(--text-primary)]">{r}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+        <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
           {t('Additional detail')}{' '}
-          <span className="text-[#616161] font-normal">{t('(optional)')}</span>
+          <span className="text-[var(--text-secondary)] font-normal">{t('(optional)')}</span>
         </label>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value.slice(0, 500))}
           placeholder={t('Which survey or question was it? Anything specific we should look at?')}
           rows={4}
-          className="w-full px-3 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] placeholder:text-[#8A8A8A] focus:outline-none focus:border-[#FF3C21] transition-colors resize-none"
+          className="w-full px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors resize-none"
         />
-        <div className="flex justify-end text-[11px] text-[#616161] mt-1 tabular-nums">
+        <div className="flex justify-end text-[11px] text-[var(--text-secondary)] mt-1 tabular-nums">
           {note.length} / 500
         </div>
       </div>
@@ -345,7 +345,7 @@ function ReportView({
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 h-10 rounded-md border border-[#EBEBEB] text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors"
+          className="flex-1 h-10 rounded-md border border-[var(--border-default)] text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors"
         >
           {t('Cancel')}
         </button>
@@ -356,8 +356,8 @@ function ReportView({
           className={cn(
             'flex-1 h-10 rounded-md text-sm font-medium transition-colors inline-flex items-center justify-center gap-2',
             canSubmit
-              ? 'bg-[#FF3C21] hover:bg-[#E63419] text-white cursor-pointer'
-              : 'bg-[#F3F3F3] text-[#8A8A8A] cursor-not-allowed',
+              ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white cursor-pointer'
+              : 'bg-[var(--surface-subtle)] text-[var(--text-muted)] cursor-not-allowed',
           )}
         >
           {t('Send report')}
@@ -379,12 +379,12 @@ function FactRow({
 }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3">
-      <div className="w-8 h-8 rounded-md bg-[#F3F3F3] flex items-center justify-center shrink-0">
-        <Icon className="w-4 h-4 text-[#4A4A4A]" strokeWidth={1.75} />
+      <div className="w-8 h-8 rounded-md bg-[var(--surface-subtle)] flex items-center justify-center shrink-0">
+        <Icon className="w-4 h-4 text-[var(--text-tertiary)]" strokeWidth={1.75} />
       </div>
       <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
-        <span className="text-xs text-[#616161]">{label}</span>
-        <span className="text-sm font-medium text-[#1A1A1A] text-right">{value}</span>
+        <span className="text-xs text-[var(--text-secondary)]">{label}</span>
+        <span className="text-sm font-medium text-[var(--text-primary)] text-right">{value}</span>
       </div>
     </div>
   );
@@ -400,12 +400,12 @@ function StatCard({
   tone?: 'default' | 'green';
 }) {
   return (
-    <div className="bg-white border border-[#EBEBEB] rounded-md p-3">
-      <div className="text-[11px] text-[#616161] mb-1">{label}</div>
+    <div className="bg-white border border-[var(--border-default)] rounded-md p-3">
+      <div className="text-[11px] text-[var(--text-secondary)] mb-1">{label}</div>
       <div
         className={cn(
           'text-lg font-medium tabular-nums',
-          tone === 'green' ? 'text-[#047857]' : 'text-[#1A1A1A]',
+          tone === 'green' ? 'text-[var(--success)]' : 'text-[var(--text-primary)]',
         )}
       >
         {value}
@@ -437,16 +437,16 @@ function ActionRow({
       className={cn(
         'w-full flex items-start gap-3 p-3 rounded-md border transition-colors text-left',
         disabled
-          ? 'border-[#EBEBEB] bg-[#FAFAFA] cursor-default'
-          : 'border-[#EBEBEB] bg-white hover:border-[#FFC1B5] cursor-pointer',
+          ? 'border-[var(--border-default)] bg-[var(--surface-muted)] cursor-default'
+          : 'border-[var(--border-default)] bg-white hover:border-[var(--brand-border)] cursor-pointer',
       )}
     >
       <div
         className={cn(
           'w-8 h-8 rounded-md flex items-center justify-center shrink-0',
           tone === 'success'
-            ? 'bg-[#ECFDF5] text-[#047857]'
-            : 'bg-[#F3F3F3] text-[#4A4A4A]',
+            ? 'bg-[var(--success-tint)] text-[var(--success)]'
+            : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]',
         )}
       >
         {tone === 'success' ? (
@@ -459,13 +459,13 @@ function ActionRow({
         <div
           className={cn(
             'text-sm font-medium',
-            tone === 'destructive' && !disabled ? 'text-[#DC2626]' : 'text-[#1A1A1A]',
+            tone === 'destructive' && !disabled ? 'text-[var(--danger-strong)]' : 'text-[var(--text-primary)]',
           )}
         >
           {label}
         </div>
         {description && (
-          <div className="text-xs text-[#616161] mt-0.5 leading-relaxed">{description}</div>
+          <div className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{description}</div>
         )}
       </div>
     </button>

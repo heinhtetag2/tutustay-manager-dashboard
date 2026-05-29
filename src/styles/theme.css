@@ -7,45 +7,330 @@
   --font-serif: Inter, 'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', 'Segoe UI', Roboto, sans-serif;
 }
 
+/* ============================================================================
+   DESIGN SYSTEM — Color Tokens
+   Source of truth for the product palette. Pattern: --color-{group}-{palette}-{step}.
+   Components reference the SEMANTIC layer (--brand-*, --text-*, --surface-*, …),
+   which in turn maps to these base/data palettes. Re-theme the whole product by
+   re-pointing the semantic layer below.
+   ============================================================================ */
+
 :root {
+  /* ---- Constants (theme-invariant absolutes) ---- */
+  --color-constants-dark: #2b2826;
+  --color-constants-light: #ffffff;
+
+  /* ---- Base · Sand (neutral) ---- */
+  --color-base-sand-0: #ffffff;
+  --color-base-sand-10: #f8f7f7;
+  --color-base-sand-20: #ebebea;
+  --color-base-sand-30: #d8d6d4;
+  --color-base-sand-40: #b0adab;
+  --color-base-sand-50: #77736e;
+  --color-base-sand-60: #585450;
+  --color-base-sand-70: #3f3c39;
+  --color-base-sand-80: #2b2926;
+  --color-base-sand-90: #000000;
+
+  /* ---- Base · Ocean ---- */
+  --color-base-ocean-10: #ecf3fe;
+  --color-base-ocean-20: #dae5fc;
+  --color-base-ocean-30: #a8c3eb;
+  --color-base-ocean-40: #6697c9;
+  --color-base-ocean-50: #447aaf;
+  --color-base-ocean-60: #2b5782;
+  --color-base-ocean-70: #1d3d58;
+  --color-base-ocean-80: #122536;
+
+  /* ---- Base · Rust ---- */
+  --color-base-rust-10: #fff1ee;
+  --color-base-rust-20: #fedbd7;
+  --color-base-rust-30: #fea99f;
+  --color-base-rust-40: #e86f5f;
+  --color-base-rust-50: #d14532;
+  --color-base-rust-60: #9e3225;
+  --color-base-rust-70: #6a2419;
+  --color-base-rust-80: #451610;
+
+  /* ---- Base · Pebble ---- */
+  --color-base-pebble-10: #f6f2ef;
+  --color-base-pebble-20: #e8e2d8;
+  --color-base-pebble-30: #cdbea8;
+  --color-base-pebble-40: #a7906c;
+  --color-base-pebble-50: #867250;
+  --color-base-pebble-60: #66583d;
+  --color-base-pebble-70: #493b2c;
+  --color-base-pebble-80: #2f271c;
+
+  /* ---- Base · Sakura ---- */
+  --color-base-sakura-10: #fbf0fb;
+  --color-base-sakura-20: #f6daf5;
+  --color-base-sakura-30: #eaa9e5;
+  --color-base-sakura-40: #da67cf;
+  --color-base-sakura-50: #bc44b1;
+  --color-base-sakura-60: #8c3485;
+  --color-base-sakura-70: #5f235b;
+  --color-base-sakura-80: #3e1739;
+
+  /* ---- Base · Iris ---- */
+  --color-base-iris-10: #f5f1fd;
+  --color-base-iris-20: #e4dcf9;
+  --color-base-iris-30: #c3b8f4;
+  --color-base-iris-40: #9d84dc;
+  --color-base-iris-50: #7f63c5;
+  --color-base-iris-60: #603fab;
+  --color-base-iris-70: #3f2b73;
+  --color-base-iris-80: #291c4a;
+
+  /* ---- Base · Moss ---- */
+  --color-base-moss-10: #f1f3ec;
+  --color-base-moss-20: #dee5d1;
+  --color-base-moss-30: #b8c69a;
+  --color-base-moss-40: #839b55;
+  --color-base-moss-50: #6a7d45;
+  --color-base-moss-60: #4e5c33;
+  --color-base-moss-70: #384224;
+  --color-base-moss-80: #1e2b18;
+
+  /* ---- Base · Tropic ---- */
+  --color-base-tropic-10: #ebf4f4;
+  --color-base-tropic-20: #d3e7e9;
+  --color-base-tropic-30: #99cbcc;
+  --color-base-tropic-40: #5a9ea0;
+  --color-base-tropic-50: #487e7f;
+  --color-base-tropic-60: #355d5f;
+  --color-base-tropic-70: #294343;
+  --color-base-tropic-80: #192929;
+
+  /* ---- Base · Evergreen ---- */
+  --color-base-evergreen-10: #ebf4eb;
+  --color-base-evergreen-20: #d8e8da;
+  --color-base-evergreen-30: #a5caa9;
+  --color-base-evergreen-40: #62a265;
+  --color-base-evergreen-50: #4b814f;
+  --color-base-evergreen-60: #396039;
+  --color-base-evergreen-70: #274427;
+  --color-base-evergreen-80: #1b2d1b;
+
+  /* ---- Base · Ember ---- */
+  --color-base-ember-10: #f9f1ed;
+  --color-base-ember-20: #f3e2d3;
+  --color-base-ember-30: #e4bc9b;
+  --color-base-ember-40: #ce8345;
+  --color-base-ember-50: #b16120;
+  --color-base-ember-60: #884411;
+  --color-base-ember-70: #602f0c;
+  --color-base-ember-80: #402007;
+
+  /* ---- Base · Sunbeam ---- */
+  --color-base-sunbeam-10: #feffd9;
+  --color-base-sunbeam-30: #faff5c;
+  --color-base-sunbeam-50: #ebf212;
+  --color-base-sunbeam-70: #d8e003;
+
+  /* ---- Data viz · Yellow ---- */
+  --color-data-yellow-10: #fff2d1;
+  --color-data-yellow-20: #ffd76b;
+  --color-data-yellow-30: #ffc938;
+  --color-data-yellow-40: #ffbc05;
+  --color-data-yellow-50: #d19900;
+  --color-data-yellow-60: #9e7300;
+  --color-data-yellow-70: #6b4e00;
+  --color-data-yellow-80: #382900;
+
+  /* ---- Data viz · Olive ---- */
+  --color-data-olive-10: #e8eedd;
+  --color-data-olive-20: #b8ca96;
+  --color-data-olive-30: #a1b874;
+  --color-data-olive-40: #8ba755;
+  --color-data-olive-50: #678f19;
+  --color-data-olive-60: #4c6a11;
+  --color-data-olive-70: #3f580e;
+  --color-data-olive-80: #2c3e0a;
+
+  /* ---- Data viz · Green ---- */
+  --color-data-green-10: #e1f4ea;
+  --color-data-green-20: #a3dcbf;
+  --color-data-green-30: #7ecea6;
+  --color-data-green-40: #59c08c;
+  --color-data-green-50: #3fa673;
+  --color-data-green-60: #318159;
+  --color-data-green-70: #235c40;
+  --color-data-green-80: #153727;
+
+  /* ---- Data viz · Turquoise ---- */
+  --color-data-turquoise-10: #dcf1f4;
+  --color-data-turquoise-20: #b6e1e7;
+  --color-data-turquoise-30: #8fd1db;
+  --color-data-turquoise-40: #67c7ce;
+  --color-data-turquoise-50: #18a1aa;
+  --color-data-turquoise-60: #137f86;
+  --color-data-turquoise-70: #0f666b;
+  --color-data-turquoise-80: #093b3e;
+
+  /* ---- Data viz · Blue ---- */
+  --color-data-blue-10: #d6e0fa;
+  --color-data-blue-20: #a3bbf5;
+  --color-data-blue-30: #7598f0;
+  --color-data-blue-40: #4877eb;
+  --color-data-blue-50: #1762d3;
+  --color-data-blue-60: #124da5;
+  --color-data-blue-70: #0d3877;
+  --color-data-blue-80: #082249;
+
+  /* ---- Data viz · Violet ---- */
+  --color-data-violet-10: #e2d4f7;
+  --color-data-violet-20: #b693ec;
+  --color-data-violet-30: #9867e4;
+  --color-data-violet-40: #7c3ddd;
+  --color-data-violet-50: #551fad;
+  --color-data-violet-60: #401782;
+  --color-data-violet-70: #2a0f57;
+  --color-data-violet-80: #220c45;
+
+  /* ---- Data viz · Purple ---- */
+  --color-data-purple-10: #f1dcf4;
+  --color-data-purple-20: #d595df;
+  --color-data-purple-30: #c66ed3;
+  --color-data-purple-40: #b748c8;
+  --color-data-purple-50: #9d1ab2;
+  --color-data-purple-60: #7e148f;
+  --color-data-purple-70: #600070;
+  --color-data-purple-80: #2f0836;
+
+  /* ---- Data viz · Pink ---- */
+  --color-data-pink-10: #f6d4e3;
+  --color-data-pink-20: #eba2c3;
+  --color-data-pink-30: #e278a8;
+  --color-data-pink-40: #d94c8b;
+  --color-data-pink-50: #ca2a78;
+  --color-data-pink-60: #9f215f;
+  --color-data-pink-70: #751946;
+  --color-data-pink-80: #4b102e;
+
+  /* ---- Data viz · Red ---- */
+  --color-data-red-10: #f7e4e4;
+  --color-data-red-20: #ebbcbc;
+  --color-data-red-30: #e09595;
+  --color-data-red-40: #d46d6d;
+  --color-data-red-50: #c94646;
+  --color-data-red-60: #aa3232;
+  --color-data-red-70: #822626;
+  --color-data-red-80: #471515;
+
+  /* ---- Data viz · Orange ---- */
+  --color-data-orange-10: #f8e2d3;
+  --color-data-orange-20: #efbf9f;
+  --color-data-orange-30: #e9a577;
+  --color-data-orange-40: #e1874a;
+  --color-data-orange-50: #d6611f;
+  --color-data-orange-60: #aa4d18;
+  --color-data-orange-70: #7d3812;
+  --color-data-orange-80: #50240b;
+
+  /* ---- Brand (third-party affordances only) ---- */
+  --color-brand-hubspot-10: #ffe2db;
+  --color-brand-hubspot-50: #ff7a59;
+  --color-brand-linkedin-10: #cee5fc;
+  --color-brand-linkedin-50: #0077b5;
+
+  /* ========================================================================
+     SEMANTIC LAYER — what components actually reference.
+     Re-point these to re-theme the product.
+     ======================================================================== */
+
+  /* Brand — primary product accent (Ocean) */
+  --brand-primary: var(--color-base-ocean-70);
+  --brand-primary-hover: var(--color-base-ocean-60);
+  --brand-accent: var(--color-base-ocean-50);
+  --brand-tint: var(--color-base-ocean-20);
+  --brand-tint-2: var(--color-base-ocean-20);
+  --brand-border: var(--color-base-ocean-20);
+
+  /* Text / ink (Sand) */
+  --text-primary: var(--color-base-sand-80);
+  --text-secondary: var(--color-base-sand-60);
+  --text-tertiary: var(--color-base-sand-70);
+  --text-muted: var(--color-base-sand-50);
+
+  /* Surfaces & borders (Sand) */
+  --surface: var(--color-base-sand-0);
+  --surface-subtle: var(--color-base-sand-10);
+  --surface-muted: var(--color-base-sand-10);
+  --border-default: var(--color-base-sand-20);
+  --border-strong: var(--color-base-sand-30);
+
+  /* Success (Green) */
+  --success: var(--color-base-evergreen-60);
+  --success-strong: var(--color-base-evergreen-50);
+  --success-tint: var(--color-base-evergreen-20);
+  --success-tint-2: var(--color-base-evergreen-30);
+  --success-border: var(--color-base-evergreen-30);
+
+  /* Danger (Red) */
+  --danger: var(--color-data-red-60);
+  --danger-strong: var(--color-data-red-50);
+  --danger-deep: var(--color-data-red-70);
+  --danger-tint: var(--color-data-red-10);
+  --danger-border: var(--color-data-red-20);
+
+  /* Warning (Ember / Yellow) */
+  --warning: var(--color-base-ember-60);
+  --warning-strong: var(--color-base-ember-50);
+  --warning-deep: var(--color-base-ember-70);
+  --warning-tint: var(--color-base-ember-20);
+  --warning-border: var(--color-data-yellow-20);
+  --warning-border-2: var(--color-base-ember-20);
+
+  /* Accent · Violet (Iris) */
+  --accent-violet: var(--color-data-violet-40);
+  --accent-violet-deep: var(--color-base-iris-70);
+  --accent-violet-tint: var(--color-base-iris-10);
+  --accent-violet-tint-2: var(--color-base-iris-20);
+
+  /* Accent · Teal (Turquoise) */
+  --accent-teal: var(--color-data-turquoise-60);
+  --accent-teal-strong: var(--color-data-turquoise-50);
+
+  /* ---- shadcn/ui semantic vars (mapped onto the design system) ---- */
   --font-size: 16px;
-  --background: #ffffff;
-  --foreground: oklch(0.145 0 0);
-  --card: #ffffff;
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #030213;
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.0058 264.53);
-  --secondary-foreground: #030213;
-  --muted: #ebebeb;
-  --muted-foreground: #717182;
-  --accent: #ebebeb;
-  --accent-foreground: #030213;
-  --destructive: #d4183d;
-  --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
+  --background: var(--surface);
+  --foreground: var(--text-primary);
+  --card: var(--surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--brand-primary);
+  --primary-foreground: var(--color-constants-light);
+  --secondary: var(--color-base-sand-10);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--color-base-sand-10);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--color-base-sand-10);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--color-constants-light);
+  --border: var(--border-default);
   --input: transparent;
-  --input-background: #f3f3f3;
-  --switch-background: #cccccc;
+  --input-background: var(--color-base-sand-10);
+  --switch-background: var(--color-base-sand-30);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --ring: var(--brand-accent);
+  --chart-1: var(--color-data-blue-50);
+  --chart-2: var(--color-data-green-50);
+  --chart-3: var(--color-data-yellow-40);
+  --chart-4: var(--color-data-violet-40);
+  --chart-5: var(--color-data-orange-50);
   --radius: 0.875rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #030213;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--color-base-sand-10);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--brand-primary);
+  --sidebar-primary-foreground: var(--color-constants-light);
+  --sidebar-accent: var(--color-base-sand-10);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--border-default);
+  --sidebar-ring: var(--brand-accent);
 }
 
 .dark {
@@ -124,6 +409,23 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Design-system semantic colors as Tailwind utilities (bg-brand-primary, text-success, …) */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-tint: var(--brand-tint);
+  --color-brand-border: var(--brand-border);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-muted: var(--text-muted);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
 }
 
 @layer base {

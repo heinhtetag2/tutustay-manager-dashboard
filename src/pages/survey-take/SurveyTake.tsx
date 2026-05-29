@@ -126,26 +126,26 @@ export default function SurveyTake() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[#FAFAFA]"
+      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[var(--surface-muted)]"
     >
       <div className="max-w-3xl mx-auto">
         {/* Back */}
         <button
           onClick={() => navigate(alreadyFilled ? '/my-surveys' : '/survey-feed')}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#4A4A4A] hover:text-[#1A1A1A] transition-colors mb-6 cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors mb-6 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           {alreadyFilled ? t('Back to My Surveys') : t('Back')}
         </button>
 
         {/* Header card */}
-        <div className="bg-white border border-[#EBEBEB] rounded-md p-6 mb-4">
+        <div className="bg-white border border-[var(--border-default)] rounded-md p-6 mb-4">
           <div className="flex items-start gap-4 mb-5">
             <div className="flex items-start gap-4 flex-1 min-w-0">
               <button
                 type="button"
                 onClick={() => setCompanyOpen(true)}
-                className="w-12 h-12 rounded-full bg-[#F3F3F3] flex items-center justify-center text-[#4A4A4A] text-sm font-medium shrink-0 hover:bg-[#EBEBEB] transition-colors cursor-pointer"
+                className="w-12 h-12 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center text-[var(--text-tertiary)] text-sm font-medium shrink-0 hover:bg-[var(--border-default)] transition-colors cursor-pointer"
                 aria-label={t('About this company')}
               >
                 {survey.companyInitials}
@@ -154,24 +154,24 @@ export default function SurveyTake() {
                 <button
                   type="button"
                   onClick={() => setCompanyOpen(true)}
-                  className="inline-flex items-center gap-0.5 text-sm text-[#616161] hover:text-[#FF3C21] transition-colors cursor-pointer mb-1"
+                  className="inline-flex items-center gap-0.5 text-sm text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors cursor-pointer mb-1"
                 >
                   <span>{survey.companyName}</span>
                   <ChevronRight className="w-3.5 h-3.5" strokeWidth={1.75} />
                 </button>
-                <h1 className="text-2xl font-serif text-[#1A1A1A] leading-tight">
+                <h1 className="text-2xl font-serif text-[var(--text-primary)] leading-tight">
                   {survey.title}
                 </h1>
               </div>
             </div>
           </div>
 
-          <p className="text-sm text-[#4A4A4A] leading-relaxed mb-5">
+          <p className="text-sm text-[var(--text-tertiary)] leading-relaxed mb-5">
             {survey.description}
           </p>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex text-xs font-medium text-[#4A4A4A] bg-[#F3F3F3] px-2 py-0.5 rounded-md">
+            <span className="inline-flex text-xs font-medium text-[var(--text-tertiary)] bg-[var(--surface-subtle)] px-2 py-0.5 rounded-md">
               {survey.category}
             </span>
             {alreadyFilled && filled ? (
@@ -181,10 +181,10 @@ export default function SurveyTake() {
                 className={cn(
                   'inline-flex text-xs font-medium px-2 py-0.5 rounded-md tabular-nums',
                   survey.matchPercent >= 90
-                    ? 'text-[#047857] bg-[#ECFDF5]'
+                    ? 'text-[var(--success)] bg-[var(--success-tint)]'
                     : survey.matchPercent >= 75
-                      ? 'text-[#B45309] bg-[#FFFBEB]'
-                      : 'text-[#4A4A4A] bg-[#F3F3F3]',
+                      ? 'text-[var(--warning)] bg-[var(--warning-tint)]'
+                      : 'text-[var(--text-tertiary)] bg-[var(--surface-subtle)]',
                 )}
               >
                 {survey.matchPercent}% {t('match')}
@@ -198,9 +198,9 @@ export default function SurveyTake() {
           {stats.map((s) => (
             <div
               key={s.label}
-              className="bg-white border border-[#EBEBEB] rounded-md p-4"
+              className="bg-white border border-[var(--border-default)] rounded-md p-4"
             >
-              <div className="flex items-center gap-1.5 text-xs text-[#616161] mb-2">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] mb-2">
                 <s.Icon className="w-3.5 h-3.5" />
                 {s.label}
               </div>
@@ -208,10 +208,10 @@ export default function SurveyTake() {
                 className={cn(
                   'text-lg font-medium tabular-nums lining-nums',
                   s.muted
-                    ? 'text-[#8A8A8A] line-through'
+                    ? 'text-[var(--text-muted)] line-through'
                     : s.accent
-                      ? 'text-[#FF3C21]'
-                      : 'text-[#1A1A1A]',
+                      ? 'text-[var(--brand-primary)]'
+                      : 'text-[var(--text-primary)]',
                 )}
               >
                 {s.value}
@@ -222,23 +222,23 @@ export default function SurveyTake() {
 
         {/* Question breakdown — hidden on history view (user already completed) */}
         {!alreadyFilled && (
-          <div className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden mb-6">
+          <div className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden mb-6">
             <div className="px-5 pt-5 pb-3">
-              <h2 className="text-base font-medium text-[#1A1A1A]">
+              <h2 className="text-base font-medium text-[var(--text-primary)]">
                 {t('Question Breakdown')}
               </h2>
-              <p className="text-xs text-[#616161] mt-0.5">
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                 {questionCount} {t('questions in total')}
               </p>
             </div>
-            <ul className="divide-y divide-[#F3F3F3] border-t border-[#F3F3F3]">
+            <ul className="divide-y divide-[var(--surface-subtle)] border-t border-[var(--surface-subtle)]">
               {survey.breakdown.map((b) => (
                 <li
                   key={b.type}
                   className="flex items-center justify-between px-5 py-3"
                 >
-                  <span className="text-sm text-[#4A4A4A]">{t(b.type)}</span>
-                  <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-md bg-[#F3F3F3] text-xs font-medium text-[#1A1A1A] tabular-nums">
+                  <span className="text-sm text-[var(--text-tertiary)]">{t(b.type)}</span>
+                  <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-md bg-[var(--surface-subtle)] text-xs font-medium text-[var(--text-primary)] tabular-nums">
                     {b.count}
                   </span>
                 </li>
@@ -255,15 +255,15 @@ export default function SurveyTake() {
             onViewGuidelines={() => setGuidelinesOpen(true)}
           />
         ) : locked ? (
-          <div className="bg-white border border-[#EBEBEB] rounded-md p-5 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#F3F3F3] flex items-center justify-center shrink-0">
-              <Lock className="w-4 h-4 text-[#4A4A4A]" />
+          <div className="bg-white border border-[var(--border-default)] rounded-md p-5 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0">
+              <Lock className="w-4 h-4 text-[var(--text-tertiary)]" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-[#1A1A1A]">
+              <div className="text-sm font-medium text-[var(--text-primary)]">
                 {t('Trust Level')} {survey.requiredTrustLevel} {t('required')}
               </div>
-              <div className="text-xs text-[#616161] mt-0.5">
+              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
                 {t('Complete more surveys to unlock this one.')}
               </div>
             </div>
@@ -272,7 +272,7 @@ export default function SurveyTake() {
           <button
             type="button"
             onClick={() => navigate(`/survey-feed/${survey.id}/play`)}
-            className="w-full h-12 inline-flex items-center justify-center gap-2 bg-[#FF3C21] hover:bg-[#E63419] text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
+            className="w-full h-12 inline-flex items-center justify-center gap-2 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
           >
             {t('Start Survey')}
             <ArrowRight className="w-4 h-4" />
@@ -293,13 +293,13 @@ export default function SurveyTake() {
 function StatusPill({ status }: { status: FilledSurvey['status'] }) {
   const { t } = useTranslation();
   const map = {
-    paid: { tone: 'text-[#047857] bg-[#ECFDF5]', label: t('Paid') },
-    held: { tone: 'text-[#B45309] bg-[#FFFBEB]', label: t('Held 24h') },
+    paid: { tone: 'text-[var(--success)] bg-[var(--success-tint)]', label: t('Paid') },
+    held: { tone: 'text-[var(--warning)] bg-[var(--warning-tint)]', label: t('Held 24h') },
     'under-review': {
-      tone: 'text-[#1D4ED8] bg-[#EFF6FF]',
+      tone: 'text-[var(--brand-primary-hover)] bg-[var(--brand-tint)]',
       label: t('Under review'),
     },
-    rejected: { tone: 'text-[#B91C1C] bg-[#FEF2F2]', label: t('Rejected') },
+    rejected: { tone: 'text-[var(--danger)] bg-[var(--danger-tint)]', label: t('Rejected') },
   } as const;
   const v = map[status];
   return (
@@ -336,9 +336,9 @@ function CompletionBanner({
       case 'paid':
         return {
           title: t('Submitted and paid'),
-          pillTone: 'text-[#047857] bg-[#ECFDF5]',
+          pillTone: 'text-[var(--success)] bg-[var(--success-tint)]',
           pillLabel: t('Paid'),
-          amountTone: 'text-[#FF3C21]',
+          amountTone: 'text-[var(--brand-primary)]',
           rewardLabel: t('Reward paid'),
           ctaLabel: t('View wallet'),
           ctaAction: 'wallet' as const,
@@ -346,9 +346,9 @@ function CompletionBanner({
       case 'held':
         return {
           title: t('Reward on 24-hour hold'),
-          pillTone: 'text-[#B45309] bg-[#FFFBEB]',
+          pillTone: 'text-[var(--warning)] bg-[var(--warning-tint)]',
           pillLabel: t('Held 24h'),
-          amountTone: 'text-[#FF3C21]',
+          amountTone: 'text-[var(--brand-primary)]',
           rewardLabel: t('Reward (pending release)'),
           ctaLabel: t('View wallet'),
           ctaAction: 'wallet' as const,
@@ -356,9 +356,9 @@ function CompletionBanner({
       case 'under-review':
         return {
           title: t('Response under review'),
-          pillTone: 'text-[#1D4ED8] bg-[#EFF6FF]',
+          pillTone: 'text-[var(--brand-primary-hover)] bg-[var(--brand-tint)]',
           pillLabel: t('Under review'),
-          amountTone: 'text-[#4A4A4A]',
+          amountTone: 'text-[var(--text-tertiary)]',
           rewardLabel: t('Pending reward'),
           ctaLabel: null,
           ctaAction: 'none' as const,
@@ -366,9 +366,9 @@ function CompletionBanner({
       case 'rejected':
         return {
           title: t('Response rejected'),
-          pillTone: 'text-[#B91C1C] bg-[#FEF2F2]',
+          pillTone: 'text-[var(--danger)] bg-[var(--danger-tint)]',
           pillLabel: t('Rejected'),
-          amountTone: 'text-[#8A8A8A] line-through',
+          amountTone: 'text-[var(--text-muted)] line-through',
           rewardLabel: t('Reward (not paid)'),
           ctaLabel: t('Read quality guidelines'),
           ctaAction: 'guidelines' as const,
@@ -377,20 +377,20 @@ function CompletionBanner({
   })();
 
   return (
-    <div className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden">
+    <div className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden">
       {/* Header — title + timestamp */}
       <div className="px-5 pt-5 pb-4">
-        <h2 className="text-base font-medium text-[#1A1A1A]">
+        <h2 className="text-base font-medium text-[var(--text-primary)]">
           {meta.title}
         </h2>
-        <p className="text-xs text-[#616161] mt-0.5 tabular-nums">
+        <p className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">
           {t('Submitted')}{' '}
           {format(completedAt, "MMMM d, yyyy 'at' h:mm a")}
         </p>
       </div>
 
       {/* Itemized receipt rows */}
-      <dl className="border-t border-[#F3F3F3] divide-y divide-[#F3F3F3]">
+      <dl className="border-t border-[var(--surface-subtle)] divide-y divide-[var(--surface-subtle)]">
         <ReceiptRow label={meta.rewardLabel}>
           <span
             className={cn(
@@ -426,12 +426,12 @@ function CompletionBanner({
         {filled.status === 'paid' && (
           <>
             <ReceiptRow label={t('Paid on')}>
-              <span className="text-[#1A1A1A] font-medium tabular-nums lining-nums">
+              <span className="text-[var(--text-primary)] font-medium tabular-nums lining-nums">
                 {format(completedAt, 'MMM d, yyyy')}
               </span>
             </ReceiptRow>
             <ReceiptRow label={t('Deposit to')}>
-              <span className="text-[#1A1A1A] font-medium">
+              <span className="text-[var(--text-primary)] font-medium">
                 {t('Linked wallet')}
               </span>
             </ReceiptRow>
@@ -441,12 +441,12 @@ function CompletionBanner({
         {filled.status === 'held' && (
           <>
             <ReceiptRow label={t('Releases')}>
-              <span className="text-[#B45309] font-medium tabular-nums lining-nums">
+              <span className="text-[var(--warning)] font-medium tabular-nums lining-nums">
                 {format(releaseAt, "MMM d 'at' h:mm a")}
               </span>
             </ReceiptRow>
             <ReceiptRow label={t('Deposit to')}>
-              <span className="text-[#1A1A1A] font-medium">
+              <span className="text-[var(--text-primary)] font-medium">
                 {t('Linked wallet')}
               </span>
             </ReceiptRow>
@@ -455,7 +455,7 @@ function CompletionBanner({
 
         {filled.status === 'under-review' && (
           <ReceiptRow label={t('Reviewed by')}>
-            <span className="text-[#1D4ED8] font-medium tabular-nums lining-nums">
+            <span className="text-[var(--brand-primary-hover)] font-medium tabular-nums lining-nums">
               {format(reviewByAt, "MMM d 'at' h:mm a")}
             </span>
           </ReceiptRow>
@@ -463,7 +463,7 @@ function CompletionBanner({
 
         {filled.status === 'rejected' && (
           <ReceiptRow label={t('Reason')}>
-            <span className="text-[#B91C1C] font-medium text-right">
+            <span className="text-[var(--danger)] font-medium text-right">
               {t('Quality below threshold')}
             </span>
           </ReceiptRow>
@@ -472,23 +472,23 @@ function CompletionBanner({
 
       {/* Status-specific helper text */}
       {filled.status === 'under-review' && (
-        <div className="border-t border-[#F3F3F3] px-5 py-3 text-xs text-[#616161] leading-relaxed">
+        <div className="border-t border-[var(--surface-subtle)] px-5 py-3 text-xs text-[var(--text-secondary)] leading-relaxed">
           {t("We'll notify you as soon as the review completes. No action needed from you.")}
         </div>
       )}
       {filled.status === 'rejected' && (
-        <div className="border-t border-[#F3F3F3] px-5 py-3 text-xs text-[#616161] leading-relaxed">
+        <div className="border-t border-[var(--surface-subtle)] px-5 py-3 text-xs text-[var(--text-secondary)] leading-relaxed">
           {t('This response was flagged during review and is not eligible for a reward.')}
         </div>
       )}
 
       {/* Footer CTA */}
       {meta.ctaAction !== 'none' && (
-        <div className="border-t border-[#F3F3F3] p-3">
+        <div className="border-t border-[var(--surface-subtle)] p-3">
           {meta.ctaAction === 'wallet' && (
             <button
               onClick={onViewWallet}
-              className="w-full h-10 inline-flex items-center justify-center gap-2 bg-[#FF3C21] hover:bg-[#E63419] text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
+              className="w-full h-10 inline-flex items-center justify-center gap-2 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
             >
               {meta.ctaLabel}
               <ArrowRight className="w-4 h-4" />
@@ -498,7 +498,7 @@ function CompletionBanner({
             <button
               type="button"
               onClick={onViewGuidelines}
-              className="w-full h-10 inline-flex items-center justify-center gap-2 border border-[#EBEBEB] text-[#4A4A4A] hover:bg-[#F3F3F3] hover:text-[#1A1A1A] text-sm font-medium rounded-md transition-colors cursor-pointer"
+              className="w-full h-10 inline-flex items-center justify-center gap-2 border border-[var(--border-default)] text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] text-sm font-medium rounded-md transition-colors cursor-pointer"
             >
               {meta.ctaLabel}
               <ArrowRight className="w-4 h-4" />
@@ -519,12 +519,12 @@ function QualityValue({
 }) {
   const tone =
     status === 'rejected'
-      ? 'text-[#B91C1C]'
+      ? 'text-[var(--danger)]'
       : score >= 90
-        ? 'text-[#047857]'
+        ? 'text-[var(--success)]'
         : score >= 75
-          ? 'text-[#1A1A1A]'
-          : 'text-[#B45309]';
+          ? 'text-[var(--text-primary)]'
+          : 'text-[var(--warning)]';
   return (
     <span className={cn('font-medium tabular-nums lining-nums', tone)}>
       {score}%
@@ -541,7 +541,7 @@ function ReceiptRow({
 }) {
   return (
     <div className="flex items-center justify-between px-5 py-3">
-      <dt className="text-xs text-[#616161]">{label}</dt>
+      <dt className="text-xs text-[var(--text-secondary)]">{label}</dt>
       <dd className="text-sm">{children}</dd>
     </div>
   );

@@ -213,21 +213,21 @@ export default function MySurveys() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[#FAFAFA]"
+      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[var(--surface-muted)]"
     >
       {/* Header */}
       <div className="flex justify-between items-start mb-6 gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-serif text-[#1A1A1A]">
+          <h1 className="text-2xl sm:text-3xl font-serif text-[var(--text-primary)]">
             {t('My Surveys')}
           </h1>
-          <p className="text-sm text-[#616161] mt-1">
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             {t("Everything you've filled — including what's paid, pending review, and in progress.")}
           </p>
         </div>
         <button
           onClick={() => navigate('/survey-feed')}
-          className="h-10 px-4 inline-flex items-center gap-2 bg-[#FF3C21] hover:bg-[#E63419] text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
+          className="h-10 px-4 inline-flex items-center gap-2 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium rounded-md transition-colors cursor-pointer"
         >
           {t('Find more surveys')}
           <ArrowRight className="w-4 h-4" />
@@ -242,18 +242,18 @@ export default function MySurveys() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.05 }}
-            className="bg-white border border-[#EBEBEB] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[#FFC1B5] transition-colors group"
+            className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
             <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[#616161]">
+              <span className="text-sm font-medium text-[var(--text-secondary)]">
                 {t(card.title)}
               </span>
               <div
                 className={cn(
                   'p-2 rounded-md transition-colors',
                   card.accent
-                    ? 'bg-[#FFF1EE] text-[#FF3C21] group-hover:bg-[#FF3C21] group-hover:text-white'
-                    : 'bg-[#F3F3F3] text-[#4A4A4A] group-hover:bg-[#FF3C21] group-hover:text-white',
+                    ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white'
+                    : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white',
                 )}
               >
                 <card.Icon className="w-4 h-4" />
@@ -262,12 +262,12 @@ export default function MySurveys() {
             <div
               className={cn(
                 'text-2xl font-medium tabular-nums lining-nums',
-                card.accent ? 'text-[#FF3C21]' : 'text-[#1A1A1A]',
+                card.accent ? 'text-[var(--brand-primary)]' : 'text-[var(--text-primary)]',
               )}
             >
               {card.value}
             </div>
-            <div className="text-xs text-[#4A4A4A] mt-2">{card.subtitle}</div>
+            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
@@ -275,13 +275,13 @@ export default function MySurveys() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('Search surveys or companies...')}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] placeholder:text-[#616161]"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
           />
         </div>
 
@@ -318,8 +318,8 @@ export default function MySurveys() {
 
       {/* List */}
       {filtered.length === 0 ? (
-        <div className="bg-white border border-[#EBEBEB] rounded-md py-16 text-center">
-          <p className="text-sm text-[#616161]">
+        <div className="bg-white border border-[var(--border-default)] rounded-md py-16 text-center">
+          <p className="text-sm text-[var(--text-secondary)]">
             {t('No surveys match your filters.')}
           </p>
         </div>
@@ -333,9 +333,9 @@ export default function MySurveys() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
-          className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden"
+          className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden"
         >
-          <ol className="divide-y divide-[#F3F3F3]">
+          <ol className="divide-y divide-[var(--surface-subtle)]">
             {filtered.map((s) => (
               <FilledRow
                 key={s.id}
@@ -363,16 +363,16 @@ function FilledRow({
   const statusPill = (() => {
     switch (survey.status) {
       case 'paid':
-        return { tone: 'text-[#047857] bg-[#ECFDF5]', label: t('Paid') };
+        return { tone: 'text-[var(--success)] bg-[var(--success-tint)]', label: t('Paid') };
       case 'held':
-        return { tone: 'text-[#B45309] bg-[#FFFBEB]', label: t('Held 24h') };
+        return { tone: 'text-[var(--warning)] bg-[var(--warning-tint)]', label: t('Held 24h') };
       case 'under-review':
         return {
-          tone: 'text-[#1D4ED8] bg-[#EFF6FF]',
+          tone: 'text-[var(--brand-primary-hover)] bg-[var(--brand-tint)]',
           label: t('Under review'),
         };
       case 'rejected':
-        return { tone: 'text-[#B91C1C] bg-[#FEF2F2]', label: t('Rejected') };
+        return { tone: 'text-[var(--danger)] bg-[var(--danger-tint)]', label: t('Rejected') };
     }
   })();
 
@@ -381,17 +381,17 @@ function FilledRow({
       <button
         type="button"
         onClick={onOpen}
-        className="w-full flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3.5 sm:py-4 text-left hover:bg-[#FAFAFA] transition-colors cursor-pointer group"
+        className="w-full flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3.5 sm:py-4 text-left hover:bg-[var(--surface-muted)] transition-colors cursor-pointer group"
       >
         {/* Company avatar */}
-        <div className="w-10 h-10 rounded-full bg-[#F3F3F3] flex items-center justify-center text-[#4A4A4A] text-xs font-medium shrink-0">
+        <div className="w-10 h-10 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center text-[var(--text-tertiary)] text-xs font-medium shrink-0">
           {survey.companyInitials}
         </div>
 
         {/* Main content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
-            <span className="text-sm font-medium text-[#1A1A1A] truncate">
+            <span className="text-sm font-medium text-[var(--text-primary)] truncate">
               {survey.title}
             </span>
             <span
@@ -403,16 +403,16 @@ function FilledRow({
               {statusPill.label}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[#616161] tabular-nums flex-wrap">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] tabular-nums flex-wrap">
             <span>{survey.companyName}</span>
-            <span className="text-[#D4D4D4]">·</span>
+            <span className="text-[var(--border-strong)]">·</span>
             <span>{survey.category}</span>
-            <span className="text-[#D4D4D4]">·</span>
+            <span className="text-[var(--border-strong)]">·</span>
             <span className="inline-flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {survey.durationMin} {t('min')}
             </span>
-            <span className="text-[#D4D4D4]">·</span>
+            <span className="text-[var(--border-strong)]">·</span>
             <span>{formatRelativeTime(new Date(survey.completedAt), new Date())}</span>
           </div>
         </div>
@@ -423,26 +423,26 @@ function FilledRow({
             <div
               className={cn(
                 'text-sm font-medium tabular-nums lining-nums',
-                incoming ? 'text-[#FF3C21]' : 'text-[#8A8A8A] line-through',
+                incoming ? 'text-[var(--brand-primary)]' : 'text-[var(--text-muted)] line-through',
               )}
             >
               {formatMnt(survey.rewardMnt)}
             </div>
             {survey.status === 'paid' || survey.status === 'held' ? (
-              <div className="text-[11px] text-[#616161] mt-0.5 tabular-nums">
+              <div className="text-[11px] text-[var(--text-secondary)] mt-0.5 tabular-nums">
                 {t('Quality')} {survey.qualityScore}%
               </div>
             ) : survey.status === 'under-review' ? (
-              <div className="text-[11px] text-[#616161] mt-0.5">
+              <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">
                 {t('Reviewing')}
               </div>
             ) : (
-              <div className="text-[11px] text-[#B91C1C] mt-0.5 tabular-nums">
+              <div className="text-[11px] text-[var(--danger)] mt-0.5 tabular-nums">
                 {t('Quality')} {survey.qualityScore}%
               </div>
             )}
           </div>
-          <ArrowRight className="w-4 h-4 text-[#8A8A8A] group-hover:text-[#4A4A4A] transition-colors" />
+          <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)] transition-colors" />
         </div>
       </button>
     </li>
@@ -482,15 +482,15 @@ function GroupedList({
           transition={{ duration: 0.3, delay: Math.min(i, 4) * 0.04 }}
         >
           <div className="flex items-center justify-between mb-2 px-1">
-            <span className="text-xs font-medium uppercase tracking-wider text-[#616161]">
+            <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
               {bucket.label}
             </span>
-            <span className="text-xs text-[#8A8A8A] tabular-nums">
+            <span className="text-xs text-[var(--text-muted)] tabular-nums">
               {items.length}
             </span>
           </div>
-          <div className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden">
-            <ol className="divide-y divide-[#F3F3F3]">
+          <div className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden">
+            <ol className="divide-y divide-[var(--surface-subtle)]">
               {items.map((s) => (
                 <FilledRow
                   key={s.id}

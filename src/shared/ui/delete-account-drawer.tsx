@@ -38,23 +38,23 @@ export function DeleteAccountDrawer({
 
   return (
     <Drawer direction="right" open={open} onOpenChange={handleOpenChange}>
-      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[#EBEBEB]">
-        <div className="h-14 flex items-center gap-3 px-5 border-b border-[#EBEBEB] shrink-0">
+      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[var(--border-default)]">
+        <div className="h-14 flex items-center gap-3 px-5 border-b border-[var(--border-default)] shrink-0">
           {step === 'confirm' && (
             <button
               onClick={() => setStep('review')}
-              className="p-1.5 text-[#616161] hover:bg-[#F3F3F3] rounded-md transition-colors"
+              className="p-1.5 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors"
               aria-label={t('Back')}
             >
               <ArrowLeft className="w-4 h-4" strokeWidth={1.75} />
             </button>
           )}
-          <DrawerTitle className="text-base font-medium text-[#1A1A1A] flex-1">
+          <DrawerTitle className="text-base font-medium text-[var(--text-primary)] flex-1">
             {t('Delete account')}
           </DrawerTitle>
           <button
             onClick={() => handleOpenChange(false)}
-            className="p-1.5 text-[#616161] hover:bg-[#F3F3F3] rounded-md transition-colors"
+            className="p-1.5 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors"
             aria-label={t('Close')}
           >
             <X className="w-4 h-4" strokeWidth={1.75} />
@@ -69,19 +69,19 @@ export function DeleteAccountDrawer({
           {step === 'review' ? (
             <div className="space-y-6">
               {/* Warning banner */}
-              <div className="bg-[#FEF2F2] rounded-md p-4 flex gap-3">
-                <AlertTriangle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" strokeWidth={1.75} />
-                <p className="text-sm text-[#4A4A4A] leading-relaxed">
+              <div className="bg-[var(--danger-tint)] rounded-md p-4 flex gap-3">
+                <AlertTriangle className="w-4 h-4 text-[var(--danger-strong)] shrink-0 mt-0.5" strokeWidth={1.75} />
+                <p className="text-sm text-[var(--text-tertiary)] leading-relaxed">
                   {t('This is permanent. You will not be able to recover your account, responses, or unreleased rewards.')}
                 </p>
               </div>
 
               {/* What happens */}
               <div>
-                <h3 className="text-[13px] font-medium text-[#1A1A1A] mb-3">
+                <h3 className="text-[13px] font-medium text-[var(--text-primary)] mb-3">
                   {t("What happens when you delete")}
                 </h3>
-                <ul className="space-y-2.5 text-sm text-[#4A4A4A] leading-relaxed">
+                <ul className="space-y-2.5 text-sm text-[var(--text-tertiary)] leading-relaxed">
                   <BulletRow text={t('Your profile, demographics, and survey history are erased within 30 days.')} />
                   <BulletRow text={t('Any ₩ held for quality review is forfeited and not paid out.')} />
                   <BulletRow text={t('Available wallet balance must be withdrawn before you can delete.')} />
@@ -92,15 +92,15 @@ export function DeleteAccountDrawer({
 
               {/* Balance warning */}
               {hasUnreleased && (
-                <div className="bg-[#FFFBEB] rounded-md p-4">
-                  <div className="text-sm font-medium text-[#1A1A1A] mb-2">
+                <div className="bg-[var(--warning-tint)] rounded-md p-4">
+                  <div className="text-sm font-medium text-[var(--text-primary)] mb-2">
                     {t('You have unreleased rewards')}
                   </div>
-                  <div className="space-y-1 text-xs text-[#4A4A4A] tabular-nums">
+                  <div className="space-y-1 text-xs text-[var(--text-tertiary)] tabular-nums">
                     {balanceMnt > 0 && (
                       <div className="flex justify-between">
                         <span>{t('Available balance')}</span>
-                        <span className="font-medium text-[#1A1A1A]">
+                        <span className="font-medium text-[var(--text-primary)]">
                           ₩{balanceMnt.toLocaleString('en-US')}
                         </span>
                       </div>
@@ -108,13 +108,13 @@ export function DeleteAccountDrawer({
                     {heldMnt > 0 && (
                       <div className="flex justify-between">
                         <span>{t('Held for review')}</span>
-                        <span className="font-medium text-[#B45309]">
+                        <span className="font-medium text-[var(--warning)]">
                           ₩{heldMnt.toLocaleString('en-US')}
                         </span>
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-[#616161] mt-3 leading-relaxed">
+                  <p className="text-xs text-[var(--text-secondary)] mt-3 leading-relaxed">
                     {t('Withdraw your balance first to keep that ₩. Held rewards will be forfeited.')}
                   </p>
                 </div>
@@ -122,9 +122,9 @@ export function DeleteAccountDrawer({
 
               {/* Reason */}
               <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                   {t('Help us improve — why are you leaving?')}{' '}
-                  <span className="text-[#616161] font-normal">{t('(optional)')}</span>
+                  <span className="text-[var(--text-secondary)] font-normal">{t('(optional)')}</span>
                 </label>
                 <div className="space-y-2">
                   {[
@@ -139,8 +139,8 @@ export function DeleteAccountDrawer({
                       className={cn(
                         'flex items-center gap-3 px-3 py-2.5 rounded-md border cursor-pointer transition-colors',
                         reason === r
-                          ? 'border-[#FFC1B5] bg-[#FFF1EE]'
-                          : 'border-[#EBEBEB] bg-white hover:border-[#FFC1B5]',
+                          ? 'border-[var(--brand-border)] bg-[var(--brand-tint)]'
+                          : 'border-[var(--border-default)] bg-white hover:border-[var(--brand-border)]',
                       )}
                     >
                       <input
@@ -149,9 +149,9 @@ export function DeleteAccountDrawer({
                         value={r}
                         checked={reason === r}
                         onChange={() => setReason(r)}
-                        className="accent-[#FF3C21]"
+                        className="accent-[var(--brand-primary)]"
                       />
-                      <span className="text-sm text-[#1A1A1A]">{r}</span>
+                      <span className="text-sm text-[var(--text-primary)]">{r}</span>
                     </label>
                   ))}
                 </div>
@@ -162,14 +162,14 @@ export function DeleteAccountDrawer({
                 <button
                   type="button"
                   onClick={() => handleOpenChange(false)}
-                  className="flex-1 h-10 rounded-md bg-[#FF3C21] hover:bg-[#E63419] text-white text-sm font-medium transition-colors"
+                  className="flex-1 h-10 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium transition-colors"
                 >
                   {t('Keep my account')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setStep('confirm')}
-                  className="flex-1 h-10 rounded-md border border-[#EBEBEB] text-sm font-medium text-[#DC2626] hover:bg-[#FEF2F2] hover:border-[#F5DBDB] transition-colors"
+                  className="flex-1 h-10 rounded-md border border-[var(--border-default)] text-sm font-medium text-[var(--danger-strong)] hover:bg-[var(--danger-tint)] hover:border-[var(--danger-tint)] transition-colors"
                 >
                   {t('Continue to delete')}
                 </button>
@@ -178,12 +178,12 @@ export function DeleteAccountDrawer({
           ) : (
             <div className="space-y-5">
               <div>
-                <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">
+                <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
                   {t('Final confirmation')}
                 </h3>
-                <p className="text-sm text-[#4A4A4A] leading-relaxed">
+                <p className="text-sm text-[var(--text-tertiary)] leading-relaxed">
                   {t('Type')}{' '}
-                  <span className="font-medium text-[#DC2626] tabular-nums">DELETE</span>{' '}
+                  <span className="font-medium text-[var(--danger-strong)] tabular-nums">DELETE</span>{' '}
                   {t('in the box below to permanently remove your account.')}
                 </p>
               </div>
@@ -194,14 +194,14 @@ export function DeleteAccountDrawer({
                 value={typed}
                 onChange={(e) => setTyped(e.target.value)}
                 placeholder="DELETE"
-                className="w-full px-3 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] placeholder:text-[#D4D4D4] tabular-nums uppercase focus:outline-none focus:border-[#DC2626] transition-colors"
+                className="w-full px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--border-strong)] tabular-nums uppercase focus:outline-none focus:border-[var(--danger-strong)] transition-colors"
               />
 
               <div className="pt-2 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setStep('review')}
-                  className="flex-1 h-10 rounded-md border border-[#EBEBEB] text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors"
+                  className="flex-1 h-10 rounded-md border border-[var(--border-default)] text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors"
                 >
                   {t('Go back')}
                 </button>
@@ -215,8 +215,8 @@ export function DeleteAccountDrawer({
                   className={cn(
                     'flex-1 h-10 rounded-md text-sm font-medium transition-colors inline-flex items-center justify-center gap-2',
                     confirmOk
-                      ? 'bg-[#DC2626] hover:bg-[#B91C1C] text-white cursor-pointer'
-                      : 'bg-[#F3F3F3] text-[#8A8A8A] cursor-not-allowed',
+                      ? 'bg-[var(--danger-strong)] hover:bg-[var(--danger)] text-white cursor-pointer'
+                      : 'bg-[var(--surface-subtle)] text-[var(--text-muted)] cursor-not-allowed',
                   )}
                 >
                   <Trash2 className="w-4 h-4" strokeWidth={1.75} />
@@ -234,7 +234,7 @@ export function DeleteAccountDrawer({
 function BulletRow({ text }: { text: string }) {
   return (
     <li className="flex items-start gap-2">
-      <span className="w-1 h-1 rounded-full bg-[#8A8A8A] mt-2 shrink-0" />
+      <span className="w-1 h-1 rounded-full bg-[var(--text-muted)] mt-2 shrink-0" />
       <span>{text}</span>
     </li>
   );

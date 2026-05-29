@@ -43,7 +43,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-001',
     companyName: 'MCS Group',
     companyInitials: 'MC',
-    companyColor: '#047857',
+    companyColor: 'var(--success)',
     title: 'Social Responsibility Survey',
     description:
       'This survey aims to understand your opinions on corporate social responsibility. All responses are kept confidential.',
@@ -67,7 +67,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-002',
     companyName: 'Mongolia Telecom',
     companyInitials: 'MT',
-    companyColor: '#1D4ED8',
+    companyColor: 'var(--brand-primary-hover)',
     title: 'Digital Transformation Survey',
     description:
       'Help us understand how digital services shape your daily life. Your input guides product direction across the country.',
@@ -88,7 +88,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-003',
     companyName: 'Khan Bank',
     companyInitials: 'KB',
-    companyColor: '#B45309',
+    companyColor: 'var(--warning)',
     title: 'Brand Awareness Survey',
     description:
       'Share how you perceive our brand and how it compares to others in the market. All responses are anonymous.',
@@ -110,7 +110,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-004',
     companyName: 'Golomt Bank',
     companyInitials: 'GB',
-    companyColor: '#B91C1C',
+    companyColor: 'var(--danger)',
     title: 'New Product Feedback Survey',
     description:
       'Tell us about your experience with our newest product. Your feedback directly shapes the next iteration.',
@@ -131,7 +131,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-005',
     companyName: 'Tenger Insurance',
     companyInitials: 'TI',
-    companyColor: '#7C3AED',
+    companyColor: 'var(--accent-violet)',
     title: 'Organizational Culture Survey',
     description:
       'This survey collects perspectives on workplace culture and values. All answers are kept strictly confidential.',
@@ -152,7 +152,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-006',
     companyName: 'Tenger Insurance',
     companyInitials: 'TI',
-    companyColor: '#7C3AED',
+    companyColor: 'var(--accent-violet)',
     title: 'Service Quality Assessment',
     description:
       'Rate your recent experience with our services. Your feedback helps us improve across every touchpoint.',
@@ -173,7 +173,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-007',
     companyName: 'Golomt Bank',
     companyInitials: 'GB',
-    companyColor: '#B91C1C',
+    companyColor: 'var(--danger)',
     title: 'Service Quality Assessment',
     description:
       'A short pulse on how we are serving you. Your honest input lets us fix issues quickly.',
@@ -194,7 +194,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-008',
     companyName: 'MCS Group',
     companyInitials: 'MC',
-    companyColor: '#047857',
+    companyColor: 'var(--success)',
     title: 'Employee Satisfaction Survey',
     description:
       'Share how you feel about your work environment, management, and growth opportunities. Responses are anonymous.',
@@ -216,7 +216,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-009',
     companyName: 'Mongolia Telecom',
     companyInitials: 'MT',
-    companyColor: '#1D4ED8',
+    companyColor: 'var(--brand-primary-hover)',
     title: 'Service Quality Assessment',
     description:
       'A brief check-in on the quality of your connection and support experiences.',
@@ -237,7 +237,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-010',
     companyName: 'Khan Bank',
     companyInitials: 'KB',
-    companyColor: '#B45309',
+    companyColor: 'var(--warning)',
     title: 'Customer Loyalty Pulse',
     description:
       'Measure of how likely you are to continue banking with us and what factors drive that decision.',
@@ -258,7 +258,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-011',
     companyName: 'Golomt Bank',
     companyInitials: 'GB',
-    companyColor: '#B91C1C',
+    companyColor: 'var(--danger)',
     title: 'Mobile App Usability Study',
     description:
       'Walk us through how you use the mobile app and what works (or doesn\'t) in your day-to-day flow.',
@@ -280,7 +280,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-012',
     companyName: 'MCS Group',
     companyInitials: 'MC',
-    companyColor: '#047857',
+    companyColor: 'var(--success)',
     title: 'Retail Experience Survey',
     description:
       'Share what worked and what didn\'t during your most recent visit to one of our retail locations.',
@@ -301,7 +301,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-013',
     companyName: 'Ard Financial',
     companyInitials: 'AF',
-    companyColor: '#0F766E',
+    companyColor: 'var(--accent-teal)',
     title: 'Investment Habits Study',
     description:
       'Help us understand how Mongolians save, invest, and think about long-term financial planning.',
@@ -323,7 +323,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-014',
     companyName: 'Unitel',
     companyInitials: 'UN',
-    companyColor: '#EA580C',
+    companyColor: 'var(--warning-strong)',
     title: '5G Rollout Feedback',
     description:
       'If you live in a 5G coverage area, share your experience with speed, reliability, and pricing.',
@@ -344,7 +344,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-015',
     companyName: 'Shangri-La UB',
     companyInitials: 'SL',
-    companyColor: '#0891B2',
+    companyColor: 'var(--accent-teal-strong)',
     title: 'Hospitality Experience Review',
     description:
       'Recent guests only — tell us how your stay went and what would bring you back.',
@@ -365,7 +365,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-016',
     companyName: 'APU Company',
     companyInitials: 'AP',
-    companyColor: '#BE123C',
+    companyColor: 'var(--danger)',
     title: 'Beverage Preference Study',
     description:
       'Quick study on what you drink, when, and why. No prior knowledge of our brand needed.',
@@ -386,7 +386,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-017',
     companyName: 'Trade & Development Bank',
     companyInitials: 'TD',
-    companyColor: '#1E40AF',
+    companyColor: 'var(--brand-primary-hover)',
     title: 'Mortgage Application Experience',
     description:
       'For anyone who has applied for a home loan in the last 24 months — walk us through the process.',
@@ -408,7 +408,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-018',
     companyName: 'Gobi Cashmere',
     companyInitials: 'GC',
-    companyColor: '#78350F',
+    companyColor: 'var(--warning-deep)',
     title: 'Export Brand Perception',
     description:
       'How do international buyers perceive Mongolian cashmere? Help shape our global positioning.',
@@ -429,7 +429,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-019',
     companyName: 'State Bank',
     companyInitials: 'SB',
-    companyColor: '#374151',
+    companyColor: 'var(--text-tertiary)',
     title: 'Branch vs. Digital Preference',
     description:
       'How do you choose between visiting a branch and using the mobile app? Short scenario-based survey.',
@@ -450,7 +450,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-020',
     companyName: 'Mobicom',
     companyInitials: 'MB',
-    companyColor: '#15803D',
+    companyColor: 'var(--success)',
     title: 'Family Data Plan Study',
     description:
       'For households with 2+ mobile lines — tell us how you split data and manage plans across family members.',
@@ -471,7 +471,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-021',
     companyName: 'Nomin Holding',
     companyInitials: 'NH',
-    companyColor: '#9333EA',
+    companyColor: 'var(--accent-violet)',
     title: 'Grocery Shopping Habits',
     description:
       'Where do you shop, how often, and what drives brand loyalty in your weekly grocery routine?',
@@ -492,7 +492,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-022',
     companyName: 'Tavan Bogd Group',
     companyInitials: 'TB',
-    companyColor: '#164E63',
+    companyColor: 'var(--accent-teal)',
     title: 'Workplace Wellness Pulse',
     description:
       'Quick pulse on how supported you feel at work — from health benefits to flexible schedules.',
@@ -513,7 +513,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-023',
     companyName: 'Xac Bank',
     companyInitials: 'XB',
-    companyColor: '#0D9488',
+    companyColor: 'var(--accent-teal-strong)',
     title: 'Green Finance Awareness',
     description:
       'Short study on awareness of sustainable banking products and what would move you to adopt one.',
@@ -535,7 +535,7 @@ export const DEMO_FEED_SURVEYS: FeedSurvey[] = [
     id: 'fd-024',
     companyName: 'Erdenet Mining',
     companyInitials: 'EM',
-    companyColor: '#92400E',
+    companyColor: 'var(--warning-deep)',
     title: 'Community Impact Study',
     description:
       'Residents near operations only — share your perspective on local economic, environmental, and social impact.',

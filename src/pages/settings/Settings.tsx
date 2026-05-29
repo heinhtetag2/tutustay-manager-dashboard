@@ -116,32 +116,32 @@ export default function Settings() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex h-full bg-[#FAFAFA] flex-col md:flex-row overflow-hidden w-full max-w-none"
+      className="flex h-full bg-[var(--surface-muted)] flex-col md:flex-row overflow-hidden w-full max-w-none"
     >
       {/* Settings Navigation Sidebar */}
       <div
         className={cn(
-          'md:w-64 md:block border-r border-[#EBEBEB] bg-white flex-col shrink-0 h-full overflow-y-auto',
+          'md:w-64 md:block border-r border-[var(--border-default)] bg-white flex-col shrink-0 h-full overflow-y-auto',
           mobileView === 'nav' ? 'flex w-full' : 'hidden md:flex',
         )}
       >
         <div className="p-4 shrink-0">
-          <h2 className="text-lg font-medium text-[#1A1A1A] mb-4">{t('Settings')}</h2>
+          <h2 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Settings')}</h2>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161]" strokeWidth={1.75} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" strokeWidth={1.75} />
             <input
               type="text"
               placeholder={t('Search')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-9 pr-9 py-2 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] placeholder:text-[#616161] focus:outline-none focus:border-[#FF3C21] transition-colors"
+              className="w-full pl-9 pr-9 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
             />
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery('')}
                 aria-label={t('Clear search')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[#616161] hover:text-[#1A1A1A] transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
                 <X className="w-3.5 h-3.5" strokeWidth={1.75} />
               </button>
@@ -152,14 +152,14 @@ export default function Settings() {
         <div className="flex-1 px-2 pb-4 space-y-6">
           {filteredNavigation.length === 0 ? (
             <div className="px-3 py-8 text-center">
-              <p className="text-sm text-[#616161] mb-1">
+              <p className="text-sm text-[var(--text-secondary)] mb-1">
                 {t('No settings match')}{' '}
-                <span className="font-medium text-[#1A1A1A]">"{query}"</span>
+                <span className="font-medium text-[var(--text-primary)]">"{query}"</span>
               </p>
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                className="text-xs font-medium text-[#FF3C21] hover:text-[#E63419] transition-colors"
+                className="text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors"
               >
                 {t('Clear search')}
               </button>
@@ -167,14 +167,14 @@ export default function Settings() {
           ) : (
             <>
               {q && (
-                <div className="px-3 text-[11px] text-[#616161] tabular-nums">
+                <div className="px-3 text-[11px] text-[var(--text-secondary)] tabular-nums">
                   {totalMatches} {totalMatches === 1 ? t('result') : t('results')} {t('for')}{' '}
-                  <span className="font-medium text-[#1A1A1A]">"{query}"</span>
+                  <span className="font-medium text-[var(--text-primary)]">"{query}"</span>
                 </div>
               )}
               {filteredNavigation.map((group) => (
                 <div key={group.category}>
-                  <div className="px-3 mb-2 text-[11px] font-medium text-[#616161] uppercase tracking-wider">
+                  <div className="px-3 mb-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                     {group.category}
                   </div>
                   <div className="space-y-0.5">
@@ -191,13 +191,13 @@ export default function Settings() {
                           className={cn(
                             'w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-3',
                             isActive
-                              ? 'bg-[#FFF1EE] text-[#FF3C21] font-medium'
-                              : 'text-[#303030] hover:bg-[#F3F3F3]',
+                              ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] font-medium'
+                              : 'text-[var(--text-primary)] hover:bg-[var(--surface-subtle)]',
                           )}
                         >
                           <Icon
                             strokeWidth={1.75}
-                            className={cn('w-4 h-4', isActive ? 'text-[#FF3C21]' : 'text-[#616161]')}
+                            className={cn('w-4 h-4', isActive ? 'text-[var(--brand-primary)]' : 'text-[var(--text-secondary)]')}
                           />
                           <HighlightedLabel label={item.label} query={q} />
                         </button>
@@ -223,7 +223,7 @@ export default function Settings() {
           <button
             type="button"
             onClick={() => setMobileView('nav')}
-            className="md:hidden inline-flex items-center gap-1.5 text-sm font-medium text-[#4A4A4A] hover:text-[#1A1A1A] transition-colors mb-4 cursor-pointer"
+            className="md:hidden inline-flex items-center gap-1.5 text-sm font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors mb-4 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             {t('Settings')}
@@ -231,19 +231,19 @@ export default function Settings() {
 
           {/* Page Header */}
           <div className="mb-8 md:mb-10">
-            <span className="text-sm text-[#616161] font-medium">
+            <span className="text-sm text-[var(--text-secondary)] font-medium">
               {navigation.find((g) => g.items.some((i) => i.id === activeSection))?.category}
             </span>
-            <h1 className="text-2xl md:text-3xl font-serif text-[#1A1A1A] mt-1">{t(activeSection)}</h1>
+            <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-primary)] mt-1">{t(activeSection)}</h1>
 
             {activeSection === 'Account' && (
-              <p className="text-sm text-[#616161] mt-8 leading-relaxed max-w-3xl">
+              <p className="text-sm text-[var(--text-secondary)] mt-8 leading-relaxed max-w-3xl">
                 {t('By using iDap you acknowledge and agree to abide by the')}{' '}
-                <a href="#" className="font-medium underline hover:text-[#1A1A1A] transition-colors inline-flex items-center gap-1">
+                <a href="#" className="font-medium underline hover:text-[var(--text-primary)] transition-colors inline-flex items-center gap-1">
                   {t('Usage Policy')} <ExternalLink className="w-3 h-3" />
                 </a>{' '}
                 {t('and')}{' '}
-                <a href="#" className="font-medium underline hover:text-[#1A1A1A] transition-colors inline-flex items-center gap-1">
+                <a href="#" className="font-medium underline hover:text-[var(--text-primary)] transition-colors inline-flex items-center gap-1">
                   {t('Terms of Use')} <ExternalLink className="w-3 h-3" />
                 </a>
                 .
@@ -299,23 +299,23 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
     <div className="space-y-8 pb-20">
       {/* About you */}
       <div>
-        <h3 className="text-lg font-medium text-[#1A1A1A] mb-4">{t('About you')}</h3>
-        <div className="bg-white border border-[#EBEBEB] rounded-md p-6">
+        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('About you')}</h3>
+        <div className="bg-white border border-[var(--border-default)] rounded-md p-6">
           {/* Profile image */}
           <div className="mb-8">
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-3">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-3">
               {t('Profile image')}
             </label>
             <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-full bg-[#FF3C21] text-white flex items-center justify-center text-xl font-medium shrink-0">
+              <div className="w-16 h-16 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center text-xl font-medium shrink-0">
                 HH
               </div>
               <div className="space-y-3">
-                <p className="text-xs text-[#616161]">
+                <p className="text-xs text-[var(--text-secondary)]">
                   {t('Upload a JPG or PNG up to 5MB. Shown on your respondent profile.')}
                 </p>
-                <button className="flex items-center gap-2 px-3 py-1.5 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors">
-                  <Upload className="w-4 h-4 text-[#616161]" strokeWidth={1.75} />
+                <button className="flex items-center gap-2 px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors">
+                  <Upload className="w-4 h-4 text-[var(--text-secondary)]" strokeWidth={1.75} />
                   {t('Upload image')}
                 </button>
               </div>
@@ -325,40 +325,40 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
           {/* First / Last */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-medium text-[#1A1A1A] mb-2">{t('First name')}</label>
+              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('First name')}</label>
               <input
                 type="text"
                 defaultValue="Hein"
-                className="w-full px-3 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors"
+                className="w-full px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#1A1A1A] mb-2">{t('Last name')}</label>
+              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Last name')}</label>
               <input
                 type="text"
                 defaultValue="Htet"
-                className="w-full px-3 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors"
+                className="w-full px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
               />
             </div>
           </div>
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">{t('Phone number')}</label>
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Phone number')}</label>
             <div className="flex gap-3">
               <div className="relative w-28 shrink-0">
-                <select className="w-full appearance-none pl-3 pr-8 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+                <select className="w-full appearance-none pl-3 pr-8 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                   <option>+976</option>
                 </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
               </div>
               <input
                 type="tel"
                 defaultValue="99 12 34 56"
-                className="flex-1 px-3 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors"
+                className="flex-1 px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
               />
             </div>
-            <p className="text-xs text-[#616161] mt-2">
+            <p className="text-xs text-[var(--text-secondary)] mt-2">
               {t('Used for SMS confirmations and QPay payouts.')}
             </p>
           </div>
@@ -367,66 +367,66 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
 
       {/* Login details */}
       <div>
-        <h3 className="text-lg font-medium text-[#1A1A1A] mb-4">{t('Login details')}</h3>
-        <div className="bg-white border border-[#EBEBEB] rounded-md p-6 space-y-8">
+        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Login details')}</h3>
+        <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-8">
           {/* Email */}
           <div className="flex flex-col md:flex-row md:items-end gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-[#1A1A1A] mb-2">{t('Email')}</label>
+              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Email')}</label>
               <input
                 type="email"
                 value="heincise@gmail.com"
                 readOnly
-                className="w-full px-3 py-2.5 bg-[#F3F3F3] border border-transparent rounded-md text-sm text-[#616161] cursor-not-allowed"
+                className="w-full px-3 py-2.5 bg-[var(--surface-subtle)] border border-transparent rounded-md text-sm text-[var(--text-secondary)] cursor-not-allowed"
               />
             </div>
             <button
               type="button"
               onClick={() => setEmailOpen(true)}
-              className="px-4 py-2.5 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors shrink-0 whitespace-nowrap cursor-pointer"
+              className="px-4 py-2.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors shrink-0 whitespace-nowrap cursor-pointer"
             >
               {t('Change email')}
             </button>
           </div>
 
-          <div className="h-px w-full bg-[#EBEBEB]" />
+          <div className="h-px w-full bg-[var(--border-default)]" />
 
           {/* Password */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <span className="block text-sm font-medium text-[#1A1A1A] mb-1">{t('Password')}</span>
-              <p className="text-sm text-[#616161]">{t('Last changed 3 months ago.')}</p>
+              <span className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('Password')}</span>
+              <p className="text-sm text-[var(--text-secondary)]">{t('Last changed 3 months ago.')}</p>
             </div>
             <button
               type="button"
               onClick={() => setPasswordOpen(true)}
-              className="px-4 py-2.5 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors shrink-0 whitespace-nowrap cursor-pointer"
+              className="px-4 py-2.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors shrink-0 whitespace-nowrap cursor-pointer"
             >
               {t('Change password')}
             </button>
           </div>
 
-          <div className="h-px w-full bg-[#EBEBEB]" />
+          <div className="h-px w-full bg-[var(--border-default)]" />
 
           {/* MFA */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <span className="text-sm font-medium text-[#1A1A1A]">
+                <span className="text-sm font-medium text-[var(--text-primary)]">
                   {t('Two-step verification')}
                 </span>
-                <span className="px-2 py-0.5 rounded-md bg-[#FEF2F2] text-[#DC2626] text-[10px] font-medium">
+                <span className="px-2 py-0.5 rounded-md bg-[var(--danger-tint)] text-[var(--danger-strong)] text-[10px] font-medium">
                   {t('Not enabled')}
                 </span>
               </div>
-              <p className="text-sm text-[#616161]">
+              <p className="text-sm text-[var(--text-secondary)]">
                 {t('Protect your account and your earnings with an extra sign-in step.')}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setTwoStepOpen(true)}
-              className="px-4 py-2.5 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors shrink-0 whitespace-nowrap cursor-pointer"
+              className="px-4 py-2.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors shrink-0 whitespace-nowrap cursor-pointer"
             >
               {t('Enable')}
             </button>
@@ -436,26 +436,26 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
 
       {/* Referral */}
       <div>
-        <h3 className="text-lg font-medium text-[#1A1A1A] mb-4">{t('Invite friends')}</h3>
+        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Invite friends')}</h3>
         <button
           type="button"
           onClick={() => setInviteOpen(true)}
-          className="w-full bg-white border border-[#EBEBEB] rounded-md p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-left hover:border-[#FFC1B5] transition-colors cursor-pointer"
+          className="w-full bg-white border border-[var(--border-default)] rounded-md p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-left hover:border-[var(--brand-border)] transition-colors cursor-pointer"
         >
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-md bg-[#FFF1EE] flex items-center justify-center shrink-0">
-              <Gift className="w-4 h-4 text-[#FF3C21]" strokeWidth={1.75} />
+            <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] flex items-center justify-center shrink-0">
+              <Gift className="w-4 h-4 text-[var(--brand-primary)]" strokeWidth={1.75} />
             </div>
             <div>
-              <span className="block text-sm font-medium text-[#1A1A1A] mb-1">
+              <span className="block text-sm font-medium text-[var(--text-primary)] mb-1">
                 {t('Earn ₩5,000 per qualified friend')}
               </span>
-              <p className="text-sm text-[#616161]">
+              <p className="text-sm text-[var(--text-secondary)]">
                 {t('They complete one paid survey — you both get ₩5,000. No limit.')}
               </p>
             </div>
           </div>
-          <span className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium text-white bg-[#FF3C21] shrink-0 whitespace-nowrap">
+          <span className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium text-white bg-[var(--brand-primary)] shrink-0 whitespace-nowrap">
             {t('Share link')}
             <Share2 className="w-4 h-4" strokeWidth={1.75} />
           </span>
@@ -466,18 +466,18 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
 
       {/* Delete */}
       <div>
-        <h3 className="text-lg font-medium text-[#DC2626] mb-4">{t('Delete account')}</h3>
-        <div className="bg-white border border-[#EBEBEB] rounded-md p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 transition-colors hover:border-[#F5DBDB]">
+        <h3 className="text-lg font-medium text-[var(--danger-strong)] mb-4">{t('Delete account')}</h3>
+        <div className="bg-white border border-[var(--border-default)] rounded-md p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 transition-colors hover:border-[var(--danger-tint)]">
           <div>
-            <span className="block text-sm font-medium text-[#DC2626] mb-1">{t('Danger zone')}</span>
-            <p className="text-sm text-[#616161]">
+            <span className="block text-sm font-medium text-[var(--danger-strong)] mb-1">{t('Danger zone')}</span>
+            <p className="text-sm text-[var(--text-secondary)]">
               {t('Permanently delete your account, responses, and unreleased rewards. This cannot be undone.')}
             </p>
           </div>
           <button
             type="button"
             onClick={() => setDeleteOpen(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-[#F3F3F3] rounded-md text-sm font-medium text-[#DC2626] hover:bg-[#FEF2F2] hover:border-[#F5DBDB] transition-all shrink-0 whitespace-nowrap cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-[var(--surface-subtle)] rounded-md text-sm font-medium text-[var(--danger-strong)] hover:bg-[var(--danger-tint)] hover:border-[var(--danger-tint)] transition-all shrink-0 whitespace-nowrap cursor-pointer"
           >
             <Trash2 className="w-4 h-4" strokeWidth={1.75} />
             {t('Delete my account')}
@@ -496,93 +496,93 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
 function DemographicsPanel({ t }: { t: TFn }) {
   return (
     <div className="space-y-8 pb-20">
-      <p className="text-sm text-[#616161] max-w-3xl -mt-4 leading-relaxed">
+      <p className="text-sm text-[var(--text-secondary)] max-w-3xl -mt-4 leading-relaxed">
         {t('These details decide which surveys match you. Keep them accurate — companies pay more for well-matched respondents, and iDap uses them only for matching.')}
       </p>
 
-      <div className="bg-white border border-[#EBEBEB] rounded-md p-6 space-y-6">
+      <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
               {t('Age range')}
             </label>
             <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                 <option>18–24</option>
                 <option>25–34</option>
                 <option>35–44</option>
                 <option>45–54</option>
                 <option>55+</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
               {t('Gender')}
             </label>
             <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                 <option>{t('Prefer not to say')}</option>
                 <option>{t('Male')}</option>
                 <option>{t('Female')}</option>
                 <option>{t('Non-binary')}</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
               {t('City')}
             </label>
             <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                 <option>Ulaanbaatar</option>
                 <option>Erdenet</option>
                 <option>Darkhan</option>
                 <option>Choibalsan</option>
                 <option>{t('Other')}</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
               {t('District / khoroo')}
             </label>
             <input
               type="text"
               placeholder="Sükhbaatar, Khoroo 1"
-              className="w-full px-3 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] placeholder:text-[#8A8A8A] focus:outline-none focus:border-[#FF3C21] transition-colors"
+              className="w-full px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
               {t('Education')}
             </label>
             <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                 <option>{t('High school')}</option>
                 <option>{t("Bachelor's")}</option>
                 <option>{t("Master's")}</option>
                 <option>{t('Doctorate')}</option>
                 <option>{t('Other')}</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
               {t('Employment')}
             </label>
             <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                 <option>{t('Full-time')}</option>
                 <option>{t('Part-time')}</option>
                 <option>{t('Self-employed')}</option>
@@ -590,17 +590,17 @@ function DemographicsPanel({ t }: { t: TFn }) {
                 <option>{t('Unemployed')}</option>
                 <option>{t('Retired')}</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             </div>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
             {t('Monthly household income (KRW)')}
           </label>
           <div className="relative">
-            <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+            <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
               <option>{t('Under ₩500,000')}</option>
               <option>₩500,000 – ₩1,000,000</option>
               <option>₩1,000,000 – ₩2,000,000</option>
@@ -608,16 +608,16 @@ function DemographicsPanel({ t }: { t: TFn }) {
               <option>{t('Over ₩5,000,000')}</option>
               <option>{t('Prefer not to say')}</option>
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
           </div>
-          <p className="text-xs text-[#616161] mt-2">
+          <p className="text-xs text-[var(--text-secondary)] mt-2">
             {t('Used for matching only. Never shared in individual responses.')}
           </p>
         </div>
       </div>
 
       <div className="flex justify-end">
-        <button className="px-4 py-2.5 bg-[#FF3C21] hover:bg-[#E63419] text-white rounded-md text-sm font-medium transition-colors">
+        <button className="px-4 py-2.5 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white rounded-md text-sm font-medium transition-colors">
           {t('Save changes')}
         </button>
       </div>
@@ -637,9 +637,9 @@ function SurveyPreferencesPanel({ t }: { t: TFn }) {
   return (
     <div className="space-y-8 pb-20">
       <div>
-        <h3 className="text-lg font-medium text-[#1A1A1A] mb-4">{t('Interested categories')}</h3>
-        <div className="bg-white border border-[#EBEBEB] rounded-md p-6">
-          <p className="text-sm text-[#616161] mb-4">
+        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Interested categories')}</h3>
+        <div className="bg-white border border-[var(--border-default)] rounded-md p-6">
+          <p className="text-sm text-[var(--text-secondary)] mb-4">
             {t('Show more surveys from these categories in your feed.')}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -651,37 +651,37 @@ function SurveyPreferencesPanel({ t }: { t: TFn }) {
       </div>
 
       <div>
-        <h3 className="text-lg font-medium text-[#1A1A1A] mb-4">{t('Match filters')}</h3>
-        <div className="bg-white border border-[#EBEBEB] rounded-md p-6 space-y-6">
+        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Match filters')}</h3>
+        <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                 {t('Minimum reward')}
               </label>
               <div className="relative">
-                <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+                <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                   <option>{t('Any')}</option>
                   <option>₩1,000+</option>
                   <option>₩5,000+</option>
                   <option>₩10,000+</option>
                   <option>₩15,000+</option>
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                 {t('Maximum duration')}
               </label>
               <div className="relative">
-                <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+                <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                   <option>{t('Any')}</option>
                   <option>5 {t('min')}</option>
                   <option>10 {t('min')}</option>
                   <option>15 {t('min')}</option>
                   <option>20 {t('min')}</option>
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
               </div>
             </div>
           </div>
@@ -726,9 +726,9 @@ function NotificationsPanel({ t }: { t: TFn }) {
   ];
   return (
     <div className="space-y-8 pb-20">
-      <div className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden">
+      <div className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden">
         {/* Table header — desktop only */}
-        <div className="hidden md:grid grid-cols-[1fr_auto_auto_auto] items-center gap-6 px-6 py-3 border-b border-[#EBEBEB] text-[11px] font-medium text-[#616161] uppercase tracking-wider">
+        <div className="hidden md:grid grid-cols-[1fr_auto_auto_auto] items-center gap-6 px-6 py-3 border-b border-[var(--border-default)] text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">
           <span>{t('Event')}</span>
           <span className="w-16 text-center">{t('In-app')}</span>
           <span className="w-16 text-center">{t('Email')}</span>
@@ -737,24 +737,24 @@ function NotificationsPanel({ t }: { t: TFn }) {
         {rows.map((r) => (
           <div
             key={r.label}
-            className="px-4 sm:px-6 py-4 border-b border-[#F3F3F3] last:border-b-0 md:grid md:grid-cols-[1fr_auto_auto_auto] md:items-center md:gap-6"
+            className="px-4 sm:px-6 py-4 border-b border-[var(--surface-subtle)] last:border-b-0 md:grid md:grid-cols-[1fr_auto_auto_auto] md:items-center md:gap-6"
           >
             <div className="mb-3 md:mb-0">
-              <div className="text-sm font-medium text-[#1A1A1A]">{r.label}</div>
-              <div className="text-xs text-[#616161] mt-0.5 leading-relaxed">{r.description}</div>
+              <div className="text-sm font-medium text-[var(--text-primary)]">{r.label}</div>
+              <div className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{r.description}</div>
             </div>
             {/* Mobile: 3 rows of [label left, toggle right]. Desktop: contents → directly into parent grid. */}
-            <div className="flex flex-col divide-y divide-[#F3F3F3] border-t border-[#F3F3F3] md:contents md:divide-y-0 md:border-0">
+            <div className="flex flex-col divide-y divide-[var(--surface-subtle)] border-t border-[var(--surface-subtle)] md:contents md:divide-y-0 md:border-0">
               <div className="flex items-center justify-between py-2.5 md:py-0 md:block md:w-16">
-                <span className="text-xs text-[#4A4A4A] md:hidden">{t('In-app')}</span>
+                <span className="text-xs text-[var(--text-tertiary)] md:hidden">{t('In-app')}</span>
                 <div className="flex justify-end md:justify-center"><Switch defaultOn /></div>
               </div>
               <div className="flex items-center justify-between py-2.5 md:py-0 md:block md:w-16">
-                <span className="text-xs text-[#4A4A4A] md:hidden">{t('Email')}</span>
+                <span className="text-xs text-[var(--text-tertiary)] md:hidden">{t('Email')}</span>
                 <div className="flex justify-end md:justify-center"><Switch defaultOn /></div>
               </div>
               <div className="flex items-center justify-between py-2.5 md:py-0 md:block md:w-16">
-                <span className="text-xs text-[#4A4A4A] md:hidden">{t('Push')}</span>
+                <span className="text-xs text-[var(--text-tertiary)] md:hidden">{t('Push')}</span>
                 <div className="flex justify-end md:justify-center"><Switch /></div>
               </div>
             </div>
@@ -762,26 +762,26 @@ function NotificationsPanel({ t }: { t: TFn }) {
         ))}
       </div>
 
-      <div className="bg-white border border-[#EBEBEB] rounded-md p-6">
-        <h3 className="text-sm font-medium text-[#1A1A1A] mb-1">{t('Quiet hours')}</h3>
-        <p className="text-sm text-[#616161] mb-4">
+      <div className="bg-white border border-[var(--border-default)] rounded-md p-6">
+        <h3 className="text-sm font-medium text-[var(--text-primary)] mb-1">{t('Quiet hours')}</h3>
+        <p className="text-sm text-[var(--text-secondary)] mb-4">
           {t("We won't push notifications to your phone during these hours.")}
         </p>
         <div className="grid grid-cols-2 gap-4 max-w-md">
           <div>
-            <label className="block text-xs text-[#616161] mb-1.5">{t('From')}</label>
+            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">{t('From')}</label>
             <input
               type="time"
               defaultValue="22:00"
-              className="w-full px-3 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors"
+              className="w-full px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
             />
           </div>
           <div>
-            <label className="block text-xs text-[#616161] mb-1.5">{t('To')}</label>
+            <label className="block text-xs text-[var(--text-secondary)] mb-1.5">{t('To')}</label>
             <input
               type="time"
               defaultValue="08:00"
-              className="w-full px-3 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors"
+              className="w-full px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
             />
           </div>
         </div>
@@ -793,41 +793,41 @@ function NotificationsPanel({ t }: { t: TFn }) {
 function LanguageRegionPanel({ t, i18n }: { t: TFn; i18n: { language: string; changeLanguage: (l: string) => void } }) {
   return (
     <div className="space-y-8 pb-20">
-      <div className="bg-white border border-[#EBEBEB] rounded-md p-6 space-y-6">
+      <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-1">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
               {t('Display language')}
             </label>
-            <p className="text-sm text-[#616161] mb-3">
+            <p className="text-sm text-[var(--text-secondary)] mb-3">
               {t('Language used across the iDap interface.')}
             </p>
             <div className="relative">
               <select
-                className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer"
+                className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer"
                 value={i18n.language}
                 onChange={(e) => i18n.changeLanguage(e.target.value)}
               >
                 <option value="en">English</option>
                 <option value="ko">한국어</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-1">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
               {t('Timezone')}
             </label>
-            <p className="text-sm text-[#616161] mb-3">
+            <p className="text-sm text-[var(--text-secondary)] mb-3">
               {t('Used for submission times and hold-release countdowns.')}
             </p>
             <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                 <option>Asia/Ulaanbaatar (UTC+8)</option>
                 <option>Asia/Tokyo (UTC+9)</option>
                 <option>Asia/Seoul (UTC+9)</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             </div>
           </div>
         </div>
@@ -835,16 +835,16 @@ function LanguageRegionPanel({ t, i18n }: { t: TFn; i18n: { language: string; ch
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <CurrencyPicker t={t} />
           <div>
-            <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
               {t('Date format')}
             </label>
             <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer">
+              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                 <option>MMM d, yyyy</option>
                 <option>dd/MM/yyyy</option>
                 <option>yyyy-MM-dd</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             </div>
           </div>
         </div>
@@ -858,14 +858,14 @@ function CurrencyPicker({ t }: { t: TFn }) {
   const codes = Object.keys(CURRENCIES) as CurrencyCode[];
   return (
     <div>
-      <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+      <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
         {t('Currency display')}
       </label>
       <div className="relative">
         <select
           value={currency}
           onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-          className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] focus:outline-none focus:border-[#FF3C21] transition-colors cursor-pointer"
+          className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer"
         >
           {codes.map((c) => (
             <option key={c} value={c}>
@@ -873,10 +873,10 @@ function CurrencyPicker({ t }: { t: TFn }) {
             </option>
           ))}
         </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#616161] pointer-events-none" />
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
       </div>
-      <p className="text-xs text-[#616161] mt-2">
-        {t('Preview:')} <span className="font-medium text-[#1A1A1A] tabular-nums">{format(15000)}</span>
+      <p className="text-xs text-[var(--text-secondary)] mt-2">
+        {t('Preview:')} <span className="font-medium text-[var(--text-primary)] tabular-nums">{format(15000)}</span>
       </p>
     </div>
   );
@@ -887,20 +887,20 @@ function PrivacyDataPanel({ t }: { t: TFn }) {
   return (
     <div className="space-y-8 pb-20">
       <div>
-        <h3 className="text-lg font-medium text-[#1A1A1A] mb-4">{t('Visibility')}</h3>
-        <div className="bg-white border border-[#EBEBEB] rounded-md p-6 space-y-5">
+        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Visibility')}</h3>
+        <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-5">
           <ToggleRow
             label={t('Show on leaderboard')}
             description={t('Let other respondents see your anonymized trust level and streaks.')}
             defaultOn
           />
-          <div className="h-px w-full bg-[#F3F3F3]" />
+          <div className="h-px w-full bg-[var(--surface-subtle)]" />
           <ToggleRow
             label={t('Include me in survey panels')}
             description={t('Allow iDap to invite you to targeted paid panels that match your profile.')}
             defaultOn
           />
-          <div className="h-px w-full bg-[#F3F3F3]" />
+          <div className="h-px w-full bg-[var(--surface-subtle)]" />
           <ToggleRow
             label={t('Share anonymized responses in public reports')}
             description={t('Aggregated only — never your individual answers or identity.')}
@@ -910,31 +910,31 @@ function PrivacyDataPanel({ t }: { t: TFn }) {
       </div>
 
       <div>
-        <h3 className="text-lg font-medium text-[#1A1A1A] mb-4">{t('Your data')}</h3>
-        <div className="bg-white border border-[#EBEBEB] rounded-md p-6 space-y-5">
+        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Your data')}</h3>
+        <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="block text-sm font-medium text-[#1A1A1A] mb-1">{t('Download my data')}</span>
-              <p className="text-sm text-[#616161]">
+              <span className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('Download my data')}</span>
+              <p className="text-sm text-[var(--text-secondary)]">
                 {t('Export every survey response, reward, and withdrawal as a CSV bundle.')}
               </p>
             </div>
-            <button className="px-4 py-2.5 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors shrink-0 whitespace-nowrap">
+            <button className="px-4 py-2.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors shrink-0 whitespace-nowrap">
               {t('Request export')}
             </button>
           </div>
-          <div className="h-px w-full bg-[#F3F3F3]" />
+          <div className="h-px w-full bg-[var(--surface-subtle)]" />
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="block text-sm font-medium text-[#1A1A1A] mb-1">{t('Blocked companies')}</span>
-              <p className="text-sm text-[#616161]">
+              <span className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('Blocked companies')}</span>
+              <p className="text-sm text-[var(--text-secondary)]">
                 {t("Surveys from these companies won't appear in your feed.")}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setBlockedOpen(true)}
-              className="px-4 py-2.5 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors shrink-0 whitespace-nowrap cursor-pointer"
+              className="px-4 py-2.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors shrink-0 whitespace-nowrap cursor-pointer"
             >
               {t('Manage')}
             </button>
@@ -955,42 +955,42 @@ function SessionsPanel({ t }: { t: TFn }) {
   ];
   return (
     <div className="space-y-8 pb-20">
-      <div className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden">
+      <div className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden">
         {sessions.map((s, i) => (
           <div
             key={s.device}
             className={cn(
               'flex items-center justify-between gap-4 px-6 py-4',
-              i !== sessions.length - 1 && 'border-b border-[#F3F3F3]',
+              i !== sessions.length - 1 && 'border-b border-[var(--surface-subtle)]',
             )}
           >
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-9 h-9 rounded-md bg-[#F3F3F3] flex items-center justify-center shrink-0">
-                <Laptop className="w-4 h-4 text-[#4A4A4A]" strokeWidth={1.75} />
+              <div className="w-9 h-9 rounded-md bg-[var(--surface-subtle)] flex items-center justify-center shrink-0">
+                <Laptop className="w-4 h-4 text-[var(--text-tertiary)]" strokeWidth={1.75} />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-[#1A1A1A] truncate">{s.device}</span>
+                  <span className="text-sm font-medium text-[var(--text-primary)] truncate">{s.device}</span>
                   {s.current && (
-                    <span className="px-1.5 py-0.5 rounded-md bg-[#ECFDF5] text-[#047857] text-[10px] font-medium">
+                    <span className="px-1.5 py-0.5 rounded-md bg-[var(--success-tint)] text-[var(--success)] text-[10px] font-medium">
                       {t('Current')}
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-[#616161] mt-0.5 tabular-nums">
+                <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">
                   {s.where} · {s.when}
                 </div>
               </div>
             </div>
             {!s.current && (
-              <button className="px-3 py-1.5 border border-[#EBEBEB] rounded-md text-xs font-medium text-[#1A1A1A] hover:bg-[#F3F3F3] transition-colors shrink-0">
+              <button className="px-3 py-1.5 border border-[var(--border-default)] rounded-md text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors shrink-0">
                 {t('Sign out')}
               </button>
             )}
           </div>
         ))}
       </div>
-      <button className="px-4 py-2.5 border border-[#EBEBEB] rounded-md text-sm font-medium text-[#DC2626] hover:bg-[#FEF2F2] hover:border-[#F5DBDB] transition-colors">
+      <button className="px-4 py-2.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--danger-strong)] hover:bg-[var(--danger-tint)] hover:border-[var(--danger-tint)] transition-colors">
         {t('Sign out of all other sessions')}
       </button>
     </div>
@@ -1004,7 +1004,7 @@ function HighlightedLabel({ label, query }: { label: string; query: string }) {
   return (
     <>
       {label.slice(0, idx)}
-      <mark className="bg-[#FFF1EE] text-[#FF3C21] rounded-sm">
+      <mark className="bg-[var(--brand-tint)] text-[var(--brand-primary)] rounded-sm">
         {label.slice(idx, idx + query.length)}
       </mark>
       {label.slice(idx + query.length)}
@@ -1015,11 +1015,11 @@ function HighlightedLabel({ label, query }: { label: string; query: string }) {
 function PlaceholderPanel({ title }: { title: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-16 h-16 bg-[#F3F3F3] rounded-full flex items-center justify-center mb-4">
-        <ShieldAlert className="w-8 h-8 text-[#616161]" strokeWidth={1.75} />
+      <div className="w-16 h-16 bg-[var(--surface-subtle)] rounded-full flex items-center justify-center mb-4">
+        <ShieldAlert className="w-8 h-8 text-[var(--text-secondary)]" strokeWidth={1.75} />
       </div>
-      <h2 className="text-xl font-medium text-[#1A1A1A] mb-2">{title}</h2>
-      <p className="text-[#616161]">This section is currently under construction.</p>
+      <h2 className="text-xl font-medium text-[var(--text-primary)] mb-2">{title}</h2>
+      <p className="text-[var(--text-secondary)]">This section is currently under construction.</p>
     </div>
   );
 }
@@ -1034,7 +1034,7 @@ function Switch({ defaultOn = false }: { defaultOn?: boolean }) {
       onClick={() => setOn(!on)}
       className={cn(
         'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
-        on ? 'bg-[#FF3C21]' : 'bg-[#D4D4D4]',
+        on ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-strong)]',
       )}
     >
       <span
@@ -1059,8 +1059,8 @@ function ToggleRow({
   return (
     <div className="flex items-start justify-between gap-6">
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-[#1A1A1A]">{label}</div>
-        <div className="text-xs text-[#616161] mt-1 leading-relaxed">{description}</div>
+        <div className="text-sm font-medium text-[var(--text-primary)]">{label}</div>
+        <div className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">{description}</div>
       </div>
       <div className="pt-1 shrink-0">
         <Switch defaultOn={defaultOn} />
@@ -1078,8 +1078,8 @@ function CategoryChip({ label, defaultOn = false }: { label: string; defaultOn?:
       className={cn(
         'px-3 py-1.5 rounded-md text-sm font-medium border transition-colors',
         on
-          ? 'bg-[#FFF1EE] border-[#FFC1B5] text-[#FF3C21]'
-          : 'bg-white border-[#EBEBEB] text-[#4A4A4A] hover:border-[#FFC1B5]',
+          ? 'bg-[var(--brand-tint)] border-[var(--brand-border)] text-[var(--brand-primary)]'
+          : 'bg-white border-[var(--border-default)] text-[var(--text-tertiary)] hover:border-[var(--brand-border)]',
       )}
     >
       {label}

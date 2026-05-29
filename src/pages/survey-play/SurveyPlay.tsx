@@ -121,23 +121,23 @@ export default function SurveyPlay() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="flex-1 overflow-y-auto w-full bg-[#FAFAFA] flex flex-col"
+      className="flex-1 overflow-y-auto w-full bg-[var(--surface-muted)] flex flex-col"
     >
       {/* Top bar */}
-      <div className="px-4 sm:px-6 md:px-8 xl:px-12 pt-6 pb-4 bg-[#FAFAFA] sticky top-0 z-10">
+      <div className="px-4 sm:px-6 md:px-8 xl:px-12 pt-6 pb-4 bg-[var(--surface-muted)] sticky top-0 z-10">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div className="min-w-0">
-              <div className="text-xs text-[#616161] truncate">
+              <div className="text-xs text-[var(--text-secondary)] truncate">
                 {survey.companyName}
               </div>
-              <div className="text-sm font-medium text-[#1A1A1A] truncate">
+              <div className="text-sm font-medium text-[var(--text-primary)] truncate">
                 {survey.title}
               </div>
             </div>
             <button
               onClick={onExit}
-              className="p-2 text-[#616161] hover:text-[#1A1A1A] hover:bg-[#F3F3F3] rounded-md transition-colors cursor-pointer"
+              className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer"
               aria-label={t('Exit')}
             >
               <X className="w-4 h-4" />
@@ -145,15 +145,15 @@ export default function SurveyPlay() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-1.5 bg-[#EBEBEB] rounded-full overflow-hidden">
+            <div className="flex-1 h-1.5 bg-[var(--border-default)] rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-[#FF3C21]"
+                className="h-full bg-[var(--brand-primary)]"
                 initial={false}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               />
             </div>
-            <div className="text-xs text-[#616161] tabular-nums shrink-0">
+            <div className="text-xs text-[var(--text-secondary)] tabular-nums shrink-0">
               {index + 1} / {total}
             </div>
           </div>
@@ -171,17 +171,17 @@ export default function SurveyPlay() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-xs font-medium text-[#FF3C21] mb-2 uppercase tracking-wider">
+              <div className="text-xs font-medium text-[var(--brand-primary)] mb-2 uppercase tracking-wider">
                 {t('Question')} {index + 1}
               </div>
-              <h2 className="text-xl font-serif text-[#1A1A1A] leading-snug mb-2">
+              <h2 className="text-xl font-serif text-[var(--text-primary)] leading-snug mb-2">
                 {current.prompt}
               </h2>
-              <span className="inline-flex text-xs font-medium text-[#FF3C21] bg-[#FFF1EE] px-2 py-0.5 rounded-md mb-3">
+              <span className="inline-flex text-xs font-medium text-[var(--brand-primary)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-md mb-3">
                 {t('Required')}
               </span>
               {current.helper && (
-                <p className="text-xs text-[#616161] mb-5 mt-1">{current.helper}</p>
+                <p className="text-xs text-[var(--text-secondary)] mb-5 mt-1">{current.helper}</p>
               )}
 
               <div className="mt-5">
@@ -193,15 +193,15 @@ export default function SurveyPlay() {
               </div>
 
               {/* Inline actions */}
-              <div className="flex items-center justify-between gap-3 mt-8 pt-6 border-t border-[#EBEBEB]">
+              <div className="flex items-center justify-between gap-3 mt-8 pt-6 border-t border-[var(--border-default)]">
                 <button
                   onClick={onPrev}
                   disabled={index === 0}
                   className={cn(
-                    'h-10 px-4 inline-flex items-center gap-2 border border-[#EBEBEB] text-sm font-medium rounded-md transition-colors',
+                    'h-10 px-4 inline-flex items-center gap-2 border border-[var(--border-default)] text-sm font-medium rounded-md transition-colors',
                     index === 0
-                      ? 'text-[#8A8A8A] cursor-not-allowed'
-                      : 'text-[#4A4A4A] hover:bg-[#F3F3F3] hover:text-[#1A1A1A] cursor-pointer',
+                      ? 'text-[var(--text-muted)] cursor-not-allowed'
+                      : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] cursor-pointer',
                   )}
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -213,8 +213,8 @@ export default function SurveyPlay() {
                   className={cn(
                     'h-10 px-5 inline-flex items-center gap-2 text-white text-sm font-medium rounded-md transition-colors',
                     canAdvance
-                      ? 'bg-[#FF3C21] hover:bg-[#E63419] cursor-pointer'
-                      : 'bg-[#EBEBEB] text-[#8A8A8A] cursor-not-allowed',
+                      ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] cursor-pointer'
+                      : 'bg-[var(--border-default)] text-[var(--text-muted)] cursor-not-allowed',
                   )}
                 >
                   {index === total - 1 ? t('Submit') : t('Next')}
@@ -258,8 +258,8 @@ function QuestionInput({
                 className={cn(
                   'h-12 rounded-md border text-sm font-medium tabular-nums transition-colors cursor-pointer',
                   selected === n
-                    ? 'bg-[#FF3C21] border-[#FF3C21] text-white'
-                    : 'bg-white border-[#EBEBEB] text-[#1A1A1A] hover:border-[#FFC1B5] hover:bg-[#FAFAFA]',
+                    ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white'
+                    : 'bg-white border-[var(--border-default)] text-[var(--text-primary)] hover:border-[var(--brand-border)] hover:bg-[var(--surface-muted)]',
                 )}
               >
                 {n}
@@ -267,7 +267,7 @@ function QuestionInput({
             ))}
           </div>
           {(question.minLabel || question.maxLabel) && (
-            <div className="flex justify-between mt-2 text-xs text-[#616161]">
+            <div className="flex justify-between mt-2 text-xs text-[var(--text-secondary)]">
               <span>{question.minLabel}</span>
               <span>{question.maxLabel}</span>
             </div>
@@ -290,17 +290,17 @@ function QuestionInput({
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-3 rounded-md border text-sm text-left transition-colors cursor-pointer',
                   active
-                    ? 'bg-[#FFF1EE] border-[#FF3C21] text-[#1A1A1A]'
-                    : 'bg-white border-[#EBEBEB] text-[#4A4A4A] hover:border-[#FFC1B5] hover:bg-[#FAFAFA] hover:text-[#1A1A1A]',
+                    ? 'bg-[var(--brand-tint)] border-[var(--brand-primary)] text-[var(--text-primary)]'
+                    : 'bg-white border-[var(--border-default)] text-[var(--text-tertiary)] hover:border-[var(--brand-border)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]',
                 )}
               >
                 <span
                   className={cn(
                     'w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors',
-                    active ? 'border-[#FF3C21]' : 'border-[#D4D4D4]',
+                    active ? 'border-[var(--brand-primary)]' : 'border-[var(--border-strong)]',
                   )}
                 >
-                  {active && <span className="w-1.5 h-1.5 rounded-full bg-[#FF3C21]" />}
+                  {active && <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)]" />}
                 </span>
                 <span className="flex-1 font-medium">{opt}</span>
               </button>
@@ -331,14 +331,14 @@ function QuestionInput({
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-3 rounded-md border text-sm text-left transition-colors cursor-pointer',
                   active
-                    ? 'bg-[#FFF1EE] border-[#FF3C21] text-[#1A1A1A]'
-                    : 'bg-white border-[#EBEBEB] text-[#4A4A4A] hover:border-[#FFC1B5] hover:bg-[#FAFAFA] hover:text-[#1A1A1A]',
+                    ? 'bg-[var(--brand-tint)] border-[var(--brand-primary)] text-[var(--text-primary)]'
+                    : 'bg-white border-[var(--border-default)] text-[var(--text-tertiary)] hover:border-[var(--brand-border)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]',
                 )}
               >
                 <span
                   className={cn(
                     'w-4 h-4 rounded-[4px] border-2 shrink-0 flex items-center justify-center transition-colors',
-                    active ? 'bg-[#FF3C21] border-[#FF3C21]' : 'border-[#D4D4D4]',
+                    active ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)]' : 'border-[var(--border-strong)]',
                   )}
                 >
                   {active && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
@@ -358,7 +358,7 @@ function QuestionInput({
           value={(value as string) ?? ''}
           onChange={(e) => onChange(e.target.value)}
           placeholder={question.placeholder ?? t('Type your answer')}
-          className="w-full px-4 py-3 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] placeholder:text-[#8A8A8A] focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] transition-colors"
+          className="w-full px-4 py-3 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] transition-colors"
           autoFocus
         />
       );
@@ -371,7 +371,7 @@ function QuestionInput({
           onChange={(e) => onChange(e.target.value)}
           placeholder={question.placeholder ?? t('Type your answer')}
           rows={6}
-          className="w-full px-4 py-3 bg-white border border-[#EBEBEB] rounded-md text-sm text-[#1A1A1A] placeholder:text-[#8A8A8A] focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21] transition-colors resize-none leading-relaxed"
+          className="w-full px-4 py-3 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] transition-colors resize-none leading-relaxed"
           autoFocus
         />
       );
@@ -401,18 +401,18 @@ function QuestionInput({
     case 'Matrix': {
       const map = (value as Record<string, string> | undefined) ?? {};
       return (
-        <div className="bg-white border border-[#EBEBEB] rounded-md overflow-hidden">
+        <div className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="border-b border-[#EBEBEB] bg-[#FAFAFA]">
-                  <th className="text-left font-medium text-[#616161] px-4 py-3 min-w-[180px]">
+                <tr className="border-b border-[var(--border-default)] bg-[var(--surface-muted)]">
+                  <th className="text-left font-medium text-[var(--text-secondary)] px-4 py-3 min-w-[180px]">
                     &nbsp;
                   </th>
                   {question.columns.map((col) => (
                     <th
                       key={col}
-                      className="font-medium text-[#616161] px-3 py-3 text-center text-xs whitespace-nowrap"
+                      className="font-medium text-[var(--text-secondary)] px-3 py-3 text-center text-xs whitespace-nowrap"
                     >
                       {col}
                     </th>
@@ -424,11 +424,11 @@ function QuestionInput({
                   <tr
                     key={row}
                     className={cn(
-                      'border-b border-[#F3F3F3]',
+                      'border-b border-[var(--surface-subtle)]',
                       ri === question.rows.length - 1 && 'border-b-0',
                     )}
                   >
-                    <td className="px-4 py-3 text-[#1A1A1A] font-medium align-middle">
+                    <td className="px-4 py-3 text-[var(--text-primary)] font-medium align-middle">
                       {row}
                     </td>
                     {question.columns.map((col) => {
@@ -441,12 +441,12 @@ function QuestionInput({
                             className={cn(
                               'w-4 h-4 rounded-full border-2 transition-colors cursor-pointer',
                               active
-                                ? 'border-[#FF3C21] bg-white'
-                                : 'border-[#D4D4D4] hover:border-[#8A8A8A]',
+                                ? 'border-[var(--brand-primary)] bg-white'
+                                : 'border-[var(--border-strong)] hover:border-[var(--text-muted)]',
                             )}
                           >
                             {active && (
-                              <span className="block w-1.5 h-1.5 rounded-full bg-[#FF3C21] mx-auto" />
+                              <span className="block w-1.5 h-1.5 rounded-full bg-[var(--brand-primary)] mx-auto" />
                             )}
                           </button>
                         </td>
@@ -498,23 +498,23 @@ function DatePickerField({
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          'h-10 px-3 inline-flex items-center gap-2 bg-white border border-[#EBEBEB] rounded-md text-sm transition-colors cursor-pointer min-w-[220px]',
-          'hover:bg-[#FAFAFA] focus:outline-none focus:border-[#FF3C21] focus:ring-1 focus:ring-[#FF3C21]',
-          open && 'border-[#FF3C21] ring-1 ring-[#FF3C21]',
+          'h-10 px-3 inline-flex items-center gap-2 bg-white border border-[var(--border-default)] rounded-md text-sm transition-colors cursor-pointer min-w-[220px]',
+          'hover:bg-[var(--surface-muted)] focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]',
+          open && 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]',
         )}
       >
-        <CalendarIcon className="w-4 h-4 text-[#616161]" />
+        <CalendarIcon className="w-4 h-4 text-[var(--text-secondary)]" />
         <span
           className={cn(
             'flex-1 text-left tabular-nums',
-            value ? 'text-[#1A1A1A] font-medium' : 'text-[#616161]',
+            value ? 'text-[var(--text-primary)] font-medium' : 'text-[var(--text-secondary)]',
           )}
         >
           {value ? format(value, 'MMM d, yyyy') : placeholder}
         </span>
         <ChevronDown
           className={cn(
-            'w-4 h-4 text-[#616161] transition-transform',
+            'w-4 h-4 text-[var(--text-secondary)] transition-transform',
             open && 'rotate-180',
           )}
         />
@@ -527,9 +527,9 @@ function DatePickerField({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-2 z-30 bg-white border border-[#EBEBEB] rounded-md shadow-[0_4px_16px_rgba(44,38,39,0.08)] p-2"
+            className="absolute top-full left-0 mt-2 z-30 bg-white border border-[var(--border-default)] rounded-md shadow-[0_4px_16px_rgba(44,38,39,0.08)] p-2"
             style={{
-              '--primary': '#FF3C21',
+              '--primary': 'var(--brand-primary)',
               '--primary-foreground': '#FFFFFF',
             } as React.CSSProperties}
           >
@@ -545,7 +545,7 @@ function DatePickerField({
               className="p-0"
             />
             {value && (
-              <div className="px-2 pb-1 pt-2 border-t border-[#F3F3F3] mt-2 text-xs text-[#616161] tabular-nums">
+              <div className="px-2 pb-1 pt-2 border-t border-[var(--surface-subtle)] mt-2 text-xs text-[var(--text-secondary)] tabular-nums">
                 {t('Selected')}: {format(value, 'EEEE, MMMM d, yyyy')}
               </div>
             )}
@@ -622,7 +622,7 @@ function SuccessScreen({
   }, [surveyId]);
 
   return (
-    <div className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[#FAFAFA] relative">
+    <div className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[var(--surface-muted)] relative">
       {celebrate && <Confetti />}
 
       <motion.div
@@ -641,7 +641,7 @@ function SuccessScreen({
             damping: 18,
             delay: 0.1,
           }}
-          className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#ECFDF5] text-[#047857] mb-5 relative"
+          className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--success-tint)] text-[var(--success)] mb-5 relative"
         >
           <motion.div
             initial={{ pathLength: 0 }}
@@ -656,7 +656,7 @@ function SuccessScreen({
             initial={{ scale: 0.9, opacity: 0.6 }}
             animate={{ scale: 1.6, opacity: 0 }}
             transition={{ duration: 1.2, delay: 0.3, ease: 'easeOut' }}
-            className="absolute inset-0 rounded-full border-2 border-[#047857]"
+            className="absolute inset-0 rounded-full border-2 border-[var(--success)]"
           />
         </motion.div>
 
@@ -664,7 +664,7 @@ function SuccessScreen({
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.3 }}
-          className="text-3xl font-serif text-[#1A1A1A] mb-2"
+          className="text-3xl font-serif text-[var(--text-primary)] mb-2"
         >
           {t('Nice work,')} {USER_NAME_FIRST}!
         </motion.h1>
@@ -672,10 +672,10 @@ function SuccessScreen({
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.3 }}
-          className="text-sm text-[#4A4A4A] leading-relaxed mb-8"
+          className="text-sm text-[var(--text-tertiary)] leading-relaxed mb-8"
         >
           {t('You finished')}{' '}
-          <span className="font-medium text-[#1A1A1A]">{surveyTitle}</span>.{' '}
+          <span className="font-medium text-[var(--text-primary)]">{surveyTitle}</span>.{' '}
           {t('Your reward is on its way to your wallet.')}
         </motion.p>
 
@@ -684,22 +684,22 @@ function SuccessScreen({
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.35, duration: 0.3 }}
-          className="bg-white border border-[#EBEBEB] rounded-md p-6 mb-4 relative overflow-hidden"
+          className="bg-white border border-[var(--border-default)] rounded-md p-6 mb-4 relative overflow-hidden"
         >
-          <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-[#FFF1EE] opacity-70 pointer-events-none" />
+          <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-[var(--brand-tint)] opacity-70 pointer-events-none" />
           <div className="relative">
-            <div className="text-xs font-medium text-[#616161] uppercase tracking-wider mb-2">
+            <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">
               {t('Reward earned')}
             </div>
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45, duration: 0.35 }}
-              className="text-4xl font-serif font-medium text-[#FF3C21] tabular-nums lining-nums leading-tight"
+              className="text-4xl font-serif font-medium text-[var(--brand-primary)] tabular-nums lining-nums leading-tight"
             >
               {formatMntPlain(rewardMnt)}
             </motion.div>
-            <div className="text-xs text-[#616161] mt-2 tabular-nums">
+            <div className="text-xs text-[var(--text-secondary)] mt-2 tabular-nums">
               {answerCount} {t('answers submitted')}
             </div>
           </div>
@@ -712,20 +712,20 @@ function SuccessScreen({
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.3 }}
-          className="w-full bg-white border border-[#EBEBEB] rounded-md px-4 py-3 mb-4 flex items-center justify-between gap-3 hover:border-[#FFC1B5] transition-colors cursor-pointer group text-left"
+          className="w-full bg-white border border-[var(--border-default)] rounded-md px-4 py-3 mb-4 flex items-center justify-between gap-3 hover:border-[var(--brand-border)] transition-colors cursor-pointer group text-left"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-[#F3F3F3] flex items-center justify-center shrink-0">
-              <Wallet className="w-4 h-4 text-[#4A4A4A]" />
+            <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0">
+              <Wallet className="w-4 h-4 text-[var(--text-tertiary)]" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs text-[#616161]">{t('Wallet balance')}</div>
-              <div className="text-sm font-medium text-[#1A1A1A] tabular-nums lining-nums">
+              <div className="text-xs text-[var(--text-secondary)]">{t('Wallet balance')}</div>
+              <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums lining-nums">
                 {formatMntPlain(walletBalance)}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-xs font-medium text-[#4A4A4A] group-hover:text-[#1A1A1A] transition-colors shrink-0">
+          <div className="flex items-center gap-1 text-xs font-medium text-[var(--text-tertiary)] group-hover:text-[var(--text-primary)] transition-colors shrink-0">
             {t('View wallet')}
             <ArrowRight className="w-3.5 h-3.5" />
           </div>
@@ -736,20 +736,20 @@ function SuccessScreen({
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.3 }}
-          className="bg-white border border-[#EBEBEB] rounded-md p-5 mb-4 text-left"
+          className="bg-white border border-[var(--border-default)] rounded-md p-5 mb-4 text-left"
         >
           <div className="flex items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-[#F3F3F3] flex items-center justify-center shrink-0">
-                <Trophy className="w-4 h-4 text-[#4A4A4A]" />
+              <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0">
+                <Trophy className="w-4 h-4 text-[var(--text-tertiary)]" />
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-medium text-[#1A1A1A]">
+                <div className="text-sm font-medium text-[var(--text-primary)]">
                   {nextLevel
                     ? `${t('Trust Lv.')}${nextLevel.level} · ${nextLevel.label}`
                     : `${t('Trust Lv.')}${currentLevel?.level} · ${currentLevel?.label}`}
                 </div>
-                <div className="text-xs text-[#616161]">
+                <div className="text-xs text-[var(--text-secondary)]">
                   {nextLevel
                     ? toNext > 0
                       ? `${toNext} ${t('more to unlock')}`
@@ -758,29 +758,29 @@ function SuccessScreen({
                 </div>
               </div>
             </div>
-            <div className="text-xs text-[#616161] tabular-nums shrink-0">
+            <div className="text-xs text-[var(--text-secondary)] tabular-nums shrink-0">
               {completed}
               {nextLevel ? ` / ${nextLevel.minResponses}` : ''}
             </div>
           </div>
 
-          <div className="h-2 w-full bg-[#F3F3F3] rounded-full overflow-hidden">
+          <div className="h-2 w-full bg-[var(--surface-subtle)] rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progressPct}%` }}
               transition={{ delay: 0.6, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="h-full bg-[#FF3C21]"
+              className="h-full bg-[var(--brand-primary)]"
             />
           </div>
 
           {nextLevel && TRUST_LEVEL_PERKS[nextLevel.level] && (
-            <div className="mt-3 pt-3 border-t border-[#F3F3F3] flex items-center gap-2 text-xs text-[#4A4A4A]">
-              <Lock className="w-3.5 h-3.5 text-[#616161] shrink-0" />
+            <div className="mt-3 pt-3 border-t border-[var(--surface-subtle)] flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
+              <Lock className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
               <span>
-                <span className="text-[#616161]">
+                <span className="text-[var(--text-secondary)]">
                   {t('Unlock at Trust Lv.')}{nextLevel.level}:
                 </span>{' '}
-                <span className="font-medium text-[#1A1A1A]">
+                <span className="font-medium text-[var(--text-primary)]">
                   {t(TRUST_LEVEL_PERKS[nextLevel.level])}
                 </span>
               </span>
@@ -797,12 +797,12 @@ function SuccessScreen({
             className="mb-6 text-left"
           >
             <div className="flex items-center justify-between mb-2 px-1">
-              <div className="text-sm font-medium text-[#4A4A4A]">
+              <div className="text-sm font-medium text-[var(--text-tertiary)]">
                 {t('Recommended for you next')}
               </div>
               <button
                 onClick={() => navigate('/survey-feed')}
-                className="text-xs font-medium text-[#616161] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
                 {t('See all')}
               </button>
@@ -811,24 +811,24 @@ function SuccessScreen({
             <button
               type="button"
               onClick={() => navigate(`/survey-feed/${nextSurvey.id}`)}
-              className="group w-full bg-white border border-[#EBEBEB] rounded-md p-4 flex items-center gap-4 hover:border-[#FFC1B5] hover:bg-[#FAFAFA] transition-colors cursor-pointer text-left"
+              className="group w-full bg-white border border-[var(--border-default)] rounded-md p-4 flex items-center gap-4 hover:border-[var(--brand-border)] hover:bg-[var(--surface-muted)] transition-colors cursor-pointer text-left"
             >
-              <div className="w-11 h-11 rounded-full bg-[#F3F3F3] flex items-center justify-center text-[#4A4A4A] text-sm font-medium shrink-0">
+              <div className="w-11 h-11 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center text-[var(--text-tertiary)] text-sm font-medium shrink-0">
                 {nextSurvey.companyInitials}
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="text-xs text-[#616161] truncate mb-0.5">
+                <div className="text-xs text-[var(--text-secondary)] truncate mb-0.5">
                   {nextSurvey.companyName}
                 </div>
-                <div className="text-sm font-medium text-[#1A1A1A] truncate mb-1">
+                <div className="text-sm font-medium text-[var(--text-primary)] truncate mb-1">
                   {nextSurvey.title}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-[#616161]">
-                  <span className="font-medium text-[#FF3C21] tabular-nums lining-nums">
+                <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                  <span className="font-medium text-[var(--brand-primary)] tabular-nums lining-nums">
                     {formatMntPlain(nextSurvey.rewardMnt)}
                   </span>
-                  <span className="text-[#D4D4D4]">·</span>
+                  <span className="text-[var(--border-strong)]">·</span>
                   <span className="inline-flex items-center gap-1 tabular-nums">
                     <Clock className="w-3 h-3" />
                     {nextSurvey.durationMin} {t('min')}
@@ -836,8 +836,8 @@ function SuccessScreen({
                 </div>
               </div>
 
-              <div className="w-8 h-8 rounded-full bg-[#F3F3F3] group-hover:bg-[#FF3C21] flex items-center justify-center transition-colors shrink-0">
-                <ArrowRight className="w-4 h-4 text-[#4A4A4A] group-hover:text-white transition-colors" />
+              <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] group-hover:bg-[var(--brand-primary)] flex items-center justify-center transition-colors shrink-0">
+                <ArrowRight className="w-4 h-4 text-[var(--text-tertiary)] group-hover:text-white transition-colors" />
               </div>
             </button>
           </motion.div>
@@ -852,7 +852,7 @@ function SuccessScreen({
         >
           <button
             onClick={onBack}
-            className="h-10 px-5 inline-flex items-center gap-2 border border-[#EBEBEB] bg-white text-[#4A4A4A] hover:bg-[#F3F3F3] hover:text-[#1A1A1A] text-sm font-medium rounded-md transition-colors cursor-pointer"
+            className="h-10 px-5 inline-flex items-center gap-2 border border-[var(--border-default)] bg-white text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] text-sm font-medium rounded-md transition-colors cursor-pointer"
           >
             {t('Back to feed')}
           </button>
@@ -864,7 +864,7 @@ function SuccessScreen({
 
 function Confetti() {
   const pieces = useMemo(() => {
-    const palette = ['#FF3C21', '#047857', '#F59E0B', '#1A1A1A', '#EBEBEB'];
+    const palette = ['var(--brand-primary)', 'var(--success)', 'var(--warning-strong)', 'var(--text-primary)', 'var(--border-default)'];
     return Array.from({ length: 40 }).map((_, i) => ({
       id: i,
       x: (Math.random() - 0.5) * 480,
@@ -971,26 +971,26 @@ function SortableRankingItem({
       className={cn(
         'flex items-center gap-3 pl-3 pr-4 py-3 bg-white border rounded-md select-none',
         isDragging
-          ? 'border-[#FF3C21] shadow-[0_8px_24px_rgba(44,38,39,0.12)] z-10 relative'
-          : 'border-[#EBEBEB] hover:border-[#FFC1B5]',
+          ? 'border-[var(--brand-primary)] shadow-[0_8px_24px_rgba(44,38,39,0.12)] z-10 relative'
+          : 'border-[var(--border-default)] hover:border-[var(--brand-border)]',
       )}
     >
-      <span className="w-6 text-center text-sm font-medium text-[#8A8A8A] tabular-nums shrink-0">
+      <span className="w-6 text-center text-sm font-medium text-[var(--text-muted)] tabular-nums shrink-0">
         {rank}
       </span>
       <button
         type="button"
         aria-label="Drag to reorder"
         className={cn(
-          'p-1 -ml-1 rounded cursor-grab touch-none text-[#8A8A8A] hover:text-[#4A4A4A] hover:bg-[#F3F3F3] transition-colors shrink-0',
-          isDragging && 'cursor-grabbing text-[#FF3C21] hover:text-[#FF3C21]',
+          'p-1 -ml-1 rounded cursor-grab touch-none text-[var(--text-muted)] hover:text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] transition-colors shrink-0',
+          isDragging && 'cursor-grabbing text-[var(--brand-primary)] hover:text-[var(--brand-primary)]',
         )}
         {...attributes}
         {...listeners}
       >
         <GripVertical className="w-4 h-4" />
       </button>
-      <span className="flex-1 text-sm font-medium text-[#1A1A1A] min-w-0 truncate">
+      <span className="flex-1 text-sm font-medium text-[var(--text-primary)] min-w-0 truncate">
         {label}
       </span>
     </li>
