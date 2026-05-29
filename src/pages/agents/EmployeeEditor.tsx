@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 import {
   X,
@@ -14,8 +13,10 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Portal } from '@/shared/ui/portal';
+import { SideSheet } from '@/shared/ui/side-sheet';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
+import { ImageCropper } from './ImageCropper';
 import type { Employee, EmployeeRole, EmployeeStatus, Gender, EmploymentType } from './agents-data';
 import { EMPLOYEE_ROLES, GENDERS, EMPLOYMENT_TYPES } from './agents-data';
 
@@ -48,6 +49,7 @@ export function EmployeeEditor({ mode, initial, onClose, onSave }: EmployeeEdito
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState(initial.password ?? '');
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const update = (patch: Partial<Employee>) => setDraft((d) => ({ ...d, ...patch }));
 
@@ -57,9 +59,11 @@ export function EmployeeEditor({ mode, initial, onClose, onSave }: EmployeeEdito
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return; // 5MB cap
     const reader = new FileReader();
-    reader.onload = () => update({ avatarUrl: typeof reader.result === 'string' ? reader.result : undefined });
+    reader.onload = () => { if (typeof reader.result === 'string') setCropSrc(reader.result); };
     reader.readAsDataURL(file);
   };
 
@@ -70,23 +74,8 @@ export function EmployeeEditor({ mode, initial, onClose, onSave }: EmployeeEdito
   };
 
   return (
-    <Portal>
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-[var(--text-primary)]/30 flex items-center justify-center z-50 p-4"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 10 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 10 }}
-            transition={{ type: 'spring', duration: 0.3 }}
-            className="bg-white rounded-md w-full max-w-lg shadow-none border border-[var(--surface-subtle)] flex flex-col overflow-hidden max-h-[90vh]"
-            onClick={(e) => e.stopPropagation()}
-          >
+    <>
+      <SideSheet onClose={onClose} widthClass="max-w-lg">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)] shrink-0">
               <div>
                 <h2 className="text-lg font-medium text-[var(--text-primary)]">
@@ -110,38 +99,41 @@ export function EmployeeEditor({ mode, initial, onClose, onSave }: EmployeeEdito
               <span className={`h-1 flex-1 rounded-full transition-colors ${step === 2 ? 'bg-[var(--brand-primary)]' : 'bg-[var(--surface-subtle)]'}`} />
             </div>
 
-            <div className="p-6 overflow-y-auto">
+            <div className="p-6 overflow-y-auto flex-1">
               {step === 1 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Photo */}
                   <div className="sm:col-span-2 flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-xl font-medium overflow-hidden shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-xl font-medium overflow-hidden shrink-0">
                       {draft.avatarUrl ? (
                         <img src={draft.avatarUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
                         initialOf(draft.fullName)
                       )}
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
-                      <button
-                        type="button"
-                        onClick={() => fileRef.current?.click()}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
-                      >
-                        <Upload className="w-4 h-4" />
-                        {t('Upload photo')}
-                      </button>
-                      {draft.avatarUrl && (
+                    <div className="flex flex-col gap-2 min-w-0">
+                      <p className="text-xs text-[var(--text-secondary)]">{t('Upload a JPG or PNG image up to 5MB.')}</p>
+                      <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={onFile} />
+                      <div className="flex items-center gap-3 flex-wrap">
                         <button
                           type="button"
-                          onClick={() => update({ avatarUrl: undefined })}
-                          className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--danger)] hover:underline cursor-pointer"
+                          onClick={() => fileRef.current?.click()}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          {t('Remove photo')}
+                          <Upload className="w-4 h-4" />
+                          {t('Upload image')}
                         </button>
-                      )}
+                        {draft.avatarUrl && (
+                          <button
+                            type="button"
+                            onClick={() => update({ avatarUrl: undefined })}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--danger)] hover:underline cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            {t('Remove image')}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -279,10 +271,16 @@ export function EmployeeEditor({ mode, initial, onClose, onSave }: EmployeeEdito
                 </button>
               )}
             </div>
-          </motion.div>
-        </motion.div>
-      </AnimatePresence>
-    </Portal>
+      </SideSheet>
+
+      {cropSrc && (
+        <ImageCropper
+          src={cropSrc}
+          onCancel={() => setCropSrc(null)}
+          onSave={(url) => { update({ avatarUrl: url }); setCropSrc(null); }}
+        />
+      )}
+    </>
   );
 }
 

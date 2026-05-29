@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { format, isAfter, isBefore, subDays, subMonths } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import {
@@ -14,12 +14,16 @@ import {
   UserCheck,
   UserCog,
   UserX,
+  UserSearch,
   ShieldCheck,
   CheckCircle,
   Check,
+  Trash2,
+  AlertCircle,
   X,
 } from 'lucide-react';
 
+import { Portal } from '@/shared/ui/portal';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
@@ -60,7 +64,7 @@ const COL_DEFS: ColumnDef[] = [
 export default function Agents() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { employees, addEmployee } = useEmployees();
+  const { employees, addEmployee, removeEmployee } = useEmployees();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('All');
@@ -70,7 +74,14 @@ export default function Agents() {
   const [selectedPreset, setSelectedPreset] = useState('Custom date range');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isCreating, setIsCreating] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const { widths: colWidths, onResizeStart } = useResizableColumns(COL_DEFS);
+
+  const confirmBulkDelete = () => {
+    selected.forEach((id) => removeEmployee(id));
+    setSelected(new Set());
+    setBulkDeleting(false);
+  };
 
   const counts = {
     total: employees.length,
@@ -317,6 +328,40 @@ export default function Agents() {
         </div>
       </div>
 
+      {/* Bulk selection bar */}
+      <AnimatePresence initial={false}>
+        {selected.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -6, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-center justify-between gap-3 mb-4 px-4 py-2.5 bg-[var(--brand-tint)] border border-[var(--brand-border)] rounded-md">
+              <span className="text-sm font-medium text-[var(--brand-primary)] tabular-nums">
+                {selected.size} {t('selected')}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelected(new Set())}
+                  className="px-3 py-1.5 text-sm font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white rounded-md transition-colors cursor-pointer"
+                >
+                  {t('Clear')}
+                </button>
+                <button
+                  onClick={() => setBulkDeleting(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {t('Delete')}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Table */}
       <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
         <div className="overflow-x-auto">
@@ -357,8 +402,8 @@ export default function Agents() {
                 <tr>
                   <td colSpan={8} className="px-6 py-16">
                     <div className="flex flex-col items-center justify-center text-center">
-                      <div className="w-14 h-14 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center mb-4">
-                        <Users className="w-6 h-6 text-[var(--text-secondary)]" />
+                      <div className="flex items-center justify-center mb-3">
+                        <UserSearch className="w-8 h-8 text-[var(--text-secondary)]" strokeWidth={1.5} />
                       </div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">{t('No employees found')}</p>
                       <p className="text-sm text-[var(--text-secondary)] mt-1">
@@ -462,6 +507,66 @@ export default function Agents() {
           onSave={(emp) => { addEmployee(emp); setIsCreating(false); }}
         />
       )}
+
+      {/* Bulk delete confirmation */}
+      <Portal>
+        <AnimatePresence>
+          {bulkDeleting && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-[var(--text-primary)]/30 flex items-center justify-center z-50 p-4"
+              onClick={() => setBulkDeleting(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                transition={{ type: 'spring', duration: 0.3 }}
+                className="bg-white rounded-md w-full max-w-sm shadow-none border border-[var(--surface-subtle)] flex flex-col overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)]">
+                  <h2 className="text-lg font-medium text-[var(--text-primary)]">
+                    {t('Delete')} {selected.size} {t('employees')}?
+                  </h2>
+                  <button
+                    onClick={() => setBulkDeleting(false)}
+                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors p-1 cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="p-6">
+                  <p className="text-[var(--text-tertiary)] text-sm leading-relaxed">
+                    {t('This permanently removes the selected employee records. This action cannot be undone.')}
+                  </p>
+                  <p className="mt-4 text-[var(--danger)] text-xs font-medium flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4" />
+                    {t('This action cannot be undone.')}
+                  </p>
+                </div>
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--surface-subtle)]">
+                  <button
+                    onClick={() => setBulkDeleting(false)}
+                    className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                  >
+                    {t('Cancel')}
+                  </button>
+                  <button
+                    onClick={confirmBulkDelete}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-[var(--danger-strong)] hover:bg-[var(--danger)] transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {t('Delete')}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Portal>
     </motion.div>
   );
 }

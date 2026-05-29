@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Search, ExternalLink, ChevronDown, Upload, Trash2, ShieldAlert,
   UserCircle, Wallet, SlidersHorizontal, Bell, Globe,
   ShieldCheck, Laptop, UserSquare2, Gift, Share2, X, ArrowLeft,
+  Building2, ScrollText, Briefcase, Star, Image as ImageIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/shared/lib/cn';
 import PaymentMethodsSection from './PaymentMethodsSection';
+import { useHotel } from '@/pages/hotel/use-hotel';
+import { AMENITIES, type ContractStatus } from '@/pages/hotel/hotel-data';
+import { ImageCropper } from '@/pages/agents/ImageCropper';
 import { InviteFriendsDrawer } from '@/shared/ui/invite-friends-drawer';
 import { ChangeEmailDrawer } from '@/shared/ui/change-email-drawer';
 import { ChangePasswordDrawer } from '@/shared/ui/change-password-drawer';
@@ -24,6 +28,29 @@ export default function Settings() {
   const [mobileView, setMobileView] = useState<'nav' | 'content'>('nav');
 
   const navigation = [
+    {
+      category: t('Hotel'),
+      items: [
+        {
+          id: 'Hotel profile',
+          label: t('Hotel profile'),
+          icon: Building2,
+          keywords: 'accommodation name address star rating type photo property hotel basic',
+        },
+        {
+          id: 'Policies & amenities',
+          label: t('Policies & amenities'),
+          icon: ScrollText,
+          keywords: 'check-in check-out front desk amenities wifi pool gym spa policy',
+        },
+        {
+          id: 'Owner & contract',
+          label: t('Owner & contract'),
+          icon: Briefcase,
+          keywords: 'seller owner representative business registration contract company manager status',
+        },
+      ],
+    },
     {
       category: t('Personal'),
       items: [
@@ -260,7 +287,13 @@ export default function Settings() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {activeSection === 'Payment methods' ? (
+              {activeSection === 'Hotel profile' ? (
+                <HotelProfilePanel t={t} />
+              ) : activeSection === 'Policies & amenities' ? (
+                <PoliciesAmenitiesPanel t={t} />
+              ) : activeSection === 'Owner & contract' ? (
+                <OwnerContractPanel t={t} />
+              ) : activeSection === 'Payment methods' ? (
                 <PaymentMethodsSection />
               ) : activeSection === 'Account' ? (
                 <AccountPanel i18n={i18n} t={t} />
@@ -1084,5 +1117,156 @@ function CategoryChip({ label, defaultOn = false }: { label: string; defaultOn?:
     >
       {label}
     </button>
+  );
+}
+
+/* ---------------- Hotel settings panels ---------------- */
+
+const hInput =
+  'w-full px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors';
+
+function HCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{title}</h3>
+      <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-6">{children}</div>
+    </div>
+  );
+}
+
+function HField({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{label}</label>
+      {children}
+      {hint && <p className="text-xs text-[var(--text-secondary)] mt-2">{hint}</p>}
+    </div>
+  );
+}
+
+function HotelProfilePanel({ t }: { t: TFn }) {
+  const { property, updateProperty } = useHotel();
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || file.size > 5 * 1024 * 1024) return;
+    const reader = new FileReader();
+    reader.onload = () => { if (typeof reader.result === 'string') setCropSrc(reader.result); };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="space-y-8 pb-20">
+      <HCard title={t('Hotel photo')}>
+        <div className="flex items-center gap-6">
+          <div className="w-20 h-20 rounded-md bg-[var(--surface-subtle)] border border-[var(--border-default)] overflow-hidden flex items-center justify-center shrink-0 text-[var(--text-secondary)]">
+            {property.photoUrl ? <img src={property.photoUrl} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-6 h-6" strokeWidth={1.5} />}
+          </div>
+          <div className="space-y-3">
+            <p className="text-xs text-[var(--text-secondary)]">{t('Upload a JPG or PNG up to 5MB. Shown on your property profile.')}</p>
+            <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={onFile} />
+            <div className="flex items-center gap-3">
+              <button onClick={() => fileRef.current?.click()} className="flex items-center gap-2 px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                <Upload className="w-4 h-4 text-[var(--text-secondary)]" strokeWidth={1.75} />
+                {t('Upload image')}
+              </button>
+              {property.photoUrl && (
+                <button onClick={() => updateProperty({ photoUrl: undefined })} className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--danger)] hover:underline cursor-pointer">
+                  <Trash2 className="w-4 h-4" />
+                  {t('Remove image')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </HCard>
+
+      <HCard title={t('Basic information')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <HField label={t('Name')}><input className={hInput} value={property.name} onChange={(e) => updateProperty({ name: e.target.value })} /></HField>
+          <HField label={t('Accommodation Type')}><input className={hInput} value={property.accommodationType} onChange={(e) => updateProperty({ accommodationType: e.target.value })} /></HField>
+        </div>
+        <HField label={t('Address')}><input className={hInput} value={property.address} onChange={(e) => updateProperty({ address: e.target.value })} /></HField>
+        <HField label={t('Star Rating')}>
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button key={n} type="button" onClick={() => updateProperty({ starRating: n })} className="p-0.5 cursor-pointer" aria-label={`${n} ${t('stars')}`}>
+                <Star className={`w-6 h-6 transition-colors ${n <= property.starRating ? 'text-[var(--warning-strong)] fill-[var(--warning-strong)]' : 'text-[var(--border-strong)]'}`} />
+              </button>
+            ))}
+          </div>
+        </HField>
+      </HCard>
+
+      {cropSrc && <ImageCropper src={cropSrc} onCancel={() => setCropSrc(null)} onSave={(url) => { updateProperty({ photoUrl: url }); setCropSrc(null); }} />}
+    </div>
+  );
+}
+
+function PoliciesAmenitiesPanel({ t }: { t: TFn }) {
+  const { property, updateProperty } = useHotel();
+  const toggle = (a: string) =>
+    updateProperty({ mainAmenities: property.mainAmenities.includes(a) ? property.mainAmenities.filter((x) => x !== a) : [...property.mainAmenities, a] });
+
+  return (
+    <div className="space-y-8 pb-20">
+      <HCard title={t('Policies')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <HField label={t('Check-in time')}><input className={hInput} value={property.checkInTime} onChange={(e) => updateProperty({ checkInTime: e.target.value })} placeholder="14:00" /></HField>
+          <HField label={t('Check-out time')}><input className={hInput} value={property.checkOutTime} onChange={(e) => updateProperty({ checkOutTime: e.target.value })} placeholder="12:00" /></HField>
+          <HField label={t('Front desk number')}><input className={hInput} value={property.frontDeskNumber} onChange={(e) => updateProperty({ frontDeskNumber: e.target.value })} /></HField>
+          <HField label={t('Front desk email')}><input className={hInput} value={property.frontDeskEmail} onChange={(e) => updateProperty({ frontDeskEmail: e.target.value })} /></HField>
+        </div>
+      </HCard>
+
+      <HCard title={t('Main Amenities')}>
+        <div className="flex flex-wrap gap-2">
+          {AMENITIES.map((a) => {
+            const on = property.mainAmenities.includes(a);
+            return (
+              <button key={a} type="button" onClick={() => toggle(a)} className={`px-3 py-1.5 text-sm font-medium rounded-full border transition-colors cursor-pointer ${on ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]' : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)] hover:bg-[var(--surface-subtle)]'}`}>
+                {a}
+              </button>
+            );
+          })}
+        </div>
+      </HCard>
+    </div>
+  );
+}
+
+function OwnerContractPanel({ t }: { t: TFn }) {
+  const { property, updateProperty } = useHotel();
+  return (
+    <div className="space-y-8 pb-20">
+      <HCard title={t('Seller (Owner)')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <HField label={t('Representative name')}><input className={hInput} value={property.representativeName} onChange={(e) => updateProperty({ representativeName: e.target.value })} /></HField>
+          <HField label={t('Business Registration Number')}><input className={hInput} value={property.businessRegNumber} onChange={(e) => updateProperty({ businessRegNumber: e.target.value })} /></HField>
+          <HField label={t('Company name')}><input className={hInput} value={property.companyName} onChange={(e) => updateProperty({ companyName: e.target.value })} /></HField>
+          <HField label={t('Manager Contact')}><input className={hInput} value={property.managerContact} onChange={(e) => updateProperty({ managerContact: e.target.value })} /></HField>
+        </div>
+      </HCard>
+
+      <HCard title={t('Contract')}>
+        <HField label={t('Contract status')}>
+          <div className="relative">
+            <select className={`${hInput} appearance-none pr-8 cursor-pointer`} value={property.contractStatus} onChange={(e) => updateProperty({ contractStatus: e.target.value as ContractStatus })}>
+              <option value="Pending">{t('Pending')}</option>
+              <option value="Approved">{t('Approved')}</option>
+              <option value="Rejected">{t('Rejected')}</option>
+            </select>
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
+          </div>
+        </HField>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <HField label={t('Contract start')}><input type="date" className={hInput} value={property.contractStart} onChange={(e) => updateProperty({ contractStart: e.target.value })} /></HField>
+          <HField label={t('Contract end')}><input type="date" className={hInput} value={property.contractEnd} onChange={(e) => updateProperty({ contractEnd: e.target.value })} /></HField>
+        </div>
+      </HCard>
+    </div>
   );
 }

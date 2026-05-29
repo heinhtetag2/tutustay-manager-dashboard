@@ -18,6 +18,9 @@ import RespondentDetail from '@/pages/respondent-detail';
 import Reports from '@/pages/reports';
 import Agents from '@/pages/agents';
 import AgentDetail from '@/pages/agents/AgentDetail';
+import Rooms from '@/pages/hotel/Rooms';
+import RoomDetail from '@/pages/hotel/RoomDetail';
+import RoomTypeDetail from '@/pages/hotel/RoomTypeDetail';
 import Help from '@/pages/help';
 import Settings from '@/pages/settings';
 import NotFound from '@/pages/not-found';
@@ -44,6 +47,9 @@ export const router = createBrowserRouter([
       { path: 'reports', Component: Reports },
       { path: 'agents', Component: Agents },
       { path: 'agents/:id', Component: AgentDetail },
+      { path: 'hotel/rooms', Component: Rooms },
+      { path: 'hotel/rooms/:id', Component: RoomDetail },
+      { path: 'hotel/room-types/:id', Component: RoomTypeDetail },
       { path: 'billing', Component: Billing },
       { path: 'payouts', Component: Payouts },
       { path: 'wallet', Component: Wallet },

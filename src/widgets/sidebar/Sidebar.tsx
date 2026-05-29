@@ -20,6 +20,7 @@ import {
   ClipboardCheck,
   Flag,
   UserCog,
+  BedDouble,
   X,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -204,6 +205,21 @@ export function Sidebar({
           </div>
           <div className="space-y-0.5">
             <NavItem icon={UserCog} label={t("Employee Management")} path="/agents" isCollapsed={effectiveCollapsed} />
+          </div>
+        </div>
+
+        {effectiveCollapsed && <div className="border-t border-[var(--border-default)] mx-2" />}
+
+        {/* Hotel */}
+        <div>
+          <div className={cn(
+            "mb-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            effectiveCollapsed ? "opacity-0 h-0 overflow-hidden text-center" : "px-3 opacity-100 h-auto"
+          )}>
+            {t("HOTEL")}
+          </div>
+          <div className="space-y-0.5">
+            <NavItem icon={BedDouble} label={t("Rooms")} path="/hotel/rooms" isCollapsed={effectiveCollapsed} />
           </div>
         </div>
 
