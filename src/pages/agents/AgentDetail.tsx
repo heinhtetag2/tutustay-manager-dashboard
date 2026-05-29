@@ -221,9 +221,6 @@ export default function AgentDetail() {
               <InfoRow Icon={CalendarIcon} label={t('Hire Date')}>
                 <span className="text-sm text-[var(--text-primary)] tabular-nums">{employee.hireDate || '—'}</span>
               </InfoRow>
-              <InfoRow Icon={BadgeCheck} label={t('Status')}>
-                <span className="text-sm text-[var(--text-primary)]">{t(employee.status)}</span>
-              </InfoRow>
               <InfoRow Icon={User} label={t('Gender')}>
                 <span className="text-sm text-[var(--text-primary)]">{employee.gender ? t(employee.gender) : '—'}</span>
               </InfoRow>
