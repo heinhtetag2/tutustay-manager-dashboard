@@ -146,30 +146,34 @@ export default function SalesCalendar() {
               <button
                 key={key}
                 onClick={() => list.length > 0 && setSelectedDay(day)}
-                className={`relative min-h-[116px] border-b border-r border-[var(--border-default)] p-2 text-left align-top transition-colors ${idx % 7 === 0 ? 'border-l' : ''} ${
-                  inMonth ? 'bg-white' : 'bg-[var(--surface-subtle)]/40'
-                } ${list.length > 0 ? 'hover:bg-[var(--surface-subtle)] cursor-pointer' : 'cursor-default'}`}
+                className={`group/cell relative min-h-[122px] border-b border-r border-[var(--border-default)] p-2 text-left align-top transition-colors ${idx % 7 === 0 ? 'border-l' : ''} ${
+                  !inMonth ? 'bg-[var(--surface-subtle)]/40' : today ? 'bg-[var(--brand-tint)]/25' : 'bg-white'
+                } ${list.length > 0 ? 'hover:bg-[var(--surface-subtle)]/60 cursor-pointer' : 'cursor-default'}`}
               >
-                <div className="flex items-center justify-between">
-                  <span className={`inline-flex items-center justify-center w-6 h-6 text-xs tabular-nums rounded-full ${
-                    today ? 'bg-[var(--brand-primary)] text-white font-medium' : inMonth ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className={`inline-flex items-center justify-center min-w-6 h-6 px-1.5 text-xs tabular-nums rounded-full transition-colors ${
+                    today ? 'bg-[var(--brand-primary)] text-white font-semibold' : inMonth ? 'text-[var(--text-primary)] font-medium' : 'text-[var(--text-muted)]'
                   }`}>{format(day, 'd')}</span>
-                  {rev > 0 && <span className="text-[10px] font-medium text-[var(--text-secondary)] tabular-nums">{compact(rev)}</span>}
+                  {rev > 0 && (
+                    <span className="text-[10px] font-semibold text-[var(--brand-primary)] tabular-nums bg-[var(--brand-tint)]/60 px-1.5 py-0.5 rounded-full">
+                      {compact(rev)}
+                    </span>
+                  )}
                 </div>
-                <div className="mt-1.5 space-y-1">
+                <div className="space-y-1">
                   {list.slice(0, 3).map((r) => (
                     <div
                       key={r.id}
                       onClick={(e) => { e.stopPropagation(); navigate(`/reservations/${r.id}`); }}
-                      className="flex items-center gap-1.5 px-1.5 py-1 rounded bg-[var(--surface-subtle)] hover:bg-[var(--brand-tint)] transition-colors cursor-pointer"
-                      title={`${r.guestName} · ${t(r.roomType)}`}
+                      className={`flex items-center gap-1.5 pl-1.5 pr-2 py-1 rounded-md cursor-pointer transition-shadow hover:ring-1 hover:ring-inset hover:ring-[var(--border-strong)] ${statusChipStyle(r.status)}`}
+                      title={`${r.guestName} · ${t(r.roomType)} · ${t(r.status)}`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor(r.status)}`} />
-                      <span className="text-[11px] text-[var(--text-primary)] truncate">{r.guestName}</span>
+                      <span className="text-[11px] font-medium truncate leading-tight">{r.guestName}</span>
                     </div>
                   ))}
                   {list.length > 3 && (
-                    <div className="text-[10px] font-medium text-[var(--text-secondary)] px-1.5">+{list.length - 3} {t('more')}</div>
+                    <div className="text-[10px] font-medium text-[var(--text-secondary)] px-1.5 pt-0.5">+{list.length - 3} {t('more')}</div>
                   )}
                 </div>
               </button>
