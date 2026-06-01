@@ -25,7 +25,7 @@ import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } 
 import { formatAmount, countsAsRevenue, RESERVATION_STATUSES, type Reservation, type ReservationStatus } from './reservations-data';
 import { useReservations } from './use-reservations';
 
-type StatusFilter = 'All' | ReservationStatus;
+type StatusFilter = 'All' | ReservationStatus | 'Overdue';
 type Sort = 'checkin' | 'recent' | 'amount';
 
 const COL_DEFS: ColumnDef[] = [
@@ -57,13 +57,21 @@ function initialOf(name: string): string {
   return name.trim().charAt(0).toUpperCase() || '?';
 }
 
-function statusStyle(status: ReservationStatus): string {
+type DisplayStatus = ReservationStatus | 'Overdue';
+
+/** The status shown in the UI: 'Overdue' overrides the stored status when due. */
+function displayStatus(checkOut: string, status: ReservationStatus): DisplayStatus {
+  return isOverdue(checkOut, status) ? 'Overdue' : status;
+}
+
+function statusStyle(status: DisplayStatus): string {
   switch (status) {
     case 'Confirmed': return 'bg-[var(--brand-tint)] text-[var(--brand-primary)]';
     case 'Checked-in': return 'bg-[var(--success-tint)] text-[var(--success)]';
     case 'Checked-out': return 'bg-[var(--surface-subtle)] text-[var(--text-secondary)]';
     case 'Cancelled': return 'bg-[var(--danger-tint)] text-[var(--danger)]';
     case 'No-show': return 'bg-[var(--warning-tint)] text-[var(--warning-strong)]';
+    case 'Overdue': return 'bg-[var(--danger-tint)] text-[var(--danger)]';
   }
 }
 
@@ -100,7 +108,7 @@ export default function Reservations() {
   const query = search.trim().toLowerCase();
   const visible = reservations
     .filter((r) => {
-      if (statusFilter !== 'All' && r.status !== statusFilter) return false;
+      if (statusFilter !== 'All' && displayStatus(r.checkOut, r.status) !== statusFilter) return false;
       if (dateRange?.from) {
         const ci = new Date(r.checkIn);
         if (isBefore(ci, dateRange.from)) return false;
@@ -158,7 +166,7 @@ export default function Reservations() {
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by guest, code or room')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
         </div>
         <div className="flex gap-3 w-full sm:w-auto flex-wrap">
-          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<ListFilter />} className="sm:w-auto" options={[{ value: 'All', label: t('All statuses') }, ...RESERVATION_STATUSES.map((s) => ({ value: s, label: t(s) }))]} />
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<ListFilter />} className="sm:w-auto" options={[{ value: 'All', label: t('All statuses') }, ...RESERVATION_STATUSES.map((s) => ({ value: s, label: t(s) })), { value: 'Overdue', label: t('Overdue') }]} />
           <BrandSelect value={sort} onValueChange={(v) => setSort(v as Sort)} leftIcon={<ArrowUpDown />} className="sm:w-auto" options={[{ value: 'checkin', label: t('Check-in soonest') }, { value: 'recent', label: t('Recently booked') }, { value: 'amount', label: t('Highest amount') }]} />
 
           {/* Check-in date range filter */}
@@ -235,7 +243,7 @@ export default function Reservations() {
                 </tr>
               ) : (
                 visible.map((r, index) => (
-                  <ReservationRow key={r.id} reservation={r} index={index} formatDate={formatDate} onOpenGuest={r.customerId ? () => navigate(`/customers/${r.customerId}`) : undefined} t={t} />
+                  <ReservationRow key={r.id} reservation={r} index={index} formatDate={formatDate} onOpen={() => navigate(`/reservations/${r.id}`)} t={t} />
                 ))
               )}
             </tbody>
@@ -255,19 +263,16 @@ export default function Reservations() {
   );
 }
 
-function ReservationRow({ reservation: r, index, formatDate, onOpenGuest, t }: { reservation: Reservation; index: number; formatDate: (v: string) => string; onOpenGuest?: () => void; t: (k: string) => string }) {
+function ReservationRow({ reservation: r, index, formatDate, onOpen, t }: { reservation: Reservation; index: number; formatDate: (v: string) => string; onOpen: () => void; t: (k: string) => string }) {
+  const ds = displayStatus(r.checkOut, r.status);
   return (
-    <motion.tr initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: index * 0.02 }} className="hover:bg-[var(--surface-muted)] transition-colors">
+    <motion.tr initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: index * 0.02 }} onClick={onOpen} className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer">
       <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{index + 1}</td>
       <td className="px-6 py-4 overflow-hidden">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0">{initialOf(r.guestName)}</div>
           <div className="min-w-0">
-            {onOpenGuest ? (
-              <button onClick={onOpenGuest} className="font-medium text-[var(--text-primary)] truncate hover:text-[var(--brand-primary)] transition-colors cursor-pointer text-left" title={t('View customer profile')}>{r.guestName}</button>
-            ) : (
-              <div className="font-medium text-[var(--text-primary)] truncate">{r.guestName}</div>
-            )}
+            <div className="font-medium text-[var(--text-primary)] truncate">{r.guestName}</div>
             <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5"><span className="tabular-nums">{r.code}</span> · {r.guestEmail}</div>
           </div>
         </div>
@@ -281,7 +286,10 @@ function ReservationRow({ reservation: r, index, formatDate, onOpenGuest, t }: {
       <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums text-center">{r.nights}</td>
       <td className="px-6 py-4 text-[var(--text-primary)] font-medium tabular-nums">{formatAmount(r.amount)}</td>
       <td className="px-6 py-4">
-        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusStyle(r.status)}`}>{t(r.status)}</span>
+        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusStyle(ds)}`}>
+          {ds === 'Overdue' && <TriangleAlert className="w-3 h-3" />}
+          {t(ds)}
+        </span>
       </td>
     </motion.tr>
   );
