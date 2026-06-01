@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Wifi, Utensils, Car, Waves, Dumbbell, Flower2, Banknote, Plane, Coffee, Tag } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { BrandSelect } from '@/shared/ui/brand-select';
-import { AMENITIES, type Room, type RoomStatus } from './hotel-data';
+import { AMENITIES, type Room, type RoomType, type RoomStatus } from './hotel-data';
 
 /** Maps each amenity to a representative icon. */
 export const amenityIcon: Record<string, React.ElementType> = {
@@ -73,20 +73,37 @@ function ModalShell({ title, onClose, onSave, saveLabel, children }: { title: st
   );
 }
 
-export function RoomEditor({ initial, types, onClose, onSave }: { initial: Room; types: string[]; onClose: () => void; onSave: (r: Room) => void }) {
+export function RoomEditor({ initial, roomTypes, onClose, onSave }: { initial: Room; roomTypes: RoomType[]; onClose: () => void; onSave: (r: Room) => void }) {
   const { t } = useTranslation();
-  const [d, setD] = useState<Room>(initial);
+  // Amenities are inherited from the selected room type, not edited per-room.
+  const inheritFromType = (name: string): string[] => roomTypes.find((rt) => rt.name === name)?.amenities ?? [];
+  const [d, setD] = useState<Room>(() => ({ ...initial, amenities: inheritFromType(initial.typeName) }));
   const set = (p: Partial<Room>) => setD((s) => ({ ...s, ...p }));
+  const onTypeChange = (name: string) => set({ typeName: name, amenities: inheritFromType(name) });
   return (
     <ModalShell title={initial.id ? t('Edit Room') : t('Add Room')} onClose={onClose} onSave={() => d.number.trim() && onSave({ ...d, number: d.number.trim() })} saveLabel={initial.id ? t('Save changes') : t('Add Room')}>
       <F label={t('Floor')}><input type="number" className={fieldInput} value={d.floor} onChange={(e) => set({ floor: Number(e.target.value) })} /></F>
       <F label={t('Number')}><input className={fieldInput} value={d.number} onChange={(e) => set({ number: e.target.value })} placeholder="e.g. 201" /></F>
-      <F label={t('Type')}><BrandSelect value={d.typeName} onValueChange={(v) => set({ typeName: v })} options={types.map((tn) => ({ value: tn, label: tn }))} /></F>
+      <F label={t('Type')}><BrandSelect value={d.typeName} onValueChange={onTypeChange} options={roomTypes.map((rt) => ({ value: rt.name, label: rt.name }))} /></F>
       <F label={t('Status')}><BrandSelect value={d.status} onValueChange={(v) => set({ status: v as RoomStatus })} options={[{ value: 'Active', label: t('Active') }, { value: 'Inactive', label: t('Inactive') }]} /></F>
       <F label={t('Beds')}><input type="number" className={fieldInput} value={d.beds} onChange={(e) => set({ beds: Number(e.target.value) })} /></F>
       <F label={t('Occupancy')}><input type="number" className={fieldInput} value={d.occupancy} onChange={(e) => set({ occupancy: Number(e.target.value) })} /></F>
       <F label={t('Price')} className="sm:col-span-2"><input type="number" className={fieldInput} value={d.price} onChange={(e) => set({ price: Number(e.target.value) })} /></F>
-      <F label={t('Amenities')} className="sm:col-span-2"><AmenityToggles value={d.amenities} onChange={(v) => set({ amenities: v })} /></F>
+      <div className="sm:col-span-2">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-[var(--text-secondary)]">{t('Amenities')}</span>
+          <span className="text-[11px] text-[var(--text-secondary)]">{t('From room type')}</span>
+        </div>
+        {d.amenities.length === 0 ? (
+          <p className="text-sm text-[var(--text-secondary)]">{t('This room type has no amenities yet.')}</p>
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {d.amenities.map((a) => (
+              <span key={a} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--surface-subtle)] text-[var(--text-secondary)]"><AmenityIcon name={a} className="w-3.5 h-3.5" />{a}</span>
+            ))}
+          </div>
+        )}
+      </div>
     </ModalShell>
   );
 }

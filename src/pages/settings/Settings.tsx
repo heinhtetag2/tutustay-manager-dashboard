@@ -20,6 +20,8 @@ import { DeleteAccountDrawer } from '@/shared/ui/delete-account-drawer';
 import { BlockedCompaniesDrawer } from '@/shared/ui/blocked-companies-drawer';
 import { useCurrency } from '@/shared/hooks/useCurrency';
 import { CURRENCIES, type CurrencyCode } from '@/shared/lib/currency';
+import { useDateFormat } from '@/shared/hooks/useDateFormat';
+import { DATE_FORMATS } from '@/shared/lib/date-format';
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
@@ -867,21 +869,37 @@ function LanguageRegionPanel({ t, i18n }: { t: TFn; i18n: { language: string; ch
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <CurrencyPicker t={t} />
-          <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              {t('Date format')}
-            </label>
-            <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-                <option>MMM d, yyyy</option>
-                <option>dd/MM/yyyy</option>
-                <option>yyyy-MM-dd</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
-            </div>
-          </div>
+          <DateFormatPicker t={t} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function DateFormatPicker({ t }: { t: TFn }) {
+  const { dateFormat, setDateFormat, formatDate } = useDateFormat();
+  return (
+    <div>
+      <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+        {t('Date format')}
+      </label>
+      <div className="relative">
+        <select
+          value={dateFormat}
+          onChange={(e) => setDateFormat(e.target.value)}
+          className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer"
+        >
+          {DATE_FORMATS.map((d) => (
+            <option key={d.pattern} value={d.pattern}>
+              {d.pattern} — {d.example}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
+      </div>
+      <p className="text-xs text-[var(--text-secondary)] mt-2">
+        {t('Preview:')} <span className="font-medium text-[var(--text-primary)] tabular-nums">{formatDate(new Date('2026-01-05'))}</span>
+      </p>
     </div>
   );
 }

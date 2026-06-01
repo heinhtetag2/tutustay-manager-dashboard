@@ -20,7 +20,11 @@ import {
   ClipboardCheck,
   Flag,
   UserCog,
-  BedDouble,
+  Users,
+  Star,
+  DoorOpen,
+  CalendarPlus,
+  CalendarCheck,
   X,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -68,17 +72,19 @@ export function Sidebar({
   // always render the full labels when not on desktop.
   const effectiveCollapsed = isDesktop ? isCollapsed : false;
 
-  // Notif panel content stagger — items glide up after the panel opens.
-  // On exit, items fade out together (no reverse stagger) so the close
-  // feels like one smooth motion, not a cascade fighting the panel collapse.
+  // Notif panel content stagger. Items fade/slide in *with* the panel opening
+  // (no delayChildren) so you never see a blank panel expand on its own — the
+  // content rides the open motion as one cohesive gesture. A light stagger adds
+  // life without reading as a slow cascade. On exit, items fade out together
+  // (no reverse stagger) so the close feels like one smooth motion.
   const notifContainerVariants = {
     hidden: {},
-    visible: { transition: { staggerChildren: 0.045, delayChildren: 0.12 } },
+    visible: { transition: { staggerChildren: 0.03, delayChildren: 0.02 } },
     exit: { transition: { staggerChildren: 0, when: 'afterChildren' as const } },
   };
   const notifItemVariants = {
-    hidden: { opacity: 0, y: 8 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
+    hidden: { opacity: 0, y: 6 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
     exit: { opacity: 0, transition: { duration: 0.18, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] } },
   };
 
@@ -205,6 +211,8 @@ export function Sidebar({
           </div>
           <div className="space-y-0.5">
             <NavItem icon={UserCog} label={t("Employee Management")} path="/agents" isCollapsed={effectiveCollapsed} />
+            <NavItem icon={Users} label={t("Customer Management")} path="/customers" isCollapsed={effectiveCollapsed} />
+            <NavItem icon={Star} label={t("Customer Reviews")} path="/reviews" isCollapsed={effectiveCollapsed} />
           </div>
         </div>
 
@@ -219,7 +227,9 @@ export function Sidebar({
             {t("HOTEL")}
           </div>
           <div className="space-y-0.5">
-            <NavItem icon={BedDouble} label={t("Rooms")} path="/hotel/rooms" isCollapsed={effectiveCollapsed} />
+            <NavItem icon={DoorOpen} label={t("Room Management")} path="/hotel/rooms" isCollapsed={effectiveCollapsed} />
+            <NavItem icon={CalendarCheck} label={t("Reservation Management")} path="/reservations" isCollapsed={effectiveCollapsed} />
+            <NavItem icon={CalendarPlus} label={t("Booking Requests")} path="/booking-requests" isCollapsed={effectiveCollapsed} />
           </div>
         </div>
 
@@ -333,8 +343,8 @@ export function Sidebar({
             initial={isDesktop ? { width: 0, opacity: 0 } : { x: '100%' }}
             animate={
               isDesktop
-                ? { width: 320, opacity: 1, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }
-                : { x: 0, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } }
+                ? { width: 320, opacity: 1, transition: { type: 'spring', stiffness: 420, damping: 42, mass: 0.9 } }
+                : { x: 0, transition: { type: 'spring', stiffness: 420, damping: 42, mass: 0.9 } }
             }
             exit={
               isDesktop

@@ -18,6 +18,12 @@ import RespondentDetail from '@/pages/respondent-detail';
 import Reports from '@/pages/reports';
 import Agents from '@/pages/agents';
 import AgentDetail from '@/pages/agents/AgentDetail';
+import Customers from '@/pages/customers';
+import CustomerDetail from '@/pages/customers/CustomerDetail';
+import Reviews from '@/pages/reviews';
+import BookingRequests from '@/pages/booking-requests';
+import BookingRequestDetail from '@/pages/booking-requests/BookingRequestDetail';
+import Reservations from '@/pages/reservations';
 import Rooms from '@/pages/hotel/Rooms';
 import RoomDetail from '@/pages/hotel/RoomDetail';
 import RoomTypeDetail from '@/pages/hotel/RoomTypeDetail';
@@ -47,6 +53,12 @@ export const router = createBrowserRouter([
       { path: 'reports', Component: Reports },
       { path: 'agents', Component: Agents },
       { path: 'agents/:id', Component: AgentDetail },
+      { path: 'customers', Component: Customers },
+      { path: 'customers/:id', Component: CustomerDetail },
+      { path: 'reviews', Component: Reviews },
+      { path: 'booking-requests', Component: BookingRequests },
+      { path: 'booking-requests/:id', Component: BookingRequestDetail },
+      { path: 'reservations', Component: Reservations },
       { path: 'hotel/rooms', Component: Rooms },
       { path: 'hotel/rooms/:id', Component: RoomDetail },
       { path: 'hotel/room-types/:id', Component: RoomTypeDetail },

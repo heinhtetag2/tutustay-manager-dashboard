@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as Popover from '@radix-ui/react-popover';
-import { X, Plus, Trash2, Clock, Info } from 'lucide-react';
+import { X, Plus, Trash2, Clock, Info, ChevronDown } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { ImageCropper } from '@/pages/agents/ImageCropper';
@@ -35,7 +35,7 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
 
   return (
     <>
-      <SideSheet onClose={onClose} widthClass="max-w-xl">
+      <SideSheet onClose={onClose} widthClass="max-w-md">
           <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)] shrink-0">
             <h2 className="text-lg font-medium text-[var(--text-primary)]">{isEdit ? t('Edit Room Type') : t('Add Room Type')}</h2>
             <button onClick={onClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors p-1 cursor-pointer"><X className="w-5 h-5" /></button>
@@ -68,7 +68,6 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
               <Field label={t('Room Type Name')} required className="sm:col-span-2"><input className={fieldInput} value={d.name} onChange={(e) => set({ name: e.target.value })} placeholder={t('e.g. Deluxe')} /></Field>
               <Field label={t('Description')} className="sm:col-span-2"><textarea rows={2} className={`${fieldInput} resize-none`} value={d.description} onChange={(e) => set({ description: e.target.value })} placeholder={t('Short description shown to guests')} /></Field>
               <Field label={t('Amenity')} required className="sm:col-span-2"><AmenityToggles value={d.amenities} onChange={(v) => set({ amenities: v })} /></Field>
-              <Field label={t('Max Occupancy')} required><input type="number" min={1} className={fieldInput} value={d.occupancy} onChange={(e) => set({ occupancy: Number(e.target.value) })} /></Field>
             </div>
 
             <div className="bg-[var(--surface-subtle)] rounded-lg p-4 space-y-4">
@@ -142,12 +141,23 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
                 <button type="button" onClick={() => set({ beds: [...d.beds, { type: 'Single', count: 1 }] })} className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] hover:bg-[var(--brand-tint)] px-2 py-1 -ml-2 rounded-md transition-colors cursor-pointer"><Plus className="w-4 h-4" />{t('Add bed')}</button>
               </div>
             </Field>
-            <Field label={t('Room size')}>
-              <div className="flex gap-3 max-w-xs">
-                <input type="number" min={0} className={fieldInput} value={d.roomSize ?? ''} onChange={(e) => set({ roomSize: e.target.value ? Number(e.target.value) : undefined })} placeholder="0" />
-                <BrandSelect value={d.sizeUnit} onValueChange={(v) => set({ sizeUnit: v as SizeUnit })} className="w-24" options={[{ value: 'm²', label: 'm²' }, { value: 'ft²', label: 'ft²' }]} />
-              </div>
-            </Field>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label={t('Max Occupancy')} required>
+                <input type="number" min={1} className={fieldInput} value={d.occupancy} onChange={(e) => set({ occupancy: Number(e.target.value) })} />
+              </Field>
+              <Field label={t('Room size')}>
+                <div className="relative flex items-center rounded-md border border-[var(--border-default)] bg-white focus-within:border-[var(--brand-primary)] focus-within:ring-1 focus-within:ring-[var(--brand-primary)]">
+                  <input type="number" min={0} value={d.roomSize ?? ''} onChange={(e) => set({ roomSize: e.target.value ? Number(e.target.value) : undefined })} placeholder="0" className="flex-1 w-full pl-3 pr-1 py-2 bg-transparent text-sm text-[var(--text-primary)] focus:outline-none tabular-nums placeholder:text-[var(--text-secondary)]" />
+                  <div className="relative shrink-0">
+                    <select value={d.sizeUnit} onChange={(e) => set({ sizeUnit: e.target.value as SizeUnit })} className="appearance-none bg-transparent pl-2 pr-7 py-2 text-sm text-[var(--text-secondary)] focus:outline-none cursor-pointer">
+                      <option value="m²">m²</option>
+                      <option value="ft²">ft²</option>
+                    </select>
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-secondary)] pointer-events-none" />
+                  </div>
+                </div>
+              </Field>
+            </div>
             </div>
           </div>
 
@@ -200,22 +210,33 @@ function Divider({ label }: { label: string }) {
 
 function Money({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
-    <div className="flex max-w-xs rounded-md border border-[var(--border-default)] overflow-hidden focus-within:border-[var(--brand-primary)] focus-within:ring-1 focus-within:ring-[var(--brand-primary)]">
-      <span className="px-3 py-2 bg-[var(--surface-subtle)] text-sm font-medium text-[var(--text-secondary)] border-r border-[var(--border-default)] shrink-0">MMK</span>
-      <input type="number" min={0} value={value || ''} onChange={(e) => onChange(Number(e.target.value))} placeholder="0" className="flex-1 w-full px-3 py-2 bg-white text-sm text-[var(--text-primary)] focus:outline-none tabular-nums" />
+    <div className="relative max-w-xs">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-secondary)] pointer-events-none select-none">MMK</span>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={value ? value.toLocaleString('en-US') : ''}
+        onChange={(e) => onChange(Number(e.target.value.replace(/[^\d]/g, '')))}
+        placeholder="0"
+        className="w-full pl-14 pr-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] transition-colors tabular-nums placeholder:text-[var(--text-secondary)]"
+      />
     </div>
   );
 }
 
 function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
   return (
-    <button type="button" onClick={() => onChange(!checked)} className="flex items-start gap-3 text-left cursor-pointer">
-      <span className={`mt-0.5 w-9 h-5 rounded-full p-0.5 transition-colors shrink-0 ${checked ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-strong)]'}`}>
-        <span className={`block w-4 h-4 rounded-full bg-white transition-transform ${checked ? 'translate-x-4' : ''}`} />
-      </span>
-      <span>
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`flex items-center justify-between gap-3 w-full text-left px-4 py-3 bg-white border rounded-md transition-colors cursor-pointer ${checked ? 'border-[var(--brand-border)]' : 'border-[var(--border-default)] hover:bg-[var(--surface-subtle)]'}`}
+    >
+      <span className="min-w-0">
         <span className="block text-sm font-medium text-[var(--text-primary)]">{label}</span>
         {hint && <span className="block text-xs text-[var(--text-secondary)] mt-0.5">{hint}</span>}
+      </span>
+      <span className={`w-9 h-5 rounded-full p-0.5 transition-colors shrink-0 ${checked ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-strong)]'}`}>
+        <span className={`block w-4 h-4 rounded-full bg-white transition-transform ${checked ? 'translate-x-4' : ''}`} />
       </span>
     </button>
   );

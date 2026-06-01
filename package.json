@@ -1,9 +1,9 @@
 {
-  "name": "idap-client",
+  "name": "tutustay-manager-dashboard",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "iDap — Intelligent Data Analytics Platform (client portal)",
+  "description": "TutuStay — Hotel Manager Dashboard",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -3,9 +3,11 @@ import { Outlet, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, Bell } from 'lucide-react';
 import { Sidebar } from '@/widgets/sidebar';
+import { BookingToastHost, useBookingSimulator } from '@/shared/ui/booking-toasts';
 
 export default function Layout() {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  useBookingSimulator();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileNotifOpen, setIsMobileNotifOpen] = useState(false);
   const location = useLocation();
@@ -82,6 +84,7 @@ export default function Layout() {
           </motion.div>
         </AnimatePresence>
       </main>
+      <BookingToastHost />
     </div>
   );
 }

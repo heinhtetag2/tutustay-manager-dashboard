@@ -13,11 +13,27 @@ export const AMENITIES = [
   'Cafe',
 ] as const;
 
+export const ACCOMMODATION_TYPES = [
+  'Hotel',
+  'Resort',
+  'Guesthouse',
+  'Hostel',
+  'Serviced Apartment',
+  'Motel',
+] as const;
+
 export interface Property {
   name: string;
   address: string;
   accommodationType: string;
   starRating: number;
+  // Location (detailed address)
+  country: string;
+  state: string;
+  district: string;
+  township: string;
+  latitude?: number;
+  longitude?: number;
   checkInTime: string;
   checkOutTime: string;
   mainAmenities: string[];
@@ -32,6 +48,34 @@ export interface Property {
   companyName: string;
   managerContact: string;
   photoUrl?: string;
+}
+
+/** A blank property used to start a fresh hotel setup. */
+export function emptyProperty(): Property {
+  return {
+    name: '',
+    address: '',
+    accommodationType: 'Hotel',
+    starRating: 0,
+    country: 'Myanmar',
+    state: '',
+    district: '',
+    township: '',
+    latitude: undefined,
+    longitude: undefined,
+    checkInTime: '',
+    checkOutTime: '',
+    mainAmenities: [],
+    frontDeskNumber: '',
+    frontDeskEmail: '',
+    representativeName: '',
+    businessRegNumber: '',
+    contractStatus: 'Pending',
+    contractStart: '',
+    contractEnd: '',
+    companyName: '',
+    managerContact: '',
+  };
 }
 
 export type BedType = 'Single' | 'Double' | 'Queen' | 'King' | 'Twin' | 'Bunk';
@@ -107,22 +151,28 @@ export interface Room {
 }
 
 export const DEMO_PROPERTY: Property = {
-  name: 'Aurora Hotel',
-  address: 'No. 20 Kyat Kone Street',
+  name: 'Aurora Grand Hotel',
+  address: '128 Riverside Avenue',
   accommodationType: 'Hotel',
   starRating: 5,
-  checkInTime: '01:00',
-  checkOutTime: '00:00',
+  country: 'Singapore',
+  state: 'Central Region',
+  district: 'Downtown Core',
+  township: 'Marina Bay',
+  latitude: 1.2834,
+  longitude: 103.8607,
+  checkInTime: '14:00',
+  checkOutTime: '12:00',
   mainAmenities: ['SPA & Wellness Centre', 'Fitness Centre/Gym', 'Swimming Pool', 'Currency Exchange & ATM'],
-  frontDeskNumber: '097 725 855 555',
-  frontDeskEmail: 'devhotel@gmail.com',
-  representativeName: 'Zin Moe Aung',
-  businessRegNumber: '7745454545555',
-  contractStatus: 'Pending',
-  contractStart: '2025-11-28',
-  contractEnd: '2026-11-28',
+  frontDeskNumber: '+65 6555 0100',
+  frontDeskEmail: 'frontdesk@aurorahotel.com',
+  representativeName: 'Helen Carter',
+  businessRegNumber: 'BRN-2024-558013',
+  contractStatus: 'Approved',
+  contractStart: '2025-01-01',
+  contractEnd: '2026-12-31',
   companyName: 'Aurora Hospitality Group',
-  managerContact: 'devzinmoag3@gmail.com',
+  managerContact: 'manager@aurorahotel.com',
 };
 
 export const DEMO_ROOM_TYPES: RoomType[] = [
