@@ -11,11 +11,12 @@ import {
   Layers,
   Users,
   Building,
+  Building2,
   Trash2,
   AlertCircle,
-  Image as ImageIcon,
   X,
 } from 'lucide-react';
+import * as Popover from '@radix-ui/react-popover';
 import { Portal } from '@/shared/ui/portal';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MultiSelect } from '@/shared/ui/multi-select';
@@ -24,6 +25,7 @@ import { useHotel } from './use-hotel';
 import { AMENITIES, formatPrice, totalBeds, emptyRoomType, type Room, type RoomType, type RoomStatus } from './hotel-data';
 import { RoomEditor, AmenityIcon } from './room-editors';
 import { RoomTypeEditor } from './RoomTypeEditor';
+import { HotelSetupWizard } from './setup/HotelSetupWizard';
 
 type View = 'rooms' | 'types';
 
@@ -33,38 +35,62 @@ const OCCUPANCY_OPTIONS = ['1', '2', '3', '4'];
 
 const ROOM_COLS: ColumnDef[] = [
   { key: 'select', w: 48, min: 48, resizable: false },
-  { key: 'photo', w: 80, min: 70, resizable: false },
-  { key: 'floor', w: 90, min: 70 },
-  { key: 'number', w: 120, min: 90 },
-  { key: 'type', w: 150, min: 110 },
-  { key: 'beds', w: 90, min: 70 },
-  { key: 'occupancy', w: 120, min: 90 },
+  { key: 'room', w: 300, min: 220 },
+  { key: 'capacity', w: 150, min: 120 },
   { key: 'amenity', w: 200, min: 140 },
-  { key: 'price', w: 130, min: 100 },
+  { key: 'price', w: 140, min: 110 },
   { key: 'status', w: 120, min: 100 },
 ];
 const TYPE_COLS: ColumnDef[] = [
   { key: 'select', w: 48, min: 48, resizable: false },
-  { key: 'photo', w: 80, min: 70, resizable: false },
-  { key: 'name', w: 220, min: 140 },
-  { key: 'beds', w: 90, min: 70 },
-  { key: 'occupancy', w: 120, min: 90 },
-  { key: 'regular', w: 130, min: 100 },
-  { key: 'weekend', w: 130, min: 100 },
-  { key: 'session', w: 130, min: 100 },
-  { key: 'amenity', w: 200, min: 140 },
+  { key: 'roomType', w: 320, min: 240 },
+  { key: 'pricing', w: 200, min: 160 },
+  { key: 'amenity', w: 220, min: 150 },
 ];
 
 function statusStyles(status: RoomStatus) {
   return status === 'Active' ? 'bg-[var(--success-tint)] text-[var(--success)]' : 'bg-[var(--surface-subtle)] text-[var(--text-secondary)]';
 }
 
-function Amenities({ items }: { items: string[] }) {
+/** Square thumbnail: photo if present, else the label's initial on a brand tint. */
+function Thumb({ src, label, size = 'w-10 h-10' }: { src?: string; label: string; size?: string }) {
+  if (src) {
+    return <div className={`${size} rounded-md overflow-hidden border border-[var(--border-default)] shrink-0`}><img src={src} alt="" className="w-full h-full object-cover" /></div>;
+  }
   return (
-    <div className="flex flex-wrap gap-1">
-      {items.length === 0 ? <span className="text-[var(--text-secondary)]">—</span> : items.map((a) => (
-        <span key={a} className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-[var(--surface-subtle)] text-[var(--text-secondary)]"><AmenityIcon name={a} className="w-3 h-3" />{a}</span>
-      ))}
+    <div className={`${size} rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0`}>
+      {label.trim().charAt(0).toUpperCase() || '?'}
+    </div>
+  );
+}
+
+function Chip({ name }: { name: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-[var(--surface-subtle)] text-[var(--text-secondary)] whitespace-nowrap">
+      <AmenityIcon name={name} className="w-3 h-3" />{name}
+    </span>
+  );
+}
+
+/** First amenity + a "+N" popover trigger, to keep the column tight. */
+function Amenities({ items }: { items: string[] }) {
+  if (items.length === 0) return <span className="text-[var(--text-secondary)]">—</span>;
+  const [first, ...rest] = items;
+  return (
+    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+      <Chip name={first} />
+      {rest.length > 0 && (
+        <Popover.Root>
+          <Popover.Trigger asChild>
+            <button className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-full bg-[var(--surface-subtle)] text-[var(--text-tertiary)] hover:bg-[var(--border-default)] transition-colors cursor-pointer">+{rest.length}</button>
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content side="bottom" align="start" sideOffset={6} className="z-50 rounded-md border border-[var(--brand-primary)] bg-white p-2 shadow-[0_4px_16px_rgba(44,38,39,0.12)] flex flex-col gap-1.5 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
+              {items.map((a) => <Chip key={a} name={a} />)}
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
+      )}
     </div>
   );
 }
@@ -84,6 +110,7 @@ export default function Rooms() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [roomEditor, setRoomEditor] = useState<Room | null>(null);
   const [typeEditor, setTypeEditor] = useState<RoomType | null>(null);
+  const [setupOpen, setSetupOpen] = useState(false);
 
   const switchView = (v: View) => { setView(v); setSelected(new Set()); };
 
@@ -147,8 +174,8 @@ export default function Rooms() {
   const emptyRoom = (): Room => ({ id: '', floor: 1, number: '', typeName: roomTypes[0]?.name ?? '', beds: 1, occupancy: 2, amenities: [], price: roomTypes[0]?.regularPrice ?? 0, status: 'Active' });
 
   const typePhoto = (name: string) => roomTypes.find((rt) => rt.name === name)?.photos[0];
-  const ROOM_LABELS: Record<string, string> = { select: '', photo: t('Photo'), floor: t('Floor'), number: t('Number'), type: t('Type'), beds: t('Beds'), occupancy: t('Occupancy'), amenity: t('Amenity'), price: t('Price'), status: t('Status') };
-  const TYPE_LABELS: Record<string, string> = { select: '', photo: t('Photo'), name: t('Room Type'), beds: t('Beds'), occupancy: t('Occupancy'), regular: t('Regular'), weekend: t('Weekend'), session: t('Session'), amenity: t('Amenity') };
+  const ROOM_LABELS: Record<string, string> = { select: '', room: t('Room'), capacity: t('Capacity'), amenity: t('Amenity'), price: t('Price'), status: t('Status') };
+  const TYPE_LABELS: Record<string, string> = { select: '', roomType: t('Room Type'), pricing: t('Pricing'), amenity: t('Amenity') };
 
   const renderHeader = (cols: ColumnDef[], labels: Record<string, string>, onResizeStart: (k: string, e: React.PointerEvent) => void) => (
     <tr className="group/head border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium select-none">
@@ -180,10 +207,16 @@ export default function Rooms() {
           <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Rooms')}</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Room types, pricing and individual rooms')}</p>
         </div>
-        <button onClick={() => (view === 'rooms' ? setRoomEditor(emptyRoom()) : setTypeEditor(emptyRoomType()))} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
-          <Plus className="w-4 h-4" />
-          {view === 'rooms' ? t('Add Room') : t('Add Room Type')}
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setSetupOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-[var(--text-primary)] border border-[var(--border-default)] bg-white hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+            <Building2 className="w-4 h-4 text-[var(--text-secondary)]" />
+            {t('Hotel setup')}
+          </button>
+          <button onClick={() => (view === 'rooms' ? setRoomEditor(emptyRoom()) : setTypeEditor(emptyRoomType()))} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
+            <Plus className="w-4 h-4" />
+            {view === 'rooms' ? t('Add Room') : t('Add Room Type')}
+          </button>
+        </div>
       </div>
 
       {/* KPI cards */}
@@ -267,16 +300,20 @@ export default function Rooms() {
                 ) : visibleRooms.map((r, i) => (
                   <motion.tr key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: i * 0.02 }} onClick={() => navigate(`/hotel/rooms/${r.id}`)} className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer">
                     <SelectCell id={r.id} />
-                    <td className="px-6 py-4">
-                      <div className="w-10 h-10 rounded-md bg-[var(--surface-subtle)] border border-[var(--border-default)] overflow-hidden flex items-center justify-center text-[var(--text-secondary)]">
-                        {typePhoto(r.typeName) ? <img src={typePhoto(r.typeName)} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-4 h-4" strokeWidth={1.5} />}
+                    {/* Room: photo + number + floor·type */}
+                    <td className="px-6 py-4 overflow-hidden">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Thumb src={typePhoto(r.typeName)} label={r.typeName} />
+                        <div className="min-w-0">
+                          <div className="font-medium text-[var(--text-primary)] tabular-nums truncate">{t('Room')} {r.number}</div>
+                          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{t('Floor')} {r.floor} · {r.typeName}</div>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{r.floor}</td>
-                    <td className="px-6 py-4 font-medium text-[var(--text-primary)] tabular-nums">{r.number}</td>
-                    <td className="px-6 py-4 text-[var(--text-primary)] overflow-hidden text-ellipsis">{r.typeName}</td>
-                    <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{r.beds}</td>
-                    <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{r.occupancy}</td>
+                    {/* Capacity */}
+                    <td className="px-6 py-4 text-[var(--text-tertiary)]">
+                      <span className="tabular-nums">{r.beds} {r.beds === 1 ? t('bed') : t('beds')} · {r.occupancy} {t('guests')}</span>
+                    </td>
                     <td className="px-6 py-4 overflow-hidden"><Amenities items={r.amenities} /></td>
                     <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums font-medium">{formatPrice(r.price)}</td>
                     <td className="px-6 py-4"><span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusStyles(r.status)}`}>{t(r.status)}</span></td>
@@ -294,17 +331,24 @@ export default function Rooms() {
                 ) : visibleTypes.map((rt, i) => (
                   <motion.tr key={rt.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: i * 0.02 }} onClick={() => navigate(`/hotel/room-types/${rt.id}`)} className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer">
                     <SelectCell id={rt.id} />
-                    <td className="px-6 py-4">
-                      <div className="w-10 h-10 rounded-md bg-[var(--surface-subtle)] border border-[var(--border-default)] overflow-hidden flex items-center justify-center text-[var(--text-secondary)]">
-                        {rt.photos[0] ? <img src={rt.photos[0]} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-4 h-4" strokeWidth={1.5} />}
+                    {/* Room type: photo + name + beds·sleeps */}
+                    <td className="px-6 py-4 overflow-hidden">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Thumb src={rt.photos[0]} label={rt.name} size="w-11 h-11" />
+                        <div className="min-w-0">
+                          <div className="font-medium text-[var(--text-primary)] truncate">{rt.name}</div>
+                          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5 tabular-nums">{totalBeds(rt)} {totalBeds(rt) === 1 ? t('bed') : t('beds')} · {rt.occupancy} {t('guests')}</div>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-medium text-[var(--text-primary)] overflow-hidden text-ellipsis">{rt.name}</td>
-                    <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{totalBeds(rt)}</td>
-                    <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{rt.occupancy}</td>
-                    <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums">{formatPrice(rt.regularPrice)}</td>
-                    <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums">{formatPrice(rt.weekendPrice)}</td>
-                    <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums">{formatPrice(rt.sessionPrice)}</td>
+                    {/* Pricing: regular + weekend/session */}
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-[var(--text-primary)] tabular-nums">{formatPrice(rt.regularPrice)}</div>
+                      <div className="text-xs text-[var(--text-secondary)] tabular-nums mt-0.5">
+                        {rt.weekendEnabled ? `${t('Wknd')} ${formatPrice(rt.weekendPrice)}` : t('No weekend')}
+                        {rt.sessionEnabled ? ` · ${t('Sess')} ${formatPrice(rt.sessionPrice)}` : ''}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 overflow-hidden"><Amenities items={rt.amenities} /></td>
                   </motion.tr>
                 ))}
@@ -319,8 +363,12 @@ export default function Rooms() {
 
       {/* Editors */}
       <AnimatePresence>
-        {roomEditor && <RoomEditor initial={roomEditor} types={roomTypes.map((r) => r.name)} onClose={() => setRoomEditor(null)} onSave={(r) => { upsertRoom(r.id ? r : { ...r, id: `rm-${Date.now()}` }); setRoomEditor(null); }} />}
+        {roomEditor && <RoomEditor initial={roomEditor} roomTypes={roomTypes} onClose={() => setRoomEditor(null)} onSave={(r) => { upsertRoom(r.id ? r : { ...r, id: `rm-${Date.now()}` }); setRoomEditor(null); }} />}
         {typeEditor && <RoomTypeEditor initial={typeEditor} onClose={() => setTypeEditor(null)} onSave={(rt) => { upsertRoomType(rt); setTypeEditor(null); }} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {setupOpen && <HotelSetupWizard onClose={() => setSetupOpen(false)} />}
       </AnimatePresence>
 
       {/* Bulk delete confirm */}

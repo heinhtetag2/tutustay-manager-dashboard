@@ -33,7 +33,7 @@ export default function RoomTypeDetail() {
   const roomCount = rooms.filter((r) => r.typeName === rt.name).length;
   const stats = [
     { title: 'Regular price', Icon: Tag, value: formatPrice(rt.regularPrice), subtitle: t('Per night') },
-    { title: 'Occupancy', Icon: Users, value: `${rt.occupancy}`, subtitle: `${totalBeds(rt)} ${t('beds')}` },
+    { title: 'Occupancy', Icon: Users, value: `${rt.occupancy} ${t('guests')}`, subtitle: `${totalBeds(rt)} ${totalBeds(rt) === 1 ? t('bed') : t('beds')}` },
     { title: 'Rooms', Icon: BedDouble, value: String(roomCount), subtitle: t('Of this type') },
     { title: 'Session price', Icon: CalendarClock, value: rt.sessionEnabled ? formatPrice(rt.sessionPrice) : '—', subtitle: rt.sessionEnabled ? `${rt.sessionHours}h ${t('session')}` : t('Disabled') },
   ];
@@ -61,7 +61,7 @@ export default function RoomTypeDetail() {
           </div>
           <div className="min-w-0">
             <h1 className="text-3xl font-serif text-[var(--text-primary)] leading-tight mb-1.5">{rt.name}</h1>
-            <p className="text-sm text-[var(--text-tertiary)]">{roomCount} {t('rooms')} · {totalBeds(rt)} {t('beds')} · {t('sleeps')} {rt.occupancy}</p>
+            <p className="text-sm text-[var(--text-tertiary)]">{roomCount} {roomCount === 1 ? t('room') : t('rooms')} · {totalBeds(rt)} {totalBeds(rt) === 1 ? t('bed') : t('beds')} · {rt.occupancy} {t('guests')}</p>
             {rt.description && <p className="text-sm text-[var(--text-secondary)] mt-1 max-w-xl">{rt.description}</p>}
           </div>
         </div>
@@ -107,6 +107,7 @@ export default function RoomTypeDetail() {
       <AnimatePresence>
         {editing && <RoomTypeEditor initial={rt} onClose={() => setEditing(false)} onSave={(r) => { upsertRoomType(r); setEditing(false); }} />}
       </AnimatePresence>
+
 
       <Portal>
         <AnimatePresence>

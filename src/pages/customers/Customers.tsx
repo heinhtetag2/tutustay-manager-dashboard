@@ -2,22 +2,20 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { format, isAfter, isBefore, subDays, subMonths } from 'date-fns';
+import { isAfter, isBefore, subDays, subMonths, format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import {
   Search,
-  Download,
-  Plus,
-  Phone,
-  Calendar as CalendarIcon,
   Users,
-  UserCheck,
-  UserCog,
-  UserX,
-  UserSearch,
-  ShieldCheck,
-  CheckCircle,
+  CalendarCheck,
+  CalendarClock,
+  Calendar as CalendarIcon,
   Check,
+  CreditCard,
+  Repeat,
+  UserSearch,
+  ArrowUpDown,
+  Layers,
   Trash2,
   AlertCircle,
   X,
@@ -26,95 +24,86 @@ import {
 import { Portal } from '@/shared/ui/portal';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
+import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
-import type { Employee, EmployeeRole, EmployeeStatus } from './agents-data';
-import { EMPLOYEE_ROLES } from './agents-data';
-import { useEmployees } from './use-employees';
-import { EmployeeEditor } from './EmployeeEditor';
+import { formatMoney, type Customer } from './customers-data';
+import { useCustomers } from './use-customers';
 
-type RoleFilter = 'All' | EmployeeRole;
-type StatusFilter = 'All' | EmployeeStatus;
+type Segment = 'All' | 'Repeat' | 'New' | 'Inactive';
+type Sort = 'recent' | 'spend' | 'bookings';
 
-function getStatusStyles(status: EmployeeStatus) {
-  return status === 'Active'
-    ? 'bg-[var(--success-tint)] text-[var(--success)]'
-    : 'bg-[var(--surface-subtle)] text-[var(--text-secondary)]';
-}
+const COL_DEFS: ColumnDef[] = [
+  { key: 'select', w: 48, min: 48, resizable: false },
+  { key: 'no', w: 64, min: 56 },
+  { key: 'customer', w: 300, min: 240 },
+  { key: 'lastBooking', w: 220, min: 170 },
+  { key: 'bookings', w: 140, min: 110 },
+  { key: 'payment', w: 170, min: 130 },
+  { key: 'notes', w: 240, min: 140 },
+];
 
 function initialOf(name: string): string {
   return name.trim().charAt(0).toUpperCase() || '?';
 }
 
-function emptyEmployee(): Employee {
-  return { id: '', employeeId: '', fullName: '', email: '', phone: '', role: 'Staff', hireDate: '', status: 'Active' };
-}
-
-/** Column layout for the resizable table. `min` caps how small a drag can shrink it. */
-const COL_DEFS: ColumnDef[] = [
-  { key: 'select', w: 48, min: 48, resizable: false },
-  { key: 'employee', w: 250, min: 220 },
-  { key: 'phone', w: 180, min: 130 },
-  { key: 'role', w: 170, min: 100 },
-  { key: 'hireDate', w: 190, min: 130 },
-  { key: 'status', w: 170, min: 100 },
-];
-
-export default function Agents() {
+export default function Customers() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { employees, addEmployee, removeEmployee } = useEmployees();
+  const customers = useCustomers((s) => s.customers);
+  const removeCustomer = useCustomers((s) => s.removeCustomer);
+  const { formatDateTime } = useDateFormat();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState<RoleFilter>('All');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
+  const [search, setSearch] = useState('');
+  const [segment, setSegment] = useState<Segment>('All');
+  const [sort, setSort] = useState<Sort>('recent');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('Custom date range');
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [isCreating, setIsCreating] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const { widths: colWidths, onResizeStart } = useResizableColumns(COL_DEFS);
 
-  const confirmBulkDelete = () => {
-    selected.forEach((id) => removeEmployee(id));
-    setSelected(new Set());
-    setBulkDeleting(false);
-  };
-
   const counts = {
-    total: employees.length,
-    active: employees.filter((e) => e.status === 'Active').length,
-    inactive: employees.filter((e) => e.status === 'Inactive').length,
-    managers: employees.filter((e) => e.role === 'Manager' || e.role === 'Sub Manager').length,
+    total: customers.length,
+    bookings: customers.reduce((n, c) => n + c.totalBookings, 0),
+    revenue: customers.reduce((n, c) => n + c.totalPayment, 0),
+    repeat: customers.filter((c) => c.totalBookings > 1).length,
   };
 
-  const hasActiveFilters =
-    searchQuery !== '' || roleFilter !== 'All' || statusFilter !== 'All' || !!dateRange?.from;
-  const clearFilters = () => {
-    setSearchQuery('');
-    setRoleFilter('All');
-    setStatusFilter('All');
-    setDateRange(undefined);
-  };
+  const hasActiveFilters = search !== '' || segment !== 'All' || !!dateRange?.from;
+  const clearFilters = () => { setSearch(''); setSegment('All'); setDateRange(undefined); };
 
-  const query = searchQuery.trim().toLowerCase();
-  const visible = employees.filter((e) => {
-    if (roleFilter !== 'All' && e.role !== roleFilter) return false;
-    if (statusFilter !== 'All' && e.status !== statusFilter) return false;
-    if (dateRange?.from) {
-      if (!e.hireDate) return false;
-      const hired = new Date(e.hireDate);
-      if (isBefore(hired, dateRange.from)) return false;
-      if (dateRange.to && isAfter(hired, dateRange.to)) return false;
-    }
-    if (query) {
-      const haystack = `${e.fullName} ${e.employeeId} ${e.phone} ${e.email}`.toLowerCase();
-      if (!haystack.includes(query)) return false;
-    }
-    return true;
-  });
+  const dateLabel = dateRange?.from
+    ? dateRange.to
+      ? `${format(dateRange.from, 'MMM d, yyyy')} – ${format(dateRange.to, 'MMM d, yyyy')}`
+      : format(dateRange.from, 'MMM d, yyyy')
+    : t('Booking date');
 
-  const visibleIds = visible.map((e) => e.id);
+  const query = search.trim().toLowerCase();
+  const visible = customers
+    .filter((c) => {
+      if (segment === 'Repeat' && c.totalBookings <= 1) return false;
+      if (segment === 'New' && c.totalBookings !== 1) return false;
+      if (segment === 'Inactive' && c.status !== 'Inactive') return false;
+      if (dateRange?.from) {
+        if (!c.lastBookingDate) return false;
+        const booked = new Date(c.lastBookingDate);
+        if (isBefore(booked, dateRange.from)) return false;
+        if (dateRange.to && isAfter(booked, dateRange.to)) return false;
+      }
+      if (query) {
+        const hay = `${c.fullName} ${c.userId} ${c.email} ${c.phone}`.toLowerCase();
+        if (!hay.includes(query)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sort === 'spend') return b.totalPayment - a.totalPayment;
+      if (sort === 'bookings') return b.totalBookings - a.totalBookings;
+      return (b.lastBookingDate || '').localeCompare(a.lastBookingDate || '');
+    });
+
+  const visibleIds = visible.map((c) => c.id);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
   const toggleAll = () =>
     setSelected((prev) => {
@@ -130,60 +119,45 @@ export default function Agents() {
       else next.add(id);
       return next;
     });
+  const confirmBulkDelete = () => {
+    selected.forEach((id) => removeCustomer(id));
+    setSelected(new Set());
+    setBulkDeleting(false);
+  };
 
   const stats = [
-    { title: 'Total employees', Icon: Users, value: String(counts.total), subtitle: `${counts.active} ${t('active')} · ${counts.inactive} ${t('inactive')}` },
-    { title: 'Active', Icon: UserCheck, value: String(counts.active), subtitle: t('Currently employed') },
-    { title: 'Managers', Icon: UserCog, value: String(counts.managers), subtitle: t('Manager & sub-manager') },
-    { title: 'Inactive', Icon: UserX, value: String(counts.inactive), subtitle: t('Deactivated accounts') },
+    { title: 'Total customers', Icon: Users, value: String(counts.total), subtitle: `${counts.repeat} ${t('repeat guests')}` },
+    { title: 'Total bookings', Icon: CalendarCheck, value: counts.bookings.toLocaleString('en-US'), subtitle: t('Across all customers') },
+    { title: 'Total revenue', Icon: CreditCard, value: formatMoney(counts.revenue), subtitle: t('Lifetime payments') },
+    { title: 'Repeat customers', Icon: Repeat, value: String(counts.repeat), subtitle: t('More than one booking') },
   ];
 
   const colLabel: Record<string, string> = {
     select: '',
-    employee: t('Employee'),
-    phone: t('Phone number'),
-    role: t('Role'),
-    hireDate: t('Hire Date'),
-    status: t('Status'),
+    no: t('No.'),
+    customer: t('Customer name'),
+    lastBooking: t('Last booking date'),
+    bookings: t('Total booking'),
+    payment: t('Total payment'),
+    notes: t('Notes'),
   };
-
-  const dateLabel = dateRange?.from
-    ? dateRange.to
-      ? `${format(dateRange.from, 'MMM d, yyyy')} – ${format(dateRange.to, 'MMM d, yyyy')}`
-      : format(dateRange.from, 'MMM d, yyyy')
-    : t('Hire date');
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)]"
+      className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)] min-h-full"
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Employee Management')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
-            {t('Manage and maintain the details of all employees')}
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors bg-white shadow-none cursor-pointer">
-            <Download className="w-4 h-4" />
-            {t('Export CSV')}
-          </button>
-          <button
-            onClick={() => setIsCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors shadow-none cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            {t('New')}
-          </button>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Customer Management')}</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
+          {t('Manage and track customer details, bookings, and activity — all in one place.')}
+        </p>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((card, i) => (
           <motion.div
@@ -199,7 +173,7 @@ export default function Agents() {
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+            <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
             <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
           </motion.div>
         ))}
@@ -211,38 +185,39 @@ export default function Agents() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
             type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t('Search by name, ID or phone')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('Search by customer name')}
             className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
           />
         </div>
 
         <div className="flex gap-3 w-full sm:w-auto flex-wrap">
           <BrandSelect
-            value={roleFilter}
-            onValueChange={(v) => setRoleFilter(v as RoleFilter)}
-            leftIcon={<ShieldCheck />}
+            value={segment}
+            onValueChange={(v) => setSegment(v as Segment)}
+            leftIcon={<Layers />}
             className="sm:w-auto"
             options={[
-              { value: 'All', label: t('All Roles') },
-              ...EMPLOYEE_ROLES.map((r) => ({ value: r, label: t(r) })),
-            ]}
-          />
-
-          <BrandSelect
-            value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v as StatusFilter)}
-            leftIcon={<CheckCircle />}
-            className="sm:w-auto"
-            options={[
-              { value: 'All', label: t('All Statuses') },
-              { value: 'Active', label: t('Active') },
+              { value: 'All', label: t('All customers') },
+              { value: 'Repeat', label: t('Repeat guests') },
+              { value: 'New', label: t('New (1 booking)') },
               { value: 'Inactive', label: t('Inactive') },
             ]}
           />
+          <BrandSelect
+            value={sort}
+            onValueChange={(v) => setSort(v as Sort)}
+            leftIcon={<ArrowUpDown />}
+            className="sm:w-auto"
+            options={[
+              { value: 'recent', label: t('Recent booking') },
+              { value: 'spend', label: t('Highest spend') },
+              { value: 'bookings', label: t('Most bookings') },
+            ]}
+          />
 
-          {/* Hire-date range filter */}
+          {/* Booking-date range filter */}
           <div className="relative">
             <button
               onClick={() => setIsDateOpen((v) => !v)}
@@ -260,7 +235,7 @@ export default function Agents() {
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setIsDateOpen(false)} />
                 <div className="absolute top-full right-0 mt-2 bg-white border border-[var(--border-default)] rounded-md z-20 flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
-                  <div className="w-44 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
+                  <div className="w-52 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
                     {['Last 7 days', 'Last 30 days', 'Last 90 days', 'Last 12 months', 'Custom date range'].map((preset) => (
                       <button
                         key={preset}
@@ -271,7 +246,7 @@ export default function Agents() {
                           else if (preset === 'Last 90 days') setDateRange({ from: subDays(new Date(), 90), to: new Date() });
                           else if (preset === 'Last 12 months') setDateRange({ from: subMonths(new Date(), 12), to: new Date() });
                         }}
-                        className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded-md transition-colors shadow-none cursor-pointer ${
+                        className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors shadow-none cursor-pointer ${
                           selectedPreset === preset
                             ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium'
                             : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'
@@ -372,7 +347,7 @@ export default function Agents() {
                 {COL_DEFS.map((c, i) => (
                   <th
                     key={c.key}
-                    className={`group/col relative py-4 font-medium text-[11px] tracking-wider uppercase transition-colors hover:bg-[var(--surface-subtle)] ${c.key === 'select' ? 'pl-6 pr-3' : 'px-6'}`}
+                    className={`group/col relative py-4 font-medium text-[11px] tracking-wider uppercase transition-colors hover:bg-[var(--surface-subtle)] ${c.key === 'select' ? 'pl-6 pr-3' : 'px-6'} ${c.key === 'bookings' ? 'text-center' : ''}`}
                   >
                     {i > 0 && <ColLeftDivider />}
                     {c.key === 'select' ? (
@@ -386,9 +361,7 @@ export default function Agents() {
                     ) : (
                       <span className="block truncate">{colLabel[c.key]}</span>
                     )}
-                    {c.resizable !== false && (
-                      <ColResizeHandle onPointerDown={(e) => onResizeStart(c.key, e)} />
-                    )}
+                    {c.resizable !== false && <ColResizeHandle onPointerDown={(e) => onResizeStart(c.key, e)} />}
                   </th>
                 ))}
               </tr>
@@ -396,78 +369,28 @@ export default function Agents() {
             <tbody className="divide-y divide-[var(--surface-subtle)]">
               {visible.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16">
+                  <td colSpan={COL_DEFS.length} className="px-6 py-16">
                     <div className="flex flex-col items-center justify-center text-center">
-                      <div className="flex items-center justify-center mb-3">
-                        <UserSearch className="w-8 h-8 text-[var(--text-secondary)]" strokeWidth={1.5} />
-                      </div>
-                      <p className="text-sm font-medium text-[var(--text-primary)]">{t('No employees found')}</p>
+                      <UserSearch className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{t('No customers found')}</p>
                       <p className="text-sm text-[var(--text-secondary)] mt-1">
-                        {hasActiveFilters
-                          ? t('No employees match these filters.')
-                          : t('Add your first employee to get started.')}
+                        {hasActiveFilters ? t('No customers match these filters.') : t('Customers will appear here once they book.')}
                       </p>
                     </div>
                   </td>
                 </tr>
               ) : (
-                visible.map((e, index) => (
-                  <motion.tr
-                    key={e.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.02 }}
-                    onClick={() => navigate(`/agents/${e.id}`)}
-                    className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
-                  >
-                    <td className="pl-6 pr-3 py-4" onClick={(ev) => ev.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selected.has(e.id)}
-                        onChange={() => toggleOne(e.id)}
-                        className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer align-middle"
-                        aria-label={t('Select row')}
-                      />
-                    </td>
-                    {/* Employee: avatar + name + ID·phone */}
-                    <td className="px-6 py-4 overflow-hidden">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0 overflow-hidden">
-                          {e.avatarUrl ? (
-                            <img src={e.avatarUrl} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            initialOf(e.fullName)
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-medium text-[var(--text-primary)] truncate">{e.fullName}</div>
-                          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{e.employeeId} · {e.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-[var(--text-tertiary)]">
-                      <span className="inline-flex items-center gap-2 tabular-nums">
-                        <Phone className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                        {e.phone}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-[var(--text-primary)]">{t(e.role)}</td>
-                    <td className="px-6 py-4 text-[var(--text-tertiary)]">
-                      {e.hireDate ? (
-                        <span className="inline-flex items-center gap-2 tabular-nums">
-                          <CalendarIcon className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                          {e.hireDate}
-                        </span>
-                      ) : (
-                        <span className="text-[var(--text-secondary)]">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${getStatusStyles(e.status)}`}>
-                        {t(e.status)}
-                      </span>
-                    </td>
-                  </motion.tr>
+                visible.map((c, index) => (
+                  <CustomerRow
+                    key={c.id}
+                    customer={c}
+                    index={index}
+                    selected={selected.has(c.id)}
+                    onToggle={() => toggleOne(c.id)}
+                    onOpen={() => navigate(`/customers/${c.id}`)}
+                    formatDateTime={formatDateTime}
+                    t={t}
+                  />
                 ))
               )}
             </tbody>
@@ -477,34 +400,19 @@ export default function Agents() {
         {/* Pagination */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
           <span className="text-sm text-[var(--text-secondary)]">
-            {t('Showing')} 1 {t('to')} {visible.length} {t('of')} {counts.total} {t('employees')}
+            {t('Showing')} 1 {t('to')} {visible.length} {t('of')} {counts.total} {t('customers')}
           </span>
           <div className="flex items-center gap-1">
-            <button
-              disabled
-              className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
+            <button disabled className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {t('Previous')}
             </button>
-            <button className="h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border border-[var(--brand-primary)] rounded-md bg-[var(--brand-primary)] text-white tabular-nums cursor-default">
-              1
-            </button>
+            <button className="h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border border-[var(--brand-primary)] rounded-md bg-[var(--brand-primary)] text-white tabular-nums cursor-default">1</button>
             <button className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
               {t('Next')}
             </button>
           </div>
         </div>
       </div>
-
-      {/* Add modal */}
-      {isCreating && (
-        <EmployeeEditor
-          mode="new"
-          initial={emptyEmployee()}
-          onClose={() => setIsCreating(false)}
-          onSave={(emp) => { addEmployee(emp); setIsCreating(false); }}
-        />
-      )}
 
       {/* Bulk delete confirmation */}
       <Portal>
@@ -527,7 +435,7 @@ export default function Agents() {
               >
                 <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)]">
                   <h2 className="text-lg font-medium text-[var(--text-primary)]">
-                    {t('Delete')} {selected.size} {t('employees')}?
+                    {t('Delete')} {selected.size} {t('customers')}?
                   </h2>
                   <button
                     onClick={() => setBulkDeleting(false)}
@@ -538,7 +446,7 @@ export default function Agents() {
                 </div>
                 <div className="p-6">
                   <p className="text-[var(--text-tertiary)] text-sm leading-relaxed">
-                    {t('This permanently removes the selected employee records. This action cannot be undone.')}
+                    {t('This permanently removes the selected customer records. This action cannot be undone.')}
                   </p>
                   <p className="mt-4 text-[var(--danger)] text-xs font-medium flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4" />
@@ -566,5 +474,57 @@ export default function Agents() {
         </AnimatePresence>
       </Portal>
     </motion.div>
+  );
+}
+
+function CustomerRow({ customer: c, index, selected, onToggle, onOpen, formatDateTime, t }: { customer: Customer; index: number; selected: boolean; onToggle: () => void; onOpen: () => void; formatDateTime: (v: string) => string; t: (k: string) => string }) {
+  const last = c.lastBookingDate ? new Date(c.lastBookingDate) : null;
+  return (
+    <motion.tr
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+    >
+      <td className="pl-6 pr-3 py-4" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer align-middle"
+          aria-label={t('Select row')}
+        />
+      </td>
+      <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{index + 1}</td>
+      <td className="px-6 py-4 overflow-hidden">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0 overflow-hidden">
+            {c.avatarUrl ? <img src={c.avatarUrl} alt="" className="w-full h-full object-cover" /> : initialOf(c.fullName)}
+          </div>
+          <div className="min-w-0">
+            <div className="font-medium text-[var(--text-primary)] truncate">{c.fullName}</div>
+            <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">
+              <span className="tabular-nums">ID {c.userId}</span> · {c.email}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 text-[var(--text-tertiary)]">
+        {last ? (
+          <span className="inline-flex items-center gap-2 tabular-nums">
+            <CalendarClock className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
+            {formatDateTime(c.lastBookingDate)}
+          </span>
+        ) : (
+          <span className="text-[var(--text-secondary)]">—</span>
+        )}
+      </td>
+      <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums text-center">{c.totalBookings}</td>
+      <td className="px-6 py-4 text-[var(--text-primary)] font-medium tabular-nums">{formatMoney(c.totalPayment)}</td>
+      <td className="px-6 py-4 text-[var(--text-tertiary)]">
+        {c.notes ? <span className="block truncate" title={c.notes}>{c.notes}</span> : <span className="text-[var(--text-secondary)]">—</span>}
+      </td>
+    </motion.tr>
   );
 }

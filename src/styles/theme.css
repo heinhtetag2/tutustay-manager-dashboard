@@ -1,10 +1,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* Inter for Latin glyphs, Noto Sans KR for Hangul. Listed in order — the
-     browser falls through to the next family for any glyph the first lacks. */
-  --font-sans: Inter, 'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', 'Segoe UI', Roboto, sans-serif;
-  --font-serif: Inter, 'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', 'Segoe UI', Roboto, sans-serif;
+  /* ABC Diatype is the primary typeface (see @font-face in fonts.css). Inter is
+     the Latin fallback and Noto Sans KR covers Hangul; the browser falls through
+     the list for any glyph an earlier family lacks. */
+  --font-sans: 'ABC Diatype', Inter, 'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'ABC Diatype', Inter, 'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ============================================================================

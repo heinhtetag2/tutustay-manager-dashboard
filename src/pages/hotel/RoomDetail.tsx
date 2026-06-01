@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, ChevronRight, Pencil, Trash2, AlertCircle, X, BedDouble, Layers, Users, Hash, Building, BadgeCheck, Tag } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Pencil, Trash2, AlertCircle, X, BedDouble, DoorOpen, Layers, Users, Hash, Building, BadgeCheck, Tag } from 'lucide-react';
 import { Portal } from '@/shared/ui/portal';
 import { useHotel } from './use-hotel';
 import { formatPrice, type RoomStatus } from './hotel-data';
@@ -37,7 +37,7 @@ export default function RoomDetail() {
   const stats = [
     { title: 'Type', Icon: Layers, value: room.typeName, subtitle: t('Room type') },
     { title: 'Floor', Icon: Building, value: String(room.floor), subtitle: t('Location') },
-    { title: 'Occupancy', Icon: Users, value: `${room.occupancy}`, subtitle: `${room.beds} ${t('beds')}` },
+    { title: 'Occupancy', Icon: Users, value: `${room.occupancy} ${t('guests')}`, subtitle: `${room.beds} ${room.beds === 1 ? t('bed') : t('beds')}` },
     { title: 'Price', Icon: Tag, value: formatPrice(room.price), subtitle: t('Per night') },
   ];
   const fields = [
@@ -62,7 +62,7 @@ export default function RoomDetail() {
           <div className="w-14 h-14 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center shrink-0 overflow-hidden">
             {roomTypes.find((rt) => rt.name === room.typeName)?.photos[0]
               ? <img src={roomTypes.find((rt) => rt.name === room.typeName)?.photos[0]} alt="" className="w-full h-full object-cover" />
-              : <BedDouble className="w-6 h-6" />}
+              : <DoorOpen className="w-6 h-6" />}
           </div>
           <div className="min-w-0">
             <h1 className="text-3xl font-serif text-[var(--text-primary)] leading-tight mb-1.5">{t('Room')} {room.number}</h1>
@@ -117,7 +117,7 @@ export default function RoomDetail() {
       </section>
 
       <AnimatePresence>
-        {editing && <RoomEditor initial={room} types={roomTypes.map((r) => r.name)} onClose={() => setEditing(false)} onSave={(r) => { upsertRoom(r); setEditing(false); }} />}
+        {editing && <RoomEditor initial={room} roomTypes={roomTypes} onClose={() => setEditing(false)} onSave={(r) => { upsertRoom(r); setEditing(false); }} />}
       </AnimatePresence>
 
       <Portal>
