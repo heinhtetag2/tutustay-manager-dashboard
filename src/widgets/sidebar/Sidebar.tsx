@@ -343,13 +343,13 @@ export function Sidebar({
             initial={isDesktop ? { width: 0, opacity: 0 } : { x: '100%' }}
             animate={
               isDesktop
-                ? { width: 320, opacity: 1, transition: { type: 'spring', stiffness: 420, damping: 42, mass: 0.9 } }
-                : { x: 0, transition: { type: 'spring', stiffness: 420, damping: 42, mass: 0.9 } }
+                ? { width: 320, opacity: 1, transition: { width: { duration: 0.36, ease: [0.16, 1, 0.3, 1] }, opacity: { duration: 0.28, ease: 'easeOut' } } }
+                : { x: 0, transition: { duration: 0.34, ease: [0.16, 1, 0.3, 1] } }
             }
             exit={
               isDesktop
-                ? { width: 0, opacity: 0, transition: { duration: 0.32, ease: [0.4, 0, 0.2, 1] } }
-                : { x: '100%', transition: { duration: 0.32, ease: [0.4, 0, 0.2, 1] } }
+                ? { width: 0, opacity: 0, transition: { width: { duration: 0.26, ease: [0.4, 0, 1, 1] }, opacity: { duration: 0.18, ease: 'easeIn' } } }
+                : { x: '100%', transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } }
             }
             className={cn(
               'bg-white overflow-hidden flex flex-col',
