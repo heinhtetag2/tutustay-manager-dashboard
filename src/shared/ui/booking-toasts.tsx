@@ -3,10 +3,14 @@ import { create } from 'zustand';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
+import { format } from 'date-fns';
 import { CalendarCheck, X, ArrowRight } from 'lucide-react';
+import { useBookingRequests } from '@/pages/booking-requests/use-booking-requests';
 
 export interface BookingToast {
   id: number;
+  /** The Booking Request this toast represents (for "View booking"). */
+  requestId: string;
   guest: string;
   initial: string;
   roomType: string;
@@ -70,7 +74,7 @@ export function BookingToastHost() {
                   </p>
                   <div className="flex items-center gap-2 mt-3">
                     <button
-                      onClick={() => { dismiss(toast.id); navigate('/'); }}
+                      onClick={() => { dismiss(toast.id); navigate(`/booking-requests/${toast.requestId}`); }}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
                     >
                       {t('View booking')}
@@ -102,22 +106,72 @@ export function BookingToastHost() {
   );
 }
 
-/* ---- Demo: simulate incoming bookings so the toast is visible in the mock app ---- */
+/* ---- Demo: simulate incoming bookings → each becomes a pending Booking Request ---- */
 
-const SAMPLE_BOOKINGS: Omit<BookingToast, 'id'>[] = [
-  { guest: 'Daniel Foster', initial: 'D', roomType: 'Deluxe', nights: 2, guests: 2, checkIn: 'Jun 2', amount: '₩160,000' },
-  { guest: 'Grace Park', initial: 'G', roomType: 'Superior', nights: 3, guests: 1, checkIn: 'Jun 4', amount: '₩270,000' },
-  { guest: 'Marcus Lee', initial: 'M', roomType: 'Deluxe', nights: 1, guests: 2, checkIn: 'Jun 1', amount: '₩90,000' },
-  { guest: 'Sofia Marin', initial: 'S', roomType: 'Deluxe', nights: 4, guests: 3, checkIn: 'Jun 7', amount: '₩320,000' },
+interface IncomingBooking {
+  guest: string;
+  initial: string;
+  guestEmail: string;
+  customerId?: string;
+  roomType: string;
+  rateType: 'Regular' | 'Session' | 'Weekend';
+  checkIn: string; // ISO
+  checkOut: string; // ISO
+  nights: number;
+  guests: number;
+  amount: number;
+}
+
+const INCOMING: IncomingBooking[] = [
+  { guest: 'Daniel Foster', initial: 'D', guestEmail: 'daniel.foster@example.com', customerId: 'c1', roomType: 'Deluxe', rateType: 'Regular', checkIn: '2026-06-12', checkOut: '2026-06-14', nights: 2, guests: 2, amount: 160000 },
+  { guest: 'Grace Park', initial: 'G', guestEmail: 'grace.park@example.com', customerId: 'c2', roomType: 'Superior', rateType: 'Weekend', checkIn: '2026-06-13', checkOut: '2026-06-15', nights: 2, guests: 1, amount: 180000 },
+  { guest: 'Marcus Lee', initial: 'M', guestEmail: 'marcus.lee@example.com', customerId: 'c3', roomType: 'Deluxe', rateType: 'Regular', checkIn: '2026-06-09', checkOut: '2026-06-10', nights: 1, guests: 2, amount: 90000 },
+  { guest: 'Sofia Marin', initial: 'S', guestEmail: 'sofia.marin@example.com', customerId: 'c4', roomType: 'Deluxe', rateType: 'Weekend', checkIn: '2026-06-20', checkOut: '2026-06-24', nights: 4, guests: 3, amount: 320000 },
 ];
 
-/** Fires a few demo bookings after load + on a gentle interval. Mounts once. */
+let liveSeq = 1;
+
+/**
+ * Fires demo bookings after load + on a gentle interval. Each incoming booking
+ * is added to the Booking Requests store as a pending request, and the toast's
+ * "View booking" links straight to that request.
+ */
 export function useBookingSimulator() {
   const push = useBookingToasts((s) => s.push);
+  const addRequest = useBookingRequests((s) => s.addRequest);
   const i = useRef(0);
   useEffect(() => {
-    const first = setTimeout(() => push(SAMPLE_BOOKINGS[i.current++ % SAMPLE_BOOKINGS.length]), 3500);
-    const interval = setInterval(() => push(SAMPLE_BOOKINGS[i.current++ % SAMPLE_BOOKINGS.length]), 45000);
+    const fire = () => {
+      const b = INCOMING[i.current++ % INCOMING.length];
+      const requestId = `br-live-${liveSeq++}`;
+      addRequest({
+        id: requestId,
+        customerId: b.customerId,
+        guestName: b.guest,
+        guestEmail: b.guestEmail,
+        roomType: b.roomType,
+        rateType: b.rateType,
+        checkIn: b.checkIn,
+        checkOut: b.checkOut,
+        nights: b.nights,
+        guests: b.guests,
+        amount: b.amount,
+        requestedAt: new Date().toISOString(),
+        status: 'Pending',
+      });
+      push({
+        requestId,
+        guest: b.guest,
+        initial: b.initial,
+        roomType: b.roomType,
+        nights: b.nights,
+        guests: b.guests,
+        checkIn: format(new Date(b.checkIn), 'MMM d'),
+        amount: `₩${b.amount.toLocaleString('en-US')}`,
+      });
+    };
+    const first = setTimeout(fire, 3500);
+    const interval = setInterval(fire, 45000);
     return () => { clearTimeout(first); clearInterval(interval); };
-  }, [push]);
+  }, [push, addRequest]);
 }
