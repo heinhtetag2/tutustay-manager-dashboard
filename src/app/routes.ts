@@ -25,6 +25,7 @@ import BookingRequests from '@/pages/booking-requests';
 import BookingRequestDetail from '@/pages/booking-requests/BookingRequestDetail';
 import Reservations from '@/pages/reservations';
 import ReservationDetail from '@/pages/reservations/ReservationDetail';
+import SalesCalendar from '@/pages/sales-calendar';
 import Rooms from '@/pages/hotel/Rooms';
 import RoomDetail from '@/pages/hotel/RoomDetail';
 import RoomTypeDetail from '@/pages/hotel/RoomTypeDetail';
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
       { path: 'booking-requests/:id', Component: BookingRequestDetail },
       { path: 'reservations', Component: Reservations },
       { path: 'reservations/:id', Component: ReservationDetail },
+      { path: 'sales-calendar', Component: SalesCalendar },
       { path: 'hotel/rooms', Component: Rooms },
       { path: 'hotel/rooms/:id', Component: RoomDetail },
       { path: 'hotel/room-types/:id', Component: RoomTypeDetail },

@@ -48,7 +48,7 @@ export default function CustomerDetail() {
   const customer = useCustomers((s) => s.customers.find((c) => c.id === id));
   const setNote = useCustomers((s) => s.setNote);
   const review = useReviews((s) => s.reviews.find((r) => r.customerId === id));
-  const { formatDate, formatDateTime } = useDateFormat();
+  const { formatDate, formatDateTime, formatDateTimeLong } = useDateFormat();
   const [noteDraft, setNoteDraft] = useState(customer?.notes ?? '');
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<{ id: number; text: string; at: string }[]>([]);
@@ -197,7 +197,7 @@ export default function CustomerDetail() {
               <InfoRow Icon={Flag} label={t('Nationality')}><span className="text-sm text-[var(--text-primary)]">{customer.nationality || '—'}</span></InfoRow>
               <InfoRow Icon={CreditCard} label={t('Resident reg. no.')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{maskResidentId(customer.residentId)}</span></InfoRow>
               <InfoRow Icon={Hash} label={t('Reservation number')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{customer.reservationNumber || '—'}</span></InfoRow>
-              <InfoRow Icon={CalendarDays} label={t('Reservation date')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{resv ? formatDateTime(customer.reservationDate) : '—'}</span></InfoRow>
+              <InfoRow Icon={CalendarDays} label={t('Reservation date')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{resv ? formatDateTimeLong(customer.reservationDate) : '—'}</span></InfoRow>
               <InfoRow Icon={BedDouble} label={t('Room type')}><span className="text-sm text-[var(--text-primary)]">{customer.roomType || '—'}</span></InfoRow>
             </div>
           </section>

@@ -4,6 +4,8 @@ import {
   DEFAULT_DATE_FORMAT,
   formatDate as fmtDate,
   formatDateTime as fmtDateTime,
+  formatDateLong as fmtDateLong,
+  formatDateTimeLong as fmtDateTimeLong,
   isDateFormat,
   readStoredDateFormat,
 } from '../lib/date-format';
@@ -42,6 +44,8 @@ export function useDateFormat() {
 
   const formatDate = useCallback((v: Date | string | number | null | undefined) => fmtDate(v, dateFormat), [dateFormat]);
   const formatDateTime = useCallback((v: Date | string | number | null | undefined) => fmtDateTime(v, dateFormat), [dateFormat]);
+  const formatDateLong = useCallback((v: Date | string | number | null | undefined) => fmtDateLong(v, dateFormat), [dateFormat]);
+  const formatDateTimeLong = useCallback((v: Date | string | number | null | undefined) => fmtDateTimeLong(v, dateFormat), [dateFormat]);
 
-  return { dateFormat, setDateFormat, formatDate, formatDateTime, DEFAULT: DEFAULT_DATE_FORMAT };
+  return { dateFormat, setDateFormat, formatDate, formatDateTime, formatDateLong, formatDateTimeLong, DEFAULT: DEFAULT_DATE_FORMAT };
 }

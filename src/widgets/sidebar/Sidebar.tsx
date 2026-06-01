@@ -25,6 +25,7 @@ import {
   DoorOpen,
   CalendarPlus,
   CalendarCheck,
+  CalendarDays,
   X,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -165,6 +166,7 @@ export function Sidebar({
           </div>
           <div className="space-y-0.5">
             <NavItem icon={LayoutDashboard} label={t("Dashboard")} path="/" isCollapsed={effectiveCollapsed} />
+            <NavItem icon={CalendarDays} label={t("Sales Calendar")} path="/sales-calendar" isCollapsed={effectiveCollapsed} />
           </div>
         </div>
 

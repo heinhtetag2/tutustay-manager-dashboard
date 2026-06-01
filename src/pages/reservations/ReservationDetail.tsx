@@ -62,7 +62,7 @@ export default function ReservationDetail() {
   const reservation = useReservations((s) => s.reservations.find((r) => r.id === id));
   const setStatus = useReservations((s) => s.setStatus);
   const customer = useCustomers((s) => s.customers.find((c) => c.id === reservation?.customerId));
-  const { formatDate, formatDateTime } = useDateFormat();
+  const { formatDate, formatDateLong, formatDateTimeLong } = useDateFormat();
 
   if (!reservation) {
     return (
@@ -184,12 +184,12 @@ export default function ReservationDetail() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 px-6 py-5">
               <InfoRow Icon={Hash} label={t('Reservation code')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{r.code}</span></InfoRow>
               <InfoRow Icon={BedDouble} label={t('Room')}><span className="text-sm text-[var(--text-primary)]">{t(r.roomType)} · {t('Room')} {r.roomNo}</span></InfoRow>
-              <InfoRow Icon={CalendarRange} label={t('Check-in')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDate(r.checkIn)}</span></InfoRow>
-              <InfoRow Icon={CalendarRange} label={t('Check-out')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDate(r.checkOut)}</span></InfoRow>
+              <InfoRow Icon={CalendarRange} label={t('Check-in')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateLong(r.checkIn)}</span></InfoRow>
+              <InfoRow Icon={CalendarRange} label={t('Check-out')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateLong(r.checkOut)}</span></InfoRow>
               <InfoRow Icon={Moon} label={t('Nights')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{r.nights}</span></InfoRow>
               <InfoRow Icon={Users} label={t('Guests')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{r.guests}</span></InfoRow>
               <InfoRow Icon={CreditCard} label={t('Amount')}><span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatAmount(r.amount)}</span></InfoRow>
-              <InfoRow Icon={Clock} label={t('Booked on')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTime(r.createdAt)}</span></InfoRow>
+              <InfoRow Icon={Clock} label={t('Booked on')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(r.createdAt)}</span></InfoRow>
             </div>
           </section>
         </div>

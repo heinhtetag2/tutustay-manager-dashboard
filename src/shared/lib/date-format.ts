@@ -47,3 +47,15 @@ export function formatDateTime(value: Date | string | number | null | undefined,
   const d = toDate(value);
   return d ? format(d, `${pattern}, hh:mm a`) : '';
 }
+
+/** Date with the weekday name prefixed, e.g. "Friday, Jan 5, 2026". */
+export function formatDateLong(value: Date | string | number | null | undefined, pattern = readStoredDateFormat()): string {
+  const d = toDate(value);
+  return d ? `${format(d, 'EEEE')}, ${format(d, pattern)}` : '';
+}
+
+/** Date + weekday + time, e.g. "Friday, Jan 5, 2026, 03:35 PM". */
+export function formatDateTimeLong(value: Date | string | number | null | undefined, pattern = readStoredDateFormat()): string {
+  const d = toDate(value);
+  return d ? `${format(d, 'EEEE')}, ${format(d, `${pattern}, hh:mm a`)}` : '';
+}
