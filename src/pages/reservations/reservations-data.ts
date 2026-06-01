@@ -37,7 +37,7 @@ export const DEMO_RESERVATIONS: Reservation[] = [
   {
     id: 'rsv1', code: 'RSV-1042', customerId: 'c1', guestName: 'Daniel Foster', guestEmail: 'daniel.foster@example.com',
     roomType: 'Deluxe', roomNo: '305', checkIn: '2026-05-29', checkOut: '2026-05-31', nights: 2, guests: 2, amount: 160000,
-    status: 'Checked-out', createdAt: '2026-05-20T10:15:00',
+    status: 'Checked-in', createdAt: '2026-05-20T10:15:00',
   },
   {
     id: 'rsv2', code: 'RSV-1051', customerId: 'c2', guestName: 'Grace Park', guestEmail: 'grace.park@example.com',

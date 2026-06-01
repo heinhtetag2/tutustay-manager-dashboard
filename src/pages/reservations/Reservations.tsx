@@ -8,8 +8,7 @@ import {
   Search,
   CalendarCheck,
   BedSingle,
-  LogIn,
-  LogOut,
+  TriangleAlert,
   CreditCard,
   ArrowUpDown,
   ListFilter,
@@ -39,6 +38,20 @@ const COL_DEFS: ColumnDef[] = [
   { key: 'amount', w: 150, min: 120 },
   { key: 'status', w: 150, min: 120 },
 ];
+
+/** "Today" for the demo (matches the app's current date). */
+const TODAY = new Date('2026-06-01T00:00:00');
+
+/**
+ * Overdue = a reservation whose check-out date has already passed but it was
+ * never closed out (still Confirmed or Checked-in). These need staff action —
+ * either the guest overstayed (still Checked-in past checkout) or an arrival
+ * that was confirmed but never completed.
+ */
+function isOverdue(checkOut: string, status: ReservationStatus): boolean {
+  if (status !== 'Confirmed' && status !== 'Checked-in') return false;
+  return new Date(checkOut) < TODAY;
+}
 
 function initialOf(name: string): string {
   return name.trim().charAt(0).toUpperCase() || '?';
@@ -70,7 +83,7 @@ export default function Reservations() {
 
   const counts = {
     total: reservations.length,
-    inHouse: reservations.filter((r) => r.status === 'Checked-in').length,
+    overdue: reservations.filter((r) => isOverdue(r.checkOut, r.status)).length,
     upcoming: reservations.filter((r) => r.status === 'Confirmed').length,
     revenue: reservations.filter((r) => countsAsRevenue(r.status)).reduce((n, r) => n + r.amount, 0),
   };
@@ -104,7 +117,7 @@ export default function Reservations() {
 
   const stats = [
     { title: 'Total reservations', Icon: CalendarCheck, value: String(counts.total), subtitle: t('All statuses') },
-    { title: 'In-house', Icon: LogIn, value: String(counts.inHouse), subtitle: t('Currently checked in') },
+    { title: 'Overdue', Icon: TriangleAlert, value: String(counts.overdue), subtitle: t('Past checkout, not closed') },
     { title: 'Upcoming', Icon: BedSingle, value: String(counts.upcoming), subtitle: t('Confirmed arrivals') },
     { title: 'Revenue', Icon: CreditCard, value: formatAmount(counts.revenue), subtitle: t('Excludes cancellations') },
   ];
@@ -263,18 +276,8 @@ function ReservationRow({ reservation: r, index, formatDate, onOpenGuest, t }: {
         <div>{t(r.roomType)}</div>
         <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">{t('Room')} {r.roomNo}</div>
       </td>
-      <td className="px-6 py-4 text-[var(--text-tertiary)]">
-        <span className="inline-flex items-center gap-2 tabular-nums">
-          <LogIn className="w-3.5 h-3.5 text-[var(--success)] shrink-0" />
-          {formatDate(r.checkIn)}
-        </span>
-      </td>
-      <td className="px-6 py-4 text-[var(--text-tertiary)]">
-        <span className="inline-flex items-center gap-2 tabular-nums">
-          <LogOut className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
-          {formatDate(r.checkOut)}
-        </span>
-      </td>
+      <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{formatDate(r.checkIn)}</td>
+      <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{formatDate(r.checkOut)}</td>
       <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums text-center">{r.nights}</td>
       <td className="px-6 py-4 text-[var(--text-primary)] font-medium tabular-nums">{formatAmount(r.amount)}</td>
       <td className="px-6 py-4">
