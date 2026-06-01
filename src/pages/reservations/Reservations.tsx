@@ -9,6 +9,7 @@ import {
   CalendarCheck,
   BedSingle,
   LogIn,
+  LogOut,
   CreditCard,
   ArrowUpDown,
   ListFilter,
@@ -264,13 +265,13 @@ function ReservationRow({ reservation: r, index, formatDate, onOpenGuest, t }: {
       </td>
       <td className="px-6 py-4 text-[var(--text-tertiary)]">
         <span className="inline-flex items-center gap-2 tabular-nums">
-          <CalendarIcon className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
+          <LogIn className="w-3.5 h-3.5 text-[var(--success)] shrink-0" />
           {formatDate(r.checkIn)}
         </span>
       </td>
       <td className="px-6 py-4 text-[var(--text-tertiary)]">
         <span className="inline-flex items-center gap-2 tabular-nums">
-          <CalendarIcon className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
+          <LogOut className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
           {formatDate(r.checkOut)}
         </span>
       </td>
