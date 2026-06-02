@@ -24,6 +24,40 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
+import { Portal } from '@/shared/ui/portal';
+
+/** Hover tooltip for collapsed nav items — rendered in a Portal with fixed
+ *  positioning so it isn't clipped by the sidebar's overflow-hidden. */
+function useNavTooltip(label: string, enabled: boolean) {
+  const ref = React.useRef<any>(null);
+  const [tip, setTip] = React.useState<{ top: number; left: number } | null>(null);
+  const onMouseEnter = () => {
+    if (!enabled || !ref.current) return;
+    const r = ref.current.getBoundingClientRect();
+    setTip({ top: r.top + r.height / 2, left: r.right + 10 });
+  };
+  const onMouseLeave = () => setTip(null);
+  const node = tip ? (
+    <Portal>
+      <div
+        style={{ position: 'fixed', top: tip.top, left: tip.left, transform: 'translateY(-50%)' }}
+        className="z-[100] pointer-events-none"
+      >
+        <motion.div
+          initial={{ opacity: 0, x: -4 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+          className="relative whitespace-nowrap rounded-md bg-[var(--text-primary)] text-white text-xs font-medium px-2.5 py-1.5 shadow-[0_4px_16px_rgba(44,38,39,0.18)]"
+        >
+          {/* caret pointing back at the icon */}
+          <span className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 rotate-45 rounded-[1px] bg-[var(--text-primary)]" />
+          {label}
+        </motion.div>
+      </div>
+    </Portal>
+  ) : null;
+  return { ref, onMouseEnter, onMouseLeave, node };
+}
 
 export function Sidebar({
   isCollapsed,
@@ -558,43 +592,55 @@ export function Sidebar({
 }
 
 function NavItem({ icon: Icon, label, path, isCollapsed }: { icon: React.ElementType, label: string, path: string, isCollapsed?: boolean }) {
+  const tip = useNavTooltip(label, !!isCollapsed);
   return (
-    <NavLink
-      to={path}
-      className={({ isActive }) => cn(
-        "flex items-center rounded-md text-sm font-medium transition-colors group",
-        isCollapsed ? "justify-center p-2 h-10 w-10 mx-auto" : "gap-3 px-3 py-2 w-full",
-        isActive
-          ? "bg-[var(--brand-tint)] text-[var(--brand-primary)]"
-          : "text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)]"
-      )}
-      title={isCollapsed ? label : undefined}
-    >
-      {({ isActive }) => (
-        <>
-          <Icon strokeWidth={1.75} className={cn("w-[17px] h-[17px] shrink-0 transition-colors", isActive ? "text-[var(--brand-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-tertiary)]")} />
-          {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
-        </>
-      )}
-    </NavLink>
+    <>
+      <NavLink
+        ref={tip.ref}
+        to={path}
+        onMouseEnter={tip.onMouseEnter}
+        onMouseLeave={tip.onMouseLeave}
+        className={({ isActive }) => cn(
+          "flex items-center rounded-md text-sm font-medium transition-colors group",
+          isCollapsed ? "justify-center p-2 h-10 w-10 mx-auto" : "gap-3 px-3 py-2 w-full",
+          isActive
+            ? "bg-[var(--brand-tint)] text-[var(--brand-primary)]"
+            : "text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)]"
+        )}
+      >
+        {({ isActive }) => (
+          <>
+            <Icon strokeWidth={1.75} className={cn("w-[17px] h-[17px] shrink-0 transition-colors", isActive ? "text-[var(--brand-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-tertiary)]")} />
+            {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
+          </>
+        )}
+      </NavLink>
+      {tip.node}
+    </>
   );
 }
 
 function NavButton({ icon: Icon, label, isActive, onClick, isCollapsed }: { icon: React.ElementType, label: string, isActive?: boolean, onClick: () => void, isCollapsed?: boolean }) {
+  const tip = useNavTooltip(label, !!isCollapsed);
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex items-center rounded-md text-sm font-medium transition-colors group",
-        isCollapsed ? "justify-center p-2 h-10 w-10 mx-auto" : "gap-3 px-3 py-2 w-full",
-        isActive 
-          ? "bg-[var(--surface-subtle)] text-[var(--text-primary)]"
-          : "text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)]"
-      )}
-      title={isCollapsed ? label : undefined}
-    >
-      <Icon strokeWidth={1.75} className={cn("w-[17px] h-[17px] shrink-0 transition-colors", isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-tertiary)]")} />
-      {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
-    </button>
+    <>
+      <button
+        ref={tip.ref}
+        onClick={() => { tip.onMouseLeave(); onClick(); }}
+        onMouseEnter={tip.onMouseEnter}
+        onMouseLeave={tip.onMouseLeave}
+        className={cn(
+          "flex items-center rounded-md text-sm font-medium transition-colors group",
+          isCollapsed ? "justify-center p-2 h-10 w-10 mx-auto" : "gap-3 px-3 py-2 w-full",
+          isActive
+            ? "bg-[var(--surface-subtle)] text-[var(--text-primary)]"
+            : "text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)]"
+        )}
+      >
+        <Icon strokeWidth={1.75} className={cn("w-[17px] h-[17px] shrink-0 transition-colors", isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-tertiary)]")} />
+        {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
+      </button>
+      {tip.node}
+    </>
   );
 }

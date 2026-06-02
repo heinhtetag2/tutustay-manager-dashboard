@@ -10,7 +10,7 @@ import {
   Percent,
   Search,
   ListFilter,
-  CalendarRange,
+  Calendar as CalendarIcon,
 } from 'lucide-react';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import {
@@ -131,7 +131,7 @@ export default function Settlements() {
                     <td className="px-6 py-4 font-medium text-[var(--text-primary)] tabular-nums">{s.reference}</td>
                     <td className="px-6 py-4 text-[var(--text-secondary)] tabular-nums">
                       <span className="inline-flex items-center gap-2">
-                        <CalendarRange className="w-3.5 h-3.5 text-[var(--text-tertiary)] shrink-0" />
+                        <CalendarIcon className="w-3.5 h-3.5 text-[var(--text-tertiary)] shrink-0" />
                         {format(new Date(s.periodStart), 'MMM d')} – {format(new Date(s.periodEnd), 'MMM d, yyyy')}
                       </span>
                     </td>

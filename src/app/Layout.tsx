@@ -7,7 +7,7 @@ import { BookingToastHost, useBookingSimulator } from '@/shared/ui/booking-toast
 
 export default function Layout() {
   useBookingSimulator();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileNotifOpen, setIsMobileNotifOpen] = useState(false);
   const location = useLocation();
