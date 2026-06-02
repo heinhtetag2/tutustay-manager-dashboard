@@ -29,7 +29,7 @@ import { HotelSetupWizard } from './setup/HotelSetupWizard';
 
 type View = 'rooms' | 'types';
 
-const emptyRoomFilters = { amenity: [] as string[], status: 'All' as 'All' | RoomStatus, floor: 'All', occupancy: 'All' };
+const emptyRoomFilters = { amenity: [] as string[], status: 'All' as 'All' | RoomStatus, roomType: 'All', floor: 'All', occupancy: 'All' };
 const emptyTypeFilters = { amenity: [] as string[], occupancy: 'All' };
 const OCCUPANCY_OPTIONS = ['1', '2', '3', '4'];
 
@@ -121,15 +121,17 @@ export default function Rooms() {
     types: roomTypes.length,
   };
 
-  const roomFilterCount = (roomFilters.amenity.length ? 1 : 0) + (roomFilters.status !== 'All' ? 1 : 0) + (roomFilters.floor !== 'All' ? 1 : 0) + (roomFilters.occupancy !== 'All' ? 1 : 0);
+  const roomFilterCount = (roomFilters.amenity.length ? 1 : 0) + (roomFilters.status !== 'All' ? 1 : 0) + (roomFilters.roomType !== 'All' ? 1 : 0) + (roomFilters.floor !== 'All' ? 1 : 0) + (roomFilters.occupancy !== 'All' ? 1 : 0);
   const typeFilterCount = (typeFilters.amenity.length ? 1 : 0) + (typeFilters.occupancy !== 'All' ? 1 : 0);
   const activeFilterCount = view === 'rooms' ? roomFilterCount : typeFilterCount;
   const floors = Array.from(new Set(rooms.map((r) => r.floor))).sort((a, b) => a - b);
+  const roomTypeNames = Array.from(new Set(rooms.map((r) => r.typeName))).sort();
 
   const q = search.trim().toLowerCase();
   const visibleRooms = rooms.filter((r) => {
     if (roomFilters.amenity.length && !roomFilters.amenity.some((a) => r.amenities.includes(a))) return false;
     if (roomFilters.status !== 'All' && r.status !== roomFilters.status) return false;
+    if (roomFilters.roomType !== 'All' && r.typeName !== roomFilters.roomType) return false;
     if (roomFilters.floor !== 'All' && r.floor !== Number(roomFilters.floor)) return false;
     if (roomFilters.occupancy !== 'All' && r.occupancy < Number(roomFilters.occupancy)) return false;
     if (q && !`${r.number} ${r.typeName} ${r.floor}`.toLowerCase().includes(q)) return false;
@@ -253,6 +255,7 @@ export default function Rooms() {
             <>
               <MultiSelect values={roomFilters.amenity} onChange={(v) => setRoomFilters((f) => ({ ...f, amenity: v }))} options={[...AMENITIES]} placeholder={t('Any amenity')} searchPlaceholder={t('Search amenity')} leftIcon={<Layers />} className="sm:w-auto min-w-[170px]" />
               <BrandSelect value={roomFilters.status} onValueChange={(v) => setRoomFilters((f) => ({ ...f, status: v as 'All' | RoomStatus }))} leftIcon={<CheckCircle />} className="sm:w-auto" options={[{ value: 'All', label: t('All Statuses') }, { value: 'Active', label: t('Active') }, { value: 'Inactive', label: t('Inactive') }]} />
+              <BrandSelect value={roomFilters.roomType} onValueChange={(v) => setRoomFilters((f) => ({ ...f, roomType: v }))} leftIcon={<BedDouble />} className="sm:w-auto" options={[{ value: 'All', label: t('All room types') }, ...roomTypeNames.map((n) => ({ value: n, label: t(n) }))]} />
               <BrandSelect value={roomFilters.floor} onValueChange={(v) => setRoomFilters((f) => ({ ...f, floor: v }))} leftIcon={<Building />} className="sm:w-auto" options={[{ value: 'All', label: t('All floors') }, ...floors.map((fl) => ({ value: String(fl), label: `${t('Floor')} ${fl}` }))]} />
               <BrandSelect value={roomFilters.occupancy} onValueChange={(v) => setRoomFilters((f) => ({ ...f, occupancy: v }))} leftIcon={<Users />} className="sm:w-auto" options={[{ value: 'All', label: t('Any occupancy') }, ...OCCUPANCY_OPTIONS.map((o) => ({ value: o, label: `${o}+ ${t('guests')}` }))]} />
             </>
