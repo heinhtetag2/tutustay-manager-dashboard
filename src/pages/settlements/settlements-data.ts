@@ -1,36 +1,50 @@
-import { formatAmount } from '@/pages/reservations/reservations-data';
+import { DEMO_RESERVATIONS, countsAsRevenue, formatAmount } from '@/pages/reservations/reservations-data';
 
 export type SettlementStatus = 'Paid' | 'Processing' | 'Pending' | 'On hold';
 
 export const SETTLEMENT_STATUSES: SettlementStatus[] = ['Paid', 'Processing', 'Pending', 'On hold'];
 
+/** Platform commission rate and payout cadence — tweak these to change the model. */
+export const COMMISSION_RATE = 0.12;
+/** Refund rate applied to a cancelled booking's amount, booked as an adjustment. */
+export const CANCELLATION_REFUND_RATE = 0.5;
+/** Days after a period closes that the payout is made. */
+export const PAYOUT_DELAY_DAYS = 2;
+
+const PAYOUT_METHOD = 'Bank transfer · KB ••3921';
+/** The app's "today" — settlements derive their status relative to this. */
+export const SETTLEMENT_NOW = new Date('2026-06-02T10:00:00');
+
+/** One booking included in a settlement (snapshotted from a reservation). */
+export interface SettlementBooking {
+  id: string;
+  code: string;
+  guestName: string;
+  roomType: string;
+  checkOut: string;
+  amount: number;
+}
+
 export interface Settlement {
   id: string;
-  /** Business-facing settlement reference shown in the table. */
   reference: string;
-  /** ISO dates for the settlement period (the bookings it covers). */
   periodStart: string;
   periodEnd: string;
-  /** Number of bookings included in this settlement. */
   bookingsCount: number;
-  /** Gross booking revenue for the period. */
   grossAmount: number;
-  /** Platform commission rate applied (e.g. 0.12 = 12%). */
   commissionRate: number;
-  /** Refunds / cancellations deducted from the payout. */
   adjustments: number;
   status: SettlementStatus;
-  /** Payout destination. */
   payoutMethod: string;
-  /** ISO datetime the payout was made (Paid), or is scheduled for (otherwise). */
   settledAt?: string;
   scheduledFor?: string;
   createdAt: string;
+  /** The actual reservations this payout covers. */
+  bookings: SettlementBooking[];
 }
 
 export { formatAmount };
 
-/** Platform commission amount for the period. */
 export function commissionAmount(s: Settlement): number {
   return Math.round(s.grossAmount * s.commissionRate);
 }
@@ -40,7 +54,6 @@ export function netAmount(s: Settlement): number {
   return s.grossAmount - commissionAmount(s) - s.adjustments;
 }
 
-/** Status pill classes, shared by the list and detail pages. */
 export function settlementStatusClass(status: SettlementStatus): string {
   switch (status) {
     case 'Paid': return 'bg-[var(--success-tint)] text-[var(--success)]';
@@ -50,53 +63,99 @@ export function settlementStatusClass(status: SettlementStatus): string {
   }
 }
 
-export const DEMO_SETTLEMENTS: Settlement[] = [
-  {
-    id: 'st1', reference: 'STL-2042', periodStart: '2026-06-01', periodEnd: '2026-06-15',
-    bookingsCount: 18, grossAmount: 3_120_000, commissionRate: 0.12, adjustments: 90_000,
-    status: 'Processing', payoutMethod: 'Bank transfer · KB ••3921', scheduledFor: '2026-06-18T00:00:00',
-    createdAt: '2026-06-16T02:00:00',
-  },
-  {
-    id: 'st2', reference: 'STL-2041', periodStart: '2026-05-16', periodEnd: '2026-05-31',
-    bookingsCount: 22, grossAmount: 3_780_000, commissionRate: 0.12, adjustments: 0,
-    status: 'Paid', payoutMethod: 'Bank transfer · KB ••3921', settledAt: '2026-06-02T09:30:00',
-    createdAt: '2026-06-01T02:00:00',
-  },
-  {
-    id: 'st3', reference: 'STL-2040', periodStart: '2026-05-01', periodEnd: '2026-05-15',
-    bookingsCount: 19, grossAmount: 2_950_000, commissionRate: 0.12, adjustments: 140_000,
-    status: 'Paid', payoutMethod: 'Bank transfer · KB ••3921', settledAt: '2026-05-18T09:30:00',
-    createdAt: '2026-05-16T02:00:00',
-  },
-  {
-    id: 'st4', reference: 'STL-2039', periodStart: '2026-04-16', periodEnd: '2026-04-30',
-    bookingsCount: 16, grossAmount: 2_540_000, commissionRate: 0.12, adjustments: 0,
-    status: 'Paid', payoutMethod: 'Bank transfer · KB ••3921', settledAt: '2026-05-02T09:30:00',
-    createdAt: '2026-05-01T02:00:00',
-  },
-  {
-    id: 'st5', reference: 'STL-2038', periodStart: '2026-04-01', periodEnd: '2026-04-15',
-    bookingsCount: 21, grossAmount: 3_310_000, commissionRate: 0.12, adjustments: 60_000,
-    status: 'Paid', payoutMethod: 'Bank transfer · KB ••3921', settledAt: '2026-04-18T09:30:00',
-    createdAt: '2026-04-16T02:00:00',
-  },
-  {
-    id: 'st6', reference: 'STL-2037', periodStart: '2026-03-16', periodEnd: '2026-03-31',
-    bookingsCount: 14, grossAmount: 2_180_000, commissionRate: 0.12, adjustments: 0,
-    status: 'Paid', payoutMethod: 'Bank transfer · KB ••3921', settledAt: '2026-04-02T09:30:00',
-    createdAt: '2026-04-01T02:00:00',
-  },
-  {
-    id: 'st7', reference: 'STL-2036', periodStart: '2026-03-01', periodEnd: '2026-03-15',
-    bookingsCount: 12, grossAmount: 1_860_000, commissionRate: 0.12, adjustments: 220_000,
-    status: 'On hold', payoutMethod: 'Bank transfer · KB ••3921', scheduledFor: '2026-03-18T00:00:00',
-    createdAt: '2026-03-16T02:00:00',
-  },
-  {
-    id: 'st8', reference: 'STL-2043', periodStart: '2026-06-16', periodEnd: '2026-06-30',
-    bookingsCount: 9, grossAmount: 1_440_000, commissionRate: 0.12, adjustments: 0,
-    status: 'Pending', payoutMethod: 'Bank transfer · KB ••3921', scheduledFor: '2026-07-02T00:00:00',
-    createdAt: '2026-06-16T02:00:00',
-  },
-];
+const pad = (n: number) => String(n).padStart(2, '0');
+const lastDayOfMonth = (year: number, month1: number) => new Date(year, month1, 0).getDate();
+const addDays = (d: Date, days: number) => {
+  const next = new Date(d);
+  next.setDate(next.getDate() + days);
+  return next;
+};
+
+/** Bi-weekly period key (1st–15th, 16th–end) for an ISO datetime. */
+function periodKey(iso: string): string {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  return `${y}-${pad(m)}-${d <= 15 ? 1 : 2}`;
+}
+
+interface Bucket {
+  periodStart: string;
+  periodEnd: string;
+  bookings: SettlementBooking[];
+  adjustments: number;
+}
+
+function bucketBounds(iso: string): { start: string; end: string } {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  if (d <= 15) return { start: `${y}-${pad(m)}-01`, end: `${y}-${pad(m)}-15` };
+  return { start: `${y}-${pad(m)}-16`, end: `${y}-${pad(m)}-${pad(lastDayOfMonth(y, m))}` };
+}
+
+/**
+ * Build settlements from real reservations: revenue bookings are grouped into
+ * bi-weekly payout periods by check-out date; cancellations book a refund
+ * adjustment; status is derived from the payout date relative to `now`.
+ */
+export function buildSettlements(now: Date = SETTLEMENT_NOW): Settlement[] {
+  const buckets = new Map<string, Bucket>();
+
+  // Revenue bookings → period buckets.
+  DEMO_RESERVATIONS.forEach((r) => {
+    if (!countsAsRevenue(r.status)) return;
+    const key = periodKey(r.checkOut);
+    let b = buckets.get(key);
+    if (!b) {
+      const { start, end } = bucketBounds(r.checkOut);
+      b = { periodStart: start, periodEnd: end, bookings: [], adjustments: 0 };
+      buckets.set(key, b);
+    }
+    b.bookings.push({ id: r.id, code: r.code, guestName: r.guestName, roomType: r.roomType, checkOut: r.checkOut, amount: r.amount });
+  });
+
+  // Cancellations → refund adjustments on an existing period.
+  DEMO_RESERVATIONS.forEach((r) => {
+    if (r.status !== 'Cancelled') return;
+    const b = buckets.get(periodKey(r.checkOut));
+    if (b) b.adjustments += Math.round(r.amount * CANCELLATION_REFUND_RATE);
+  });
+
+  return [...buckets.values()]
+    .sort((a, b) => a.periodStart.localeCompare(b.periodStart))
+    .map((b, i) => {
+      const grossAmount = b.bookings.reduce((n, x) => n + x.amount, 0);
+      const payoutDate = addDays(new Date(`${b.periodEnd}T23:59:59`), PAYOUT_DELAY_DAYS);
+      const periodStarted = new Date(`${b.periodStart}T00:00:00`) <= now;
+
+      let status: SettlementStatus;
+      let settledAt: string | undefined;
+      let scheduledFor: string | undefined;
+      if (payoutDate <= now) {
+        status = 'Paid';
+        settledAt = payoutDate.toISOString();
+      } else if (periodStarted) {
+        status = 'Processing';
+        scheduledFor = payoutDate.toISOString();
+      } else {
+        status = 'Pending';
+        scheduledFor = payoutDate.toISOString();
+      }
+
+      return {
+        id: `st${i + 1}`,
+        reference: `STL-${2036 + i}`,
+        periodStart: b.periodStart,
+        periodEnd: b.periodEnd,
+        bookingsCount: b.bookings.length,
+        grossAmount,
+        commissionRate: COMMISSION_RATE,
+        adjustments: b.adjustments,
+        status,
+        payoutMethod: PAYOUT_METHOD,
+        settledAt,
+        scheduledFor,
+        createdAt: addDays(new Date(`${b.periodEnd}T23:59:59`), 1).toISOString(),
+        bookings: b.bookings.sort((x, y) => x.checkOut.localeCompare(y.checkOut)),
+      };
+    });
+}
+
+export const DEMO_SETTLEMENTS: Settlement[] = buildSettlements();

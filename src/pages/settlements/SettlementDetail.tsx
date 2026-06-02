@@ -172,6 +172,40 @@ export default function SettlementDetail() {
           </div>
         </section>
       </div>
+
+      {/* Included bookings */}
+      <section className="mt-6 bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
+        <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Included bookings')}</h2>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Reservations covered by this payout')}</p>
+          </div>
+          <span className="text-sm text-[var(--text-secondary)] tabular-nums shrink-0">{settlement.bookings.length} {settlement.bookings.length === 1 ? t('booking') : t('bookings')}</span>
+        </div>
+        {settlement.bookings.length === 0 ? (
+          <div className="px-6 py-8 text-center text-sm text-[var(--text-secondary)]">{t('No itemized bookings for this period.')}</div>
+        ) : (
+          <ol className="divide-y divide-[var(--surface-subtle)]">
+            {settlement.bookings.map((b) => (
+              <li key={b.id}>
+                <button
+                  onClick={() => navigate(`/reservations/${b.id}`)}
+                  className="w-full flex items-center gap-3 px-6 py-3.5 text-left hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0">
+                    {b.guestName.trim().charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-[var(--text-primary)] truncate">{b.guestName}</div>
+                    <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">{b.code} · {t(b.roomType)} · {t('out')} {format(new Date(b.checkOut), 'MMM d')}</div>
+                  </div>
+                  <div className="text-sm font-medium tabular-nums shrink-0 text-[var(--text-primary)]">{formatAmount(b.amount)}</div>
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
     </motion.div>
   );
 }

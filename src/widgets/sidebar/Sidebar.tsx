@@ -15,7 +15,7 @@ import {
   UserCog,
   Users,
   Star,
-  DoorOpen,
+  KeyRound,
   CalendarPlus,
   CalendarCheck,
   CalendarDays,
@@ -227,7 +227,7 @@ export function Sidebar({
             {t("HOTEL")}
           </div>
           <div className="space-y-0.5">
-            <NavItem icon={DoorOpen} label={t("Room Management")} path="/hotel/rooms" isCollapsed={effectiveCollapsed} />
+            <NavItem icon={KeyRound} label={t("Room Management")} path="/hotel/rooms" isCollapsed={effectiveCollapsed} />
             <NavItem icon={CalendarCheck} label={t("Reservation Management")} path="/reservations" isCollapsed={effectiveCollapsed} />
             <NavItem icon={CalendarPlus} label={t("Booking Requests")} path="/booking-requests" isCollapsed={effectiveCollapsed} />
           </div>

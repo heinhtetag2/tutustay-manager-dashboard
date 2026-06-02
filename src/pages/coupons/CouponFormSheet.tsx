@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { X, Plus, CheckCircle2, Calendar as CalendarIcon } from 'lucide-react';
+import { X, Send, ShieldCheck, Calendar as CalendarIcon } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { Portal } from '@/shared/ui/portal';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
@@ -80,6 +80,10 @@ export function CouponFormSheet({ coupon, onClose }: { coupon: Coupon | null; on
       expiresAt: draft.expiresAt,
       roomTypes: draft.roomTypes,
       usageLimit: Number(draft.usageLimit) || 0,
+      // Hotel-created/edited coupons go to the super-admin for review before going live.
+      approval: 'Pending' as const,
+      submittedAt: new Date().toISOString(),
+      reviewNote: undefined,
     };
     if (coupon) updateCoupon(coupon.id, payload);
     else addCoupon({ ...payload, enabled: true });
@@ -91,7 +95,7 @@ export function CouponFormSheet({ coupon, onClose }: { coupon: Coupon | null; on
       <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)] shrink-0">
         <div>
           <h2 className="text-base font-medium text-[var(--text-primary)]">{coupon ? t('Edit coupon') : t('New coupon')}</h2>
-          <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Create a discount code for your guests.')}</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">{coupon ? t('Changes are re-sent to the super-admin for approval.') : t('New coupons are sent to the super-admin for approval before going live.')}</p>
         </div>
         <button onClick={onClose} className="p-1.5 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer"><X className="w-4 h-4" /></button>
       </div>
@@ -195,16 +199,22 @@ export function CouponFormSheet({ coupon, onClose }: { coupon: Coupon | null; on
         </Field>
       </div>
 
-      <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[var(--surface-subtle)] shrink-0">
-        <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">{t('Cancel')}</button>
-        <button
-          onClick={save}
-          disabled={!canSave}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {coupon ? <CheckCircle2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          {coupon ? t('Save changes') : t('Create coupon')}
-        </button>
+      <div className="px-6 py-4 border-t border-[var(--surface-subtle)] shrink-0">
+        <div className="flex items-start gap-2 mb-3 text-xs text-[var(--text-secondary)]">
+          <ShieldCheck className="w-3.5 h-3.5 text-[var(--text-tertiary)] mt-0.5 shrink-0" />
+          <span>{t('This coupon will be submitted to the super-admin and goes live once approved.')}</span>
+        </div>
+        <div className="flex items-center justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">{t('Cancel')}</button>
+          <button
+            onClick={save}
+            disabled={!canSave}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Send className="w-4 h-4" />
+            {coupon ? t('Submit changes') : t('Submit for approval')}
+          </button>
+        </div>
       </div>
     </SideSheet>
   );

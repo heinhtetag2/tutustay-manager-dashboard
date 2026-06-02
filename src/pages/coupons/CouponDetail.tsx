@@ -18,6 +18,8 @@ import {
   Pencil,
   Power,
   Trash2,
+  ShieldCheck,
+  XCircle,
 } from 'lucide-react';
 import { Portal } from '@/shared/ui/portal';
 import { formatAmount } from '@/pages/reservations/reservations-data';
@@ -116,16 +118,19 @@ export default function CouponDetail() {
             <Pencil className="w-4 h-4" />
             {t('Edit')}
           </button>
-          {coupon.enabled ? (
-            <button onClick={() => toggleCoupon(coupon.id)} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
-              <Power className="w-4 h-4" />
-              {t('Disable')}
-            </button>
-          ) : (
-            <button onClick={() => toggleCoupon(coupon.id)} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--success-strong)] rounded-md hover:bg-[var(--success)] transition-colors cursor-pointer">
-              <Power className="w-4 h-4" />
-              {t('Enable')}
-            </button>
+          {/* Enable/disable only applies once the super-admin has approved the coupon. */}
+          {coupon.approval === 'Approved' && (
+            coupon.enabled ? (
+              <button onClick={() => toggleCoupon(coupon.id)} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                <Power className="w-4 h-4" />
+                {t('Disable')}
+              </button>
+            ) : (
+              <button onClick={() => toggleCoupon(coupon.id)} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--success-strong)] rounded-md hover:bg-[var(--success)] transition-colors cursor-pointer">
+                <Power className="w-4 h-4" />
+                {t('Enable')}
+              </button>
+            )
           )}
           <button onClick={() => setIsDeleteOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer">
             <Trash2 className="w-4 h-4" />
@@ -133,6 +138,30 @@ export default function CouponDetail() {
           </button>
         </div>
       </div>
+
+      {/* Approval banner */}
+      {coupon.approval === 'Pending' && (
+        <div className="flex items-start gap-3 mb-6 px-4 py-3 rounded-md bg-[var(--warning-tint)] border border-[var(--warning-tint)]">
+          <Clock className="w-4 h-4 text-[var(--warning-strong)] mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <span className="font-medium text-[var(--warning-strong)]">{t('Awaiting super-admin approval')}</span>
+            <span className="text-[var(--text-secondary)]">
+              {' — '}{t('this coupon is not live yet.')}
+              {coupon.submittedAt ? ` ${t('Submitted')} ${format(new Date(coupon.submittedAt), 'MMM d, yyyy')}.` : ''}
+            </span>
+          </div>
+        </div>
+      )}
+      {coupon.approval === 'Rejected' && (
+        <div className="flex items-start gap-3 mb-6 px-4 py-3 rounded-md bg-[var(--danger-tint)] border border-[var(--danger-tint)]">
+          <XCircle className="w-4 h-4 text-[var(--danger)] mt-0.5 shrink-0" />
+          <div className="text-sm">
+            <span className="font-medium text-[var(--danger)]">{t('Rejected by super-admin')}</span>
+            {coupon.reviewNote && <span className="text-[var(--text-secondary)]"> — {coupon.reviewNote}</span>}
+            <span className="text-[var(--text-secondary)]"> {t('Edit and resubmit for approval.')}</span>
+          </div>
+        </div>
+      )}
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -165,6 +194,8 @@ export default function CouponDetail() {
             <InfoRow Icon={CalendarIcon} label={t('Starts')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{format(new Date(coupon.startsAt), 'MMM d, yyyy')}</span></InfoRow>
             <InfoRow Icon={CalendarRange} label={t('Expires')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{format(new Date(coupon.expiresAt), 'MMM d, yyyy')}</span></InfoRow>
             <InfoRow Icon={Clock} label={t('Created')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{format(new Date(coupon.createdAt), 'MMM d, yyyy')}</span></InfoRow>
+            <InfoRow Icon={ShieldCheck} label={t('Approval')}><span className="text-sm text-[var(--text-primary)]">{coupon.approval === 'Pending' ? t('Pending review') : t(coupon.approval)}</span></InfoRow>
+            <InfoRow Icon={Clock} label={t('Submitted')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{coupon.submittedAt ? format(new Date(coupon.submittedAt), 'MMM d, yyyy') : '—'}</span></InfoRow>
             <InfoRow Icon={DoorOpen} label={t('Applies to')}>
               {coupon.roomTypes.length === 0 ? (
                 <span className="text-sm text-[var(--text-primary)]">{t('All room types')}</span>
