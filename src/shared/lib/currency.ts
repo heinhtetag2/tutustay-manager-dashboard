@@ -9,7 +9,7 @@ export interface CurrencyDef {
 }
 
 export const CURRENCIES: Record<CurrencyCode, CurrencyDef> = {
-  KRW: { code: 'KRW', symbol: '₩', label: 'Korean Won',    locale: 'ko-KR', decimals: 0 },
+  KRW: { code: 'KRW', symbol: '',   label: 'Korean Won',    locale: 'ko-KR', decimals: 0 },
   USD: { code: 'USD', symbol: '$', label: 'US Dollar',     locale: 'en-US', decimals: 2 },
   JPY: { code: 'JPY', symbol: '¥', label: 'Japanese Yen',  locale: 'ja-JP', decimals: 0 },
   EUR: { code: 'EUR', symbol: '€', label: 'Euro',          locale: 'en-IE', decimals: 2 },

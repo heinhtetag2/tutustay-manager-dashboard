@@ -136,13 +136,13 @@ export const DEMO_COMPANIES: Company[] = [
       {
         kind: 'survey-launched',
         label: 'Launched "Digital Banking Preferences"',
-        detail: '200-response target · ₩500 per response',
+        detail: '200-response target · 500 per response',
         date: '2026-04-10',
       },
       {
         kind: 'topup',
         label: 'Credit top-up',
-        detail: '₩1,000,000 · Growth bonus applied',
+        detail: '1,000,000 · Growth bonus applied',
         date: '2026-03-28',
       },
     ]),

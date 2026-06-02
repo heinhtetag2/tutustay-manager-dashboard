@@ -116,7 +116,7 @@ function makeEvents(respondent: Pick<Respondent, 'joined' | 'status' | 'warnings
   events.push({
     kind: 'payout',
     label: 'Payout processed',
-    detail: '₩50,000 via QPay',
+    detail: '50,000 via QPay',
     date: '2026-04-02',
   });
   if (respondent.warnings > 0) {

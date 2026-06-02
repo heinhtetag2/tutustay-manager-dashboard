@@ -12,10 +12,11 @@ import {
   XCircle,
   CreditCard,
   ArrowUpDown,
-  CalendarRange,
   Calendar as CalendarIcon,
+  CalendarCheck,
   BedDouble,
   Users,
+  Moon,
   Check,
   RotateCcw,
   X,
@@ -39,7 +40,7 @@ export default function BookingRequests() {
   const navigate = useNavigate();
   const requests = useBookingRequests((s) => s.requests);
   const setStatus = useBookingRequests((s) => s.setStatus);
-  const { formatDate } = useDateFormat();
+  const { formatDate, formatDateTime } = useDateFormat();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
@@ -265,6 +266,7 @@ export default function BookingRequests() {
               request={r}
               index={i}
               formatDate={formatDate}
+              formatDateTime={formatDateTime}
               onApprove={() => setStatus(r.id, 'Approved')}
               onDecline={() => setStatus(r.id, 'Declined')}
               onReset={() => setStatus(r.id, 'Pending')}
@@ -309,6 +311,7 @@ function RequestCard({
   request: r,
   index,
   formatDate,
+  formatDateTime,
   onApprove,
   onDecline,
   onReset,
@@ -318,19 +321,13 @@ function RequestCard({
   request: BookingRequest;
   index: number;
   formatDate: (v: string) => string;
+  formatDateTime: (v: string) => string;
   onApprove: () => void;
   onDecline: () => void;
   onReset: () => void;
   onOpen: () => void;
   t: (k: string) => string;
 }) {
-  const meta = [
-    { key: 'room', Icon: BedDouble, label: t('Room type'), value: t(r.roomType) },
-    { key: 'stay', Icon: CalendarRange, label: t('Stay'), value: `${formatDate(r.checkIn)} → ${formatDate(r.checkOut)} · ${r.nights} ${r.nights === 1 ? t('night') : t('nights')}` },
-    { key: 'guests', Icon: Users, label: t('Guests'), value: String(r.guests) },
-    { key: 'amount', Icon: CreditCard, label: t('Amount'), value: formatAmount(r.amount) },
-  ];
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -360,23 +357,37 @@ function RequestCard({
       </div>
 
       {/* Details */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
-        {meta.map((m) => (
-          <div key={m.key} className="min-w-0">
-            <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] mb-0.5">
-              <m.Icon className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
-              {m.label}
-            </div>
-            {m.key === 'amount' ? (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{m.value}</span>
-                <RateChip rate={r.rateType} t={t} />
-              </div>
-            ) : (
-              <div className="text-sm font-medium text-[var(--text-primary)] truncate tabular-nums">{m.value}</div>
-            )}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-6 gap-y-3 mt-5">
+        {/* Room type */}
+        <div>
+          <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-1"><BedDouble className="w-3 h-3" />{t('Room type')}</div>
+          <div className="text-sm font-medium text-[var(--text-primary)]">{t(r.roomType)}</div>
+        </div>
+        {/* Stay */}
+        <div>
+          <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-1"><CalendarCheck className="w-3 h-3" />{t('Stay')}</div>
+          <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums whitespace-nowrap">
+            {format(new Date(r.checkIn), 'MMM d')} – {format(new Date(r.checkOut), 'MMM d, yyyy')}
           </div>
-        ))}
+        </div>
+        {/* Nights */}
+        <div>
+          <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-1"><Moon className="w-3 h-3" />{t('Nights')}</div>
+          <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{r.nights}</div>
+        </div>
+        {/* Guests */}
+        <div>
+          <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-1"><Users className="w-3 h-3" />{t('Guests')}</div>
+          <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{r.guests}</div>
+        </div>
+        {/* Amount */}
+        <div>
+          <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-1"><CreditCard className="w-3 h-3" />{t('Amount')}</div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatAmount(r.amount)}</span>
+            <RateChip rate={r.rateType} t={t} />
+          </div>
+        </div>
       </div>
 
       {r.note && (

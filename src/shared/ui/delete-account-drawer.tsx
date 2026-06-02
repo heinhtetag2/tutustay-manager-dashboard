@@ -83,7 +83,7 @@ export function DeleteAccountDrawer({
                 </h3>
                 <ul className="space-y-2.5 text-sm text-[var(--text-tertiary)] leading-relaxed">
                   <BulletRow text={t('Your profile, demographics, and survey history are erased within 30 days.')} />
-                  <BulletRow text={t('Any ₩ held for quality review is forfeited and not paid out.')} />
+                  <BulletRow text={t('Any  held for quality review is forfeited and not paid out.')} />
                   <BulletRow text={t('Available wallet balance must be withdrawn before you can delete.')} />
                   <BulletRow text={t("You won't be able to sign up again with the same email or phone for 90 days.")} />
                   <BulletRow text={t('Aggregated, anonymized responses already delivered to companies remain with them.')} />
@@ -101,7 +101,7 @@ export function DeleteAccountDrawer({
                       <div className="flex justify-between">
                         <span>{t('Available balance')}</span>
                         <span className="font-medium text-[var(--text-primary)]">
-                          ₩{balanceMnt.toLocaleString('en-US')}
+                          {balanceMnt.toLocaleString('en-US')}
                         </span>
                       </div>
                     )}
@@ -109,13 +109,13 @@ export function DeleteAccountDrawer({
                       <div className="flex justify-between">
                         <span>{t('Held for review')}</span>
                         <span className="font-medium text-[var(--warning)]">
-                          ₩{heldMnt.toLocaleString('en-US')}
+                          {heldMnt.toLocaleString('en-US')}
                         </span>
                       </div>
                     )}
                   </div>
                   <p className="text-xs text-[var(--text-secondary)] mt-3 leading-relaxed">
-                    {t('Withdraw your balance first to keep that ₩. Held rewards will be forfeited.')}
+                    {t('Withdraw your balance first to keep that . Held rewards will be forfeited.')}
                   </p>
                 </div>
               )}

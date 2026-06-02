@@ -285,19 +285,25 @@ export default function CustomerDetail() {
               <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Activity')}</h2>
               <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Recent customer events')}</p>
             </div>
-            <ol className="px-6 py-5 space-y-5">
-              {events.map((event, i) => (
-                <li key={`${event.label}-${i}`} className="flex gap-3">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${event.tone}`}>
-                    <event.Icon className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-[var(--text-primary)]">{event.label}</div>
-                    {event.detail && <div className="text-xs text-[var(--text-secondary)] mt-0.5">{event.detail}</div>}
-                    {event.date && <div className="text-xs text-[var(--text-secondary)] mt-1 tabular-nums">{event.withTime ? formatDateTime(event.date) : formatDate(event.date)}</div>}
-                  </div>
-                </li>
-              ))}
+            <ol className="px-6 py-5">
+              {events.map((event, i) => {
+                const isLast = i === events.length - 1;
+                return (
+                  <li key={`${event.label}-${i}`} className="flex gap-3">
+                    <div className="flex flex-col items-center shrink-0">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center ${event.tone}`}>
+                        <event.Icon className="w-4 h-4" />
+                      </div>
+                      {!isLast && <div className="w-px flex-1 bg-[var(--border-default)] my-1" />}
+                    </div>
+                    <div className={`flex-1 min-w-0 ${isLast ? '' : 'pb-5'}`}>
+                      <div className="text-sm font-medium text-[var(--text-primary)]">{event.label}</div>
+                      {event.detail && <div className="text-xs text-[var(--text-secondary)] mt-0.5">{event.detail}</div>}
+                      {event.date && <div className="text-xs text-[var(--text-secondary)] mt-1 tabular-nums">{event.withTime ? formatDateTime(event.date) : formatDate(event.date)}</div>}
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           </section>
 

@@ -64,7 +64,7 @@ export default function BookingRequestDetail() {
   const request = useBookingRequests((s) => s.requests.find((r) => r.id === id));
   const setStatus = useBookingRequests((s) => s.setStatus);
   const customer = useCustomers((s) => s.customers.find((c) => c.id === request?.customerId));
-  const { formatDate, formatDateLong, formatDateTimeLong } = useDateFormat();
+  const { formatDate, formatDateTime, formatDateTimeLong } = useDateFormat();
 
   if (!request) {
     return (
@@ -85,7 +85,7 @@ export default function BookingRequestDetail() {
   const age = dob ? differenceInYears(NOW, dob) : null;
 
   const stats = [
-    { title: 'Nights', Icon: Moon, value: String(request.nights), subtitle: `${formatDate(request.checkIn)} → ${formatDate(request.checkOut)}` },
+    { title: 'Nights', Icon: Moon, value: String(request.nights), subtitle: `${formatDateTime(request.checkIn)} → ${formatDateTime(request.checkOut)}` },
     { title: 'Guests', Icon: Users, value: String(request.guests), subtitle: t('In this booking') },
     { title: 'Amount', Icon: CreditCard, value: formatAmount(request.amount), subtitle: `${t(request.rateType)} ${t('rate')}` },
     { title: 'Requested', Icon: Clock, value: formatDate(request.requestedAt), subtitle: t('Request received') },
@@ -173,8 +173,8 @@ export default function BookingRequestDetail() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 px-6 py-5">
               <InfoRow Icon={BedDouble} label={t('Room type')}><span className="text-sm text-[var(--text-primary)]">{t(request.roomType)}</span></InfoRow>
               <InfoRow Icon={Tag} label={t('Rate type')}><RateChip rate={request.rateType} t={t} /></InfoRow>
-              <InfoRow Icon={CalendarRange} label={t('Check-in')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateLong(request.checkIn)}</span></InfoRow>
-              <InfoRow Icon={CalendarRange} label={t('Check-out')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateLong(request.checkOut)}</span></InfoRow>
+              <InfoRow Icon={CalendarRange} label={t('Check-in')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(request.checkIn)}</span></InfoRow>
+              <InfoRow Icon={CalendarRange} label={t('Check-out')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(request.checkOut)}</span></InfoRow>
               <InfoRow Icon={Moon} label={t('Nights')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{request.nights}</span></InfoRow>
               <InfoRow Icon={Users} label={t('Guests')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{request.guests}</span></InfoRow>
               <InfoRow Icon={CreditCard} label={t('Amount')}><span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatAmount(request.amount)}</span></InfoRow>

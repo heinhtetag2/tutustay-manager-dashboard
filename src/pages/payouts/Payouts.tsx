@@ -33,13 +33,13 @@ type BulkAction = 'approve' | 'reject';
 type RowAction = 'approve' | 'reject' | 'retry';
 
 function formatMnt(value: number): string {
-  if (value >= 1_000_000) return `₩${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `₩${Math.round(value / 1_000)}K`;
-  return `₩${value}`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${Math.round(value / 1_000)}K`;
+  return `${value}`;
 }
 
 function formatMntExact(value: number): string {
-  return `₩${value.toLocaleString('en-US')}`;
+  return `${value.toLocaleString('en-US')}`;
 }
 
 function getStatusStyles(status: PayoutStatus) {

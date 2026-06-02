@@ -72,7 +72,7 @@ function makeId() {
 }
 
 function formatMnt(n: number) {
-  return `₩${n.toLocaleString('en-US')}`;
+  return `${n.toLocaleString('en-US')}`;
 }
 
 interface SurveyPrefill {
@@ -324,7 +324,7 @@ export default function SurveyBuilder() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-medium text-[var(--text-tertiary)]">{t('Reward (₩)')}</label>
+                    <label className="text-xs font-medium text-[var(--text-tertiary)]">{t('Reward')}</label>
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
                         rewardFairness.tone === 'good'
@@ -344,7 +344,7 @@ export default function SurveyBuilder() {
                     onChange={(e) => setReward(Math.max(0, Number(e.target.value) || 0))}
                     className="w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]"
                   />
-                  <p className="text-[11px] text-[var(--text-secondary)] mt-1">₩100/min · min ₩100</p>
+                  <p className="text-[11px] text-[var(--text-secondary)] mt-1">100/min · min 100</p>
                 </div>
 
                 <div>

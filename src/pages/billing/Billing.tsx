@@ -28,10 +28,10 @@ interface Pkg {
 }
 
 const PACKAGES: Pkg[] = [
-  { id: 'starter', name: 'Starter', amount: '₩100K' },
-  { id: 'popular', name: 'Popular', amount: '₩500K', bonus: '+₩50K bonus', badge: 'Most Popular' },
-  { id: 'growth', name: 'Growth', amount: '₩1,000K', bonus: '+₩150K bonus', badge: '15% bonus' },
-  { id: 'enterprise', name: 'Enterprise', amount: '₩5,000K', bonus: '+₩1,000K bonus', badge: '20% bonus' },
+  { id: 'starter', name: 'Starter', amount: '100K' },
+  { id: 'popular', name: 'Popular', amount: '500K', bonus: '+50K bonus', badge: 'Most Popular' },
+  { id: 'growth', name: 'Growth', amount: '1,000K', bonus: '+150K bonus', badge: '15% bonus' },
+  { id: 'enterprise', name: 'Enterprise', amount: '5,000K', bonus: '+1,000K bonus', badge: '20% bonus' },
 ];
 
 type InvoiceStatus = 'Paid' | 'Upcoming' | 'Overdue';
@@ -89,7 +89,7 @@ const ACTIVITY: Activity[] = [...subscriptionActivities, ...topupActivities].sor
 );
 
 function formatMnt(value: number): string {
-  return `₩${value.toLocaleString('en-US')}`;
+  return `${value.toLocaleString('en-US')}`;
 }
 
 export default function Billing() {
@@ -139,7 +139,7 @@ export default function Billing() {
         <div className="relative flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-white/60 mb-2">{t('Available Credits')}</p>
-            <h2 className="text-5xl font-medium text-white mb-4 tabular-nums tracking-tight">₩450,000</h2>
+            <h2 className="text-5xl font-medium text-white mb-4 tabular-nums tracking-tight">450,000</h2>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 rounded-md text-[11px] font-medium text-white backdrop-blur-sm">
               <Building2 className="w-3 h-3" />
               {t('GROWTH plan')}
@@ -467,11 +467,11 @@ export default function Billing() {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-[var(--text-tertiary)]">{t('5,000 response credits included')}</span>
-                    <span className="text-[var(--text-primary)] font-medium tabular-nums">₩0</span>
+                    <span className="text-[var(--text-primary)] font-medium tabular-nums">0</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-[var(--text-tertiary)]">{t('Additional top-up credits')}</span>
-                    <span className="text-[var(--text-primary)] font-medium tabular-nums">₩0</span>
+                    <span className="text-[var(--text-primary)] font-medium tabular-nums">0</span>
                   </div>
                 </div>
               </div>
@@ -484,7 +484,7 @@ export default function Billing() {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-[var(--text-tertiary)]">{t('VAT (0%)')}</span>
-                  <span className="text-[var(--text-primary)] font-medium tabular-nums">₩0</span>
+                  <span className="text-[var(--text-primary)] font-medium tabular-nums">0</span>
                 </div>
                 <div className="flex items-center justify-between pt-3 mt-1 border-t border-[var(--surface-subtle)]">
                   <span className="text-base font-medium text-[var(--text-primary)]">{t('Total')}</span>

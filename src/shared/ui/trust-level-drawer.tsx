@@ -173,9 +173,9 @@ function LevelRow({
 }) {
   const benefits: Record<TrustLevel['level'], string> = {
     1: 'Basic paid surveys',
-    2: 'Rewards up to ₩15,000',
+    2: 'Rewards up to 15,000',
     3: 'Premium brand surveys · invite-only panels',
-    4: 'Rewards up to ₩50,000 · same-day withdrawals',
+    4: 'Rewards up to 50,000 · same-day withdrawals',
     5: 'Partner-tier surveys · priority support',
   };
   return (

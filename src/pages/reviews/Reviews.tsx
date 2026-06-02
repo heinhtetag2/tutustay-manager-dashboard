@@ -12,7 +12,6 @@ import {
   Clock,
   CheckCircle2,
   ArrowUpDown,
-  BedDouble,
   Calendar as CalendarIcon,
   Check,
   Send,
@@ -360,10 +359,8 @@ function ReviewCard({
             <div className={`font-medium text-[var(--text-primary)] truncate ${onOpenCustomer ? 'group-hover/cust:text-[var(--brand-primary)]' : ''}`}>{r.customerName}</div>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               <Stars value={r.rating} className="w-3.5 h-3.5" />
-              <span className="inline-flex items-center gap-1 text-xs text-[var(--text-secondary)]">
-                <BedDouble className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
-                {t(r.roomType)}
-              </span>
+              <span className="text-[var(--text-muted)] text-[11px] select-none">·</span>
+              <span className="text-[11px] text-[var(--text-tertiary)] tabular-nums">{t(r.roomType)} · {format(new Date(r.stayDate), 'MMM d, yyyy')}</span>
             </div>
           </div>
         </button>

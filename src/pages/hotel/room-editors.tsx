@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Wifi, Utensils, Car, Waves, Dumbbell, Flower2, Banknote, Plane, Coffee, Tag } from 'lucide-react';
+import { X, Wifi, Utensils, Car, Waves, Dumbbell, Flower2, Banknote, Plane, Coffee, Tag, Moon, Users } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { BrandSelect } from '@/shared/ui/brand-select';
-import { AMENITIES, type Room, type RoomType, type RoomStatus } from './hotel-data';
+import { AMENITIES, totalBeds, type Room, type RoomType, type RoomStatus } from './hotel-data';
 
 /** Maps each amenity to a representative icon. */
 export const amenityIcon: Record<string, React.ElementType> = {
@@ -75,35 +75,114 @@ function ModalShell({ title, onClose, onSave, saveLabel, children }: { title: st
 
 export function RoomEditor({ initial, roomTypes, onClose, onSave }: { initial: Room; roomTypes: RoomType[]; onClose: () => void; onSave: (r: Room) => void }) {
   const { t } = useTranslation();
-  // Amenities are inherited from the selected room type, not edited per-room.
-  const inheritFromType = (name: string): string[] => roomTypes.find((rt) => rt.name === name)?.amenities ?? [];
-  const [d, setD] = useState<Room>(() => ({ ...initial, amenities: inheritFromType(initial.typeName) }));
+  const fromType = (name: string) => {
+    const rt = roomTypes.find((r) => r.name === name);
+    return rt ? { amenities: rt.amenities, beds: totalBeds(rt), occupancy: rt.occupancy, price: rt.regularPrice } : {};
+  };
+  const fmt = (n: number) => `MMK ${n.toLocaleString('en-US')}`;
+  const [d, setD] = useState<Room>(() => ({ ...initial, ...fromType(initial.typeName) }));
+  const [priceTab, setPriceTab] = useState<'regular' | 'session' | 'weekend'>('regular');
   const set = (p: Partial<Room>) => setD((s) => ({ ...s, ...p }));
-  const onTypeChange = (name: string) => set({ typeName: name, amenities: inheritFromType(name) });
+  const onTypeChange = (name: string) => { set({ typeName: name, ...fromType(name) }); setPriceTab('regular'); };
   return (
     <ModalShell title={initial.id ? t('Edit Room') : t('Add Room')} onClose={onClose} onSave={() => d.number.trim() && onSave({ ...d, number: d.number.trim() })} saveLabel={initial.id ? t('Save changes') : t('Add Room')}>
       <F label={t('Floor')}><input type="number" className={fieldInput} value={d.floor} onChange={(e) => set({ floor: Number(e.target.value) })} /></F>
       <F label={t('Number')}><input className={fieldInput} value={d.number} onChange={(e) => set({ number: e.target.value })} placeholder="e.g. 201" /></F>
-      <F label={t('Type')}><BrandSelect value={d.typeName} onValueChange={onTypeChange} options={roomTypes.map((rt) => ({ value: rt.name, label: rt.name }))} /></F>
+      <label className="flex flex-col gap-1.5">
+        <span className="text-xs font-medium text-[var(--text-secondary)]">{t('Type')}</span>
+        <BrandSelect value={d.typeName} onValueChange={onTypeChange} options={roomTypes.map((rt) => ({ value: rt.name, label: rt.name }))} />
+        <span className="text-[11px] text-[var(--text-tertiary)] leading-relaxed">
+          {t('Sets pricing, beds, occupancy and amenities for this room.')}
+        </span>
+      </label>
       <F label={t('Status')}><BrandSelect value={d.status} onValueChange={(v) => set({ status: v as RoomStatus })} options={[{ value: 'Active', label: t('Active') }, { value: 'Inactive', label: t('Inactive') }]} /></F>
-      <F label={t('Beds')}><input type="number" className={fieldInput} value={d.beds} onChange={(e) => set({ beds: Number(e.target.value) })} /></F>
-      <F label={t('Occupancy')}><input type="number" className={fieldInput} value={d.occupancy} onChange={(e) => set({ occupancy: Number(e.target.value) })} /></F>
-      <F label={t('Price')} className="sm:col-span-2"><input type="number" className={fieldInput} value={d.price} onChange={(e) => set({ price: Number(e.target.value) })} /></F>
-      <div className="sm:col-span-2">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-[var(--text-secondary)]">{t('Amenities')}</span>
-          <span className="text-[11px] text-[var(--text-secondary)]">{t('From room type')}</span>
-        </div>
-        {d.amenities.length === 0 ? (
-          <p className="text-sm text-[var(--text-secondary)]">{t('This room type has no amenities yet.')}</p>
-        ) : (
-          <div className="flex flex-wrap gap-1.5">
-            {d.amenities.map((a) => (
-              <span key={a} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--surface-subtle)] text-[var(--text-secondary)]"><AmenityIcon name={a} className="w-3.5 h-3.5" />{a}</span>
-            ))}
+
+      {/* ── Room-type inherited details ── */}
+      {(() => {
+        const rt = roomTypes.find((r) => r.name === d.typeName);
+        if (!rt) return null;
+        const tabs = [
+          { key: 'regular' as const, label: t('Regular'), enabled: true },
+          { key: 'session' as const, label: t('Session'), enabled: rt.sessionEnabled },
+          { key: 'weekend' as const, label: t('Weekend'), enabled: rt.weekendEnabled },
+        ];
+        return (
+          <div className="sm:col-span-2 space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-px bg-[var(--border-default)]" />
+              <span className="text-[11px] text-[var(--text-tertiary)] shrink-0">{rt.name} {t('details')}</span>
+              <div className="flex-1 h-px bg-[var(--border-default)]" />
+            </div>
+
+            {/* Pricing card */}
+            <div className="bg-[var(--surface-subtle)] rounded-lg p-4 space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-[var(--text-primary)]">{t('Pricing')}</h3>
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{t('Regular nightly rate, optional hourly sessions, and weekend rate.')}</p>
+              </div>
+              <div className="flex w-full p-1 bg-white border border-[var(--border-default)] rounded-lg">
+                {tabs.map(({ key, label, enabled }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    disabled={!enabled}
+                    onClick={() => enabled && setPriceTab(key)}
+                    className={`flex-1 px-4 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer disabled:cursor-default
+                      ${priceTab === key ? 'bg-[var(--text-primary)] text-white' : enabled ? 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]' : 'text-[var(--text-muted)] line-through'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
+                {priceTab === 'regular' && <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Base price (per night)')}</span><span>{fmt(rt.regularPrice)}</span></div>}
+                {priceTab === 'session' && rt.sessionEnabled && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Base price (per session)')}</span><span>{fmt(rt.sessionPrice)}</span></div>
+                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Session length')}</span><span className="text-sm">{rt.sessionHours} {t('hrs')}</span></div>
+                  </div>
+                )}
+                {priceTab === 'weekend' && rt.weekendEnabled && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Base price (per night)')}</span><span>{fmt(rt.weekendPrice)}</span></div>
+                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Days')}</span><span className="text-sm">{rt.weekendDays.join(', ')}</span></div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Layout card */}
+            <div className="bg-[var(--surface-subtle)] rounded-lg p-4 space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-[var(--text-primary)]">{t('Layout & Occupancy')}</h3>
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{t('Bed configuration and capacity for this room type.')}</p>
+              </div>
+              <div className="flex items-center gap-5">
+                <div className="flex items-center gap-1.5 text-sm text-[var(--text-primary)]">
+                  <Moon className="w-4 h-4 text-[var(--text-tertiary)]" />
+                  <span className="font-medium tabular-nums">{d.beds}</span>
+                  <span className="text-[var(--text-secondary)]">{d.beds === 1 ? t('bed') : t('beds')}</span>
+                </div>
+                <span className="text-[var(--text-muted)]">·</span>
+                <div className="flex items-center gap-1.5 text-sm text-[var(--text-primary)]">
+                  <Users className="w-4 h-4 text-[var(--text-tertiary)]" />
+                  <span className="text-[var(--text-secondary)]">{t('Sleeps')}</span>
+                  <span className="font-medium tabular-nums">{d.occupancy}</span>
+                </div>
+              </div>
+              {rt.amenities.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {rt.amenities.map((a) => (
+                    <span key={a} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-white text-[var(--text-secondary)] border border-[var(--border-default)]">
+                      <AmenityIcon name={a} className="w-3.5 h-3.5" />{a}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        );
+      })()}
     </ModalShell>
   );
 }

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
-import { CalendarCheck, X, ArrowRight } from 'lucide-react';
+import { CalendarPlus, X, ArrowRight } from 'lucide-react';
 import { useBookingRequests } from '@/pages/booking-requests/use-booking-requests';
 
 export interface BookingToast {
@@ -57,7 +57,7 @@ export function BookingToastHost() {
             <div className="p-4">
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center shrink-0">
-                  <CalendarCheck className="w-4 h-4" />
+                  <CalendarPlus className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
@@ -167,7 +167,7 @@ export function useBookingSimulator() {
         nights: b.nights,
         guests: b.guests,
         checkIn: format(new Date(b.checkIn), 'MMM d'),
-        amount: `₩${b.amount.toLocaleString('en-US')}`,
+        amount: `${b.amount.toLocaleString('en-US')}`,
       });
     };
     const first = setTimeout(fire, 3500);

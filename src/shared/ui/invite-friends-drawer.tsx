@@ -63,10 +63,10 @@ export function InviteFriendsDrawer({
               </div>
               <div className="min-w-0">
                 <div className="text-base font-medium text-[var(--text-primary)] mb-1">
-                  {t('Earn ₩5,000 per qualified friend')}
+                  {t('Earn 5,000 per qualified friend')}
                 </div>
                 <p className="text-sm text-[var(--text-tertiary)] leading-relaxed">
-                  {t("Share your link. When your friend completes their first paid survey, you both get ₩5,000. There's no limit — invite as many as you want.")}
+                  {t("Share your link. When your friend completes their first paid survey, you both get 5,000. There's no limit — invite as many as you want.")}
                 </p>
               </div>
             </div>
@@ -115,7 +115,7 @@ export function InviteFriendsDrawer({
               <ShareButton
                 Icon={Mail}
                 label={t('Email')}
-                onClick={() => window.open(`mailto:?subject=${encodeURIComponent('Join me on iDap')}&body=${encodeURIComponent(`I use iDap to earn rewards for surveys. Sign up with my link and we both get ₩5,000 after your first paid survey: ${referralUrl}`)}`)}
+                onClick={() => window.open(`mailto:?subject=${encodeURIComponent('Join me on iDap')}&body=${encodeURIComponent(`I use iDap to earn rewards for surveys. Sign up with my link and we both get 5,000 after your first paid survey: ${referralUrl}`)}`)}
               />
               <ShareButton
                 Icon={Share2}
@@ -124,7 +124,7 @@ export function InviteFriendsDrawer({
                   if (navigator.share) {
                     navigator.share({
                       title: 'Join me on iDap',
-                      text: "I'm earning rewards on iDap. Use my link and we both get ₩5,000.",
+                      text: "I'm earning rewards on iDap. Use my link and we both get 5,000.",
                       url: referralUrl,
                     }).catch(() => {});
                   } else {
@@ -145,7 +145,7 @@ export function InviteFriendsDrawer({
               <StatCard label={t('Qualified')} value={String(referralStats.qualified)} />
               <StatCard
                 label={t('Earned')}
-                value={`₩${referralStats.earnedMnt.toLocaleString('en-US')}`}
+                value={`${referralStats.earnedMnt.toLocaleString('en-US')}`}
                 accent
               />
             </div>
@@ -174,7 +174,7 @@ export function InviteFriendsDrawer({
               />
               <Step
                 n={4}
-                title={t('You both earn ₩5,000')}
+                title={t('You both earn 5,000')}
                 description={t('Lands in both wallets within 48 hours of their first cleared reward.')}
               />
             </ol>

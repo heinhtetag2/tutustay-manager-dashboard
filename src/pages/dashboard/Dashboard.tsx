@@ -6,30 +6,34 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Calendar,
-  Wallet,
-  ArrowRight,
-  ClipboardCheck,
-  Trophy,
-  Sparkles,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
   Coins,
+  CalendarCheck,
+  CalendarPlus,
+  LogOut,
+  Inbox,
 } from 'lucide-react';
 import {
   format,
   differenceInDays,
   startOfDay,
   startOfMonth,
+  endOfMonth,
   isWithinInterval,
+  isSameMonth,
+  isSameDay,
+  addDays,
   subDays,
   subMonths,
-  isSameMonth,
 } from 'date-fns';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import {
   AreaChart,
   Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -37,470 +41,517 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from 'recharts';
-import { cn } from '@/shared/lib/cn';
-import { DEMO_FILLED_SURVEYS } from '@/pages/my-surveys/my-surveys-data';
+import { useReservations } from '@/pages/reservations/use-reservations';
 import {
-  DEMO_FEED_SURVEYS,
-  USER_TRUST_LEVEL,
-} from '@/pages/survey-feed/survey-feed-data';
-import { DEMO_WALLET } from '@/pages/wallet/wallet-data';
-import { TRUST_LEVELS } from '@/shared/config/business';
+  countsAsRevenue,
+  formatAmount,
+  type Reservation,
+  type ReservationStatus,
+} from '@/pages/reservations/reservations-data';
+import { useBookingRequests } from '@/pages/booking-requests/use-booking-requests';
+import type { RequestStatus } from '@/pages/booking-requests/booking-requests-data';
 
 type RangeKey = '7d' | '30d' | 'this_month' | 'last_month';
 
-function formatMnt(value: number): string {
-  return `₩${value.toLocaleString('en-US')}`;
-}
-
-function formatMntCompact(value: number): string {
-  if (value >= 1_000_000) return `₩${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `₩${Math.round(value / 1_000)}K`;
-  return `₩${value}`;
+/** Compact amount for chart axis / reference line only (e.g. 270K, 1.2M). */
+function moneyShort(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${Math.round(value / 1_000)}K`;
+  return String(value);
 }
 
 const USER_FIRST_NAME = 'Hein';
-const NOW = new Date('2026-04-22T10:00:00');
+const NOW = new Date('2026-06-02T10:00:00');
+
+// Reservation status → token color, matching statusStyle() in Reservations.
+const RES_STATUS_ORDER: ReservationStatus[] = ['Confirmed', 'Checked-in', 'Checked-out', 'Cancelled', 'No-show'];
+const RES_STATUS_COLOR: Record<ReservationStatus, string> = {
+  Confirmed: 'var(--brand-primary)',
+  'Checked-in': 'var(--success)',
+  'Checked-out': 'var(--text-tertiary)',
+  Cancelled: 'var(--danger)',
+  'No-show': 'var(--warning-strong)',
+};
+
+// Status → pill colors, matching statusStyle() in Reservations and the
+// booking-request status badges so the dashboard reads as part of the product.
+function statusPill(status: ReservationStatus | RequestStatus): string {
+  const map: Record<string, string> = {
+    Confirmed: 'bg-[var(--brand-tint)] text-[var(--brand-primary)]',
+    'Checked-in': 'bg-[var(--success-tint)] text-[var(--success)]',
+    'Checked-out': 'bg-[var(--surface-subtle)] text-[var(--text-secondary)]',
+    Cancelled: 'bg-[var(--danger-tint)] text-[var(--danger)]',
+    'No-show': 'bg-[var(--warning-tint)] text-[var(--warning-strong)]',
+    Pending: 'bg-[var(--warning-tint)] text-[var(--warning-strong)]',
+    Approved: 'bg-[var(--success-tint)] text-[var(--success)]',
+    Declined: 'bg-[var(--danger-tint)] text-[var(--danger)]',
+  };
+  return map[status] ?? 'bg-[var(--surface-subtle)] text-[var(--text-secondary)]';
+}
 
 export default function Dashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const [range, setRange] = useState<RangeKey>('30d');
+  const reservations = useReservations((s) => s.reservations);
+  const requests = useBookingRequests((s) => s.requests);
+
+  const [range, setRange] = useState<RangeKey>('this_month');
+
+  const today = startOfDay(NOW);
 
   // ── Stats ─────────────────────────────────────────────────────────────
-  const thisMonthEarned = useMemo(() => {
-    return DEMO_FILLED_SURVEYS.filter(
-      (s) =>
-        s.status === 'paid' &&
-        isSameMonth(new Date(s.completedAt), NOW),
-    ).reduce((sum, s) => sum + s.rewardMnt, 0);
-  }, []);
+  const monthRevenue = useMemo(
+    () =>
+      reservations
+        .filter((r) => countsAsRevenue(r.status) && isSameMonth(new Date(r.checkIn), NOW))
+        .reduce((sum, r) => sum + r.amount, 0),
+    [reservations],
+  );
 
-  const completedCount = DEMO_FILLED_SURVEYS.filter(
-    (s) => s.status === 'paid' || s.status === 'held',
-  ).length;
+  const arrivalsToday = useMemo(
+    () =>
+      reservations.filter(
+        (r) =>
+          isSameDay(new Date(r.checkIn), today) &&
+          (r.status === 'Confirmed' || r.status === 'Checked-in'),
+      ).length,
+    [reservations, today],
+  );
 
-  const pendingRewards = DEMO_FILLED_SURVEYS.filter(
-    (s) => s.status === 'held' || s.status === 'under-review',
-  ).reduce((sum, s) => sum + s.rewardMnt, 0);
+  const departuresToday = useMemo(
+    () =>
+      reservations.filter(
+        (r) =>
+          isSameDay(new Date(r.checkOut), today) &&
+          (r.status === 'Checked-in' || r.status === 'Checked-out'),
+      ).length,
+    [reservations, today],
+  );
 
-  const currentLevel = [...TRUST_LEVELS]
-    .reverse()
-    .find((l) => l.minResponses <= completedCount);
-  const nextLevel = TRUST_LEVELS.find((l) => l.level === (currentLevel?.level ?? 1) + 1);
-  const levelProgress = nextLevel
-    ? Math.min(
-        100,
-        ((completedCount - (currentLevel?.minResponses ?? 0)) /
-          (nextLevel.minResponses - (currentLevel?.minResponses ?? 0))) *
-          100,
-      )
-    : 100;
+  const pendingRequests = useMemo(
+    () => requests.filter((r) => r.status === 'Pending').length,
+    [requests],
+  );
 
   const stats = [
     {
-      title: 'Wallet balance',
-      value: formatMntCompact(DEMO_WALLET.availableMnt),
-      Icon: Wallet,
-      subtitle: pendingRewards > 0
-        ? `${formatMntCompact(pendingRewards)} ${t('pending')}`
-        : t('Available to withdraw'),
-      href: '/wallet',
-      accent: true,
-    },
-    {
-      title: 'This month',
-      value: formatMntCompact(thisMonthEarned),
+      title: 'Revenue this month',
       Icon: Coins,
-      subtitle: t('Earned in April'),
-      href: '/my-surveys',
+      value: formatAmount(monthRevenue),
+      subtitle: t('Confirmed stays in June'),
+      href: '/reservations',
     },
     {
-      title: 'Surveys completed',
-      value: String(completedCount),
-      Icon: ClipboardCheck,
-      subtitle: t('Lifetime responses'),
-      href: '/my-surveys',
+      title: 'Arrivals today',
+      Icon: CalendarCheck,
+      value: String(arrivalsToday),
+      subtitle: t('Guests checking in'),
+      href: '/reservations',
     },
     {
-      title: 'Trust level',
-      value: `${t('Lv.')}${currentLevel?.level ?? 1} · ${currentLevel?.label ?? 'Newcomer'}`,
-      Icon: Trophy,
-      subtitle: nextLevel
-        ? `${nextLevel.minResponses - completedCount} ${t('to Lv.')}${nextLevel.level}`
-        : t('Top level reached'),
-      href: '/my-surveys',
-      progress: nextLevel ? levelProgress : undefined,
+      title: 'Departures today',
+      Icon: LogOut,
+      value: String(departuresToday),
+      subtitle: t('Guests checking out'),
+      href: '/reservations',
+    },
+    {
+      title: 'Pending requests',
+      Icon: Inbox,
+      value: String(pendingRequests),
+      subtitle: pendingRequests > 0 ? t('Awaiting your decision') : t('All caught up'),
+      href: '/booking-requests',
     },
   ];
 
-  // ── Chart: earnings over time ────────────────────────────────────────
-  const {
-    chartData,
-    rangeTotal,
-    rangeTrend,
-    rangeSubtitle,
-    rangeSurveys,
-    rangeAvgPerBucket,
-    bucketUnit,
-  } = useMemo(() => {
-    const paid = DEMO_FILLED_SURVEYS.filter((s) => s.status === 'paid');
-    return buildEarningsChart(paid, range);
-  }, [range]);
+  // ── Chart: revenue over time (by check-in date) ──────────────────────
+  const { chartData, rangeTotal, rangeTrend, rangeSubtitle, rangeBookings, rangeAvgPerBucket, bucketUnit } =
+    useMemo(() => buildRevenueChart(reservations, range, today), [reservations, range, today]);
 
-  // ── Earnings by category ─────────────────────────────────────────────
-  const categoryBreakdown = useMemo(() => {
-    const map = new Map<string, { earned: number; count: number }>();
-    DEMO_FILLED_SURVEYS.filter((s) => s.status === 'paid').forEach((s) => {
-      const prev = map.get(s.category) ?? { earned: 0, count: 0 };
-      map.set(s.category, {
-        earned: prev.earned + s.rewardMnt,
-        count: prev.count + 1,
+  // ── Arrivals & departures, next 7 days ───────────────────────────────
+  const flow7 = useMemo(() => {
+    const out: { name: string; date: Date; arrivals: number; departures: number }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(today, i);
+      const active = (r: Reservation) => r.status !== 'Cancelled' && r.status !== 'No-show';
+      out.push({
+        name: format(d, 'EEE'),
+        date: d,
+        arrivals: reservations.filter((r) => active(r) && isSameDay(new Date(r.checkIn), d)).length,
+        departures: reservations.filter((r) => active(r) && isSameDay(new Date(r.checkOut), d)).length,
       });
-    });
-    const rows = Array.from(map.entries())
-      .map(([category, v]) => ({ category, ...v }))
-      .sort((a, b) => b.earned - a.earned);
-    const max = rows[0]?.earned ?? 0;
-    return { rows, max };
-  }, []);
+    }
+    return out;
+  }, [reservations, today]);
 
-  // ── Recent activity feed (blended) ───────────────────────────────────
+  // ── Reservation status mix (donut) ───────────────────────────────────
+  const statusMix = useMemo(() => {
+    const counts: Record<string, number> = {};
+    reservations.forEach((r) => {
+      counts[r.status] = (counts[r.status] ?? 0) + 1;
+    });
+    return RES_STATUS_ORDER.map((s) => ({ status: s, value: counts[s] ?? 0, color: RES_STATUS_COLOR[s] })).filter(
+      (d) => d.value > 0,
+    );
+  }, [reservations]);
+
+  // ── Revenue by room type (this month) ────────────────────────────────
+  const roomTypeBreakdown = useMemo(() => {
+    const map = new Map<string, { revenue: number; count: number }>();
+    reservations
+      .filter((r) => countsAsRevenue(r.status) && isSameMonth(new Date(r.checkIn), NOW))
+      .forEach((r) => {
+        const prev = map.get(r.roomType) ?? { revenue: 0, count: 0 };
+        map.set(r.roomType, { revenue: prev.revenue + r.amount, count: prev.count + 1 });
+      });
+    const rows = Array.from(map.entries())
+      .map(([roomType, v]) => ({ roomType, ...v }))
+      .sort((a, b) => b.revenue - a.revenue);
+    const max = rows[0]?.revenue ?? 0;
+    return { rows, max };
+  }, [reservations]);
+
+  // ── Recent activity (reservations + booking requests, blended) ───────
   type FeedEvent = {
-    kind: 'paid' | 'held-release' | 'under-review' | 'level-up' | 'new-match';
+    kind: 'reservation' | 'request';
     date: string;
     primary: string;
     secondary: string;
-    amount?: number;
+    amount: number;
+    status: ReservationStatus | RequestStatus;
     href: string;
   };
 
   const activity: FeedEvent[] = useMemo(() => {
-    const events: FeedEvent[] = [];
-    DEMO_FILLED_SURVEYS.forEach((s) => {
-      if (s.status === 'paid') {
-        events.push({
-          kind: 'paid',
-          date: s.completedAt,
-          primary: s.title,
-          secondary: `${s.companyName} · ${t('reward paid')}`,
-          amount: s.rewardMnt,
-          href: `/survey-feed/${s.surveyId}`,
-        });
-      } else if (s.status === 'under-review') {
-        events.push({
-          kind: 'under-review',
-          date: s.completedAt,
-          primary: s.title,
-          secondary: `${s.companyName} · ${t('under review')}`,
-          amount: s.rewardMnt,
-          href: `/survey-feed/${s.surveyId}`,
-        });
-      } else if (s.status === 'held') {
-        events.push({
-          kind: 'held-release',
-          date: s.completedAt,
-          primary: s.title,
-          secondary: `${s.companyName} · ${t('on 24h hold')}`,
-          amount: s.rewardMnt,
-          href: `/survey-feed/${s.surveyId}`,
-        });
-      }
-    });
-    return events
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
-      .slice(0, 5);
-  }, [t]);
-
-  const feedIcon = (kind: FeedEvent['kind']) => {
-    const tone = 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]';
-    switch (kind) {
-      case 'paid':
-        return { Icon: CheckCircle2, tone };
-      case 'held-release':
-        return { Icon: Clock, tone };
-      case 'under-review':
-        return { Icon: AlertTriangle, tone };
-      case 'level-up':
-        return { Icon: Trophy, tone };
-      case 'new-match':
-        return { Icon: Sparkles, tone };
-    }
-  };
-
-  const feedPill = (kind: FeedEvent['kind']): { tone: string; label: string } | null => {
-    switch (kind) {
-      case 'held-release':
-        return { tone: 'text-[var(--warning)] bg-[var(--warning-tint)]', label: t('Held') };
-      case 'under-review':
-        return { tone: 'text-[var(--brand-primary-hover)] bg-[var(--brand-tint)]', label: t('Under review') };
-      case 'level-up':
-        return { tone: 'text-[var(--brand-primary)] bg-[var(--brand-tint)]', label: t('Level up') };
-      case 'new-match':
-        return { tone: 'text-[var(--brand-primary)] bg-[var(--brand-tint)]', label: t('New match') };
-      case 'paid':
-      default:
-        return null;
-    }
-  };
+    const events: FeedEvent[] = [
+      ...reservations.map((r) => ({
+        kind: 'reservation' as const,
+        date: r.createdAt,
+        primary: r.guestName,
+        secondary: `${r.code} · ${t(r.roomType)}`,
+        amount: r.amount,
+        status: r.status,
+        href: `/reservations/${r.id}`,
+      })),
+      ...requests.map((q) => ({
+        kind: 'request' as const,
+        date: q.requestedAt,
+        primary: q.guestName,
+        secondary: `${t('Booking request')} · ${t(q.roomType)}`,
+        amount: q.amount,
+        status: q.status,
+        href: `/booking-requests/${q.id}`,
+      })),
+    ];
+    return events.sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6);
+  }, [reservations, requests, t]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-y-auto w-full px-4 sm:px-6 md:px-8 xl:px-12 py-6 sm:py-8 bg-[var(--surface-muted)]"
+      className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)] min-h-full"
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-serif text-[var(--text-primary)]">
-            {t('Welcome back,')} {USER_FIRST_NAME}
-          </h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
-            {t('Your earnings, progress, and surveys at a glance.')}
-          </p>
-        </div>
-        <button
-          onClick={() => navigate('/survey-feed')}
-          className="h-10 px-4 inline-flex items-center justify-center gap-2 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium rounded-md transition-colors cursor-pointer w-full sm:w-auto"
-        >
-          {t('Browse surveys')}
-          <ArrowRight className="w-4 h-4" />
-        </button>
+      <div className="mb-8">
+        <h1 className="text-3xl font-serif text-[var(--text-primary)]">
+          {t('Welcome back,')} {USER_FIRST_NAME}
+        </h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
+          {t("Today's arrivals, revenue, and booking requests at a glance.")}
+        </p>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {stats.map((stat, i) => (
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {stats.map((card, i) => (
           <motion.button
-            key={stat.title}
-            onClick={() => navigate(stat.href)}
+            key={card.title}
+            onClick={() => navigate(card.href)}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: i * 0.06 }}
+            transition={{ duration: 0.3, delay: i * 0.08 }}
             className="text-left bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group cursor-pointer"
           >
             <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">
-                {t(stat.title)}
-              </span>
-              <div
-                className={cn(
-                  'p-2 rounded-md transition-colors',
-                  stat.accent
-                    ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white'
-                    : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white',
-                )}
-              >
-                <stat.Icon className="w-4 h-4" />
+              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+                <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div
-              className={cn(
-                'text-2xl font-medium tabular-nums lining-nums truncate',
-                stat.accent ? 'text-[var(--brand-primary)]' : 'text-[var(--text-primary)]',
-              )}
-            >
-              {stat.value}
-            </div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{stat.subtitle}</div>
-            {stat.progress !== undefined && (
-              <div className="h-1 w-full bg-[var(--surface-subtle)] rounded-full overflow-hidden mt-3">
-                <div
-                  className="h-full bg-[var(--brand-primary)] transition-all"
-                  style={{ width: `${stat.progress}%` }}
-                />
-              </div>
-            )}
+            <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
           </motion.button>
         ))}
       </div>
 
-      {/* Earnings chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.25 }}
-        className="bg-white border border-[var(--border-default)] rounded-md p-4 sm:p-6 shadow-none mb-6"
-      >
-        <div className="flex justify-between items-start mb-6 gap-3 flex-wrap">
-          <div>
-            <h2 className="text-base font-medium text-[var(--text-primary)]">
-              {t('Earnings')}
-            </h2>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5 mb-3">
-              {t('Reward payments')} {t(rangeSubtitle)}
-            </p>
-            <div className="flex items-baseline gap-2">
-              <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums lining-nums">
-                {formatMntCompact(rangeTotal)}
-              </div>
-              {rangeTrend !== null && (
-                <div
-                  className={cn(
-                    'text-xs font-medium flex items-center gap-0.5',
-                    rangeTrend >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger-strong)]',
-                  )}
-                >
-                  {rangeTrend >= 0 ? (
-                    <ArrowUpRight className="w-3 h-3" />
-                  ) : (
-                    <ArrowDownRight className="w-3 h-3" />
-                  )}
-                  {Math.abs(rangeTrend).toFixed(1)}%
+      {/* Revenue chart (2/3) + reservation status donut (1/3) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
+        {/* Revenue chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+          className="lg:col-span-2 bg-white border border-[var(--border-default)] rounded-md p-6 shadow-none"
+        >
+          <div className="flex justify-between items-start mb-6 gap-3 flex-wrap">
+            <div>
+              <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Revenue')}</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5 mb-3">
+                {t('Confirmed bookings by check-in date')} {t(rangeSubtitle)}
+              </p>
+              <div className="flex items-baseline gap-2">
+                <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">
+                  {formatAmount(rangeTotal)}
                 </div>
-              )}
+                {rangeTrend !== null && (
+                  <div className={cnTrend(rangeTrend)}>
+                    {rangeTrend >= 0 ? (
+                      <ArrowUpRight className="w-3 h-3" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3" />
+                    )}
+                    {Math.abs(rangeTrend).toFixed(1)}%
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mt-2 tabular-nums flex-wrap">
+                <span>
+                  {rangeBookings} {rangeBookings === 1 ? t('booking') : t('bookings')}
+                </span>
+                <span className="text-[var(--border-strong)]">·</span>
+                <span>
+                  {t('Avg')} {formatAmount(rangeAvgPerBucket)}{' '}
+                  {bucketUnit === 'day' ? t('/ day') : t('/ week')}
+                </span>
+                {rangeBookings > 0 && (
+                  <>
+                    <span className="text-[var(--border-strong)]">·</span>
+                    <span>
+                      {formatAmount(Math.round(rangeTotal / rangeBookings))} {t('per booking')}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mt-2 tabular-nums flex-wrap">
-              <span>
-                {rangeSurveys} {rangeSurveys === 1 ? t('survey') : t('surveys')}
-              </span>
-              <span className="text-[var(--border-strong)]">·</span>
-              <span>
-                {t('Avg')} {formatMntCompact(rangeAvgPerBucket)}{' '}
-                {bucketUnit === 'day' ? t('/ day') : t('/ week')}
-              </span>
-              {rangeSurveys > 0 && (
-                <>
-                  <span className="text-[var(--border-strong)]">·</span>
-                  <span>
-                    {formatMnt(Math.round(rangeTotal / rangeSurveys))} {t('per survey')}
-                  </span>
-                </>
-              )}
-            </div>
+            <BrandSelect
+              value={range}
+              onValueChange={(v) => setRange(v as RangeKey)}
+              leftIcon={<Calendar />}
+              ariaLabel={t('Range')}
+              className="sm:w-auto"
+              options={[
+                { value: '7d', label: t('Last 7 days') },
+                { value: '30d', label: t('Last 30 days') },
+                { value: 'this_month', label: t('This month') },
+                { value: 'last_month', label: t('Last month') },
+              ]}
+            />
           </div>
-          <BrandSelect
-            value={range}
-            onValueChange={(v) => setRange(v as RangeKey)}
-            leftIcon={<Calendar />}
-            ariaLabel={t('Range')}
-            className="sm:w-auto"
-            options={[
-              { value: '7d', label: t('Last 7 days') },
-              { value: '30d', label: t('Last 30 days') },
-              { value: 'this_month', label: t('This month') },
-              { value: 'last_month', label: t('Last month') },
-            ]}
-          />
-        </div>
-        <div className="h-[200px] sm:h-[240px] w-full min-w-0">
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-subtle)" />
-              <XAxis
-                dataKey="name"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
-                dy={10}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
-                tickFormatter={(v: number) => (v >= 1000 ? `${v / 1000}K` : String(v))}
-              />
-              <Tooltip
-                cursor={{ stroke: 'var(--border-default)', strokeWidth: 1, strokeDasharray: '4 4' }}
-                content={<EarningsTooltip bucketUnit={bucketUnit} t={t} />}
-              />
-              {rangeAvgPerBucket > 0 && (
-                <ReferenceLine
-                  y={rangeAvgPerBucket}
-                  stroke="var(--text-muted)"
-                  strokeDasharray="4 4"
-                  strokeWidth={1}
-                  label={{
-                    value: `${t('Avg')} ${formatMntCompact(rangeAvgPerBucket)}`,
-                    position: 'right',
-                    fill: 'var(--text-secondary)',
-                    fontSize: 11,
-                  }}
+          <div className="h-[200px] sm:h-[240px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-subtle)" />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
+                  dy={10}
                 />
-              )}
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="var(--brand-primary)"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorEarnings)"
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </motion.div>
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: 'var(--text-secondary)' }}
+                  tickFormatter={(v: number) => moneyShort(v)}
+                />
+                <Tooltip
+                  cursor={{ stroke: 'var(--border-default)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                  content={<RevenueTooltip bucketUnit={bucketUnit} t={t} />}
+                />
+                {rangeAvgPerBucket > 0 && (
+                  <ReferenceLine
+                    y={rangeAvgPerBucket}
+                    stroke="var(--text-muted)"
+                    strokeDasharray="4 4"
+                    strokeWidth={1}
+                    label={{
+                      value: `${t('Avg')} ${moneyShort(rangeAvgPerBucket)}`,
+                      position: 'right',
+                      fill: 'var(--text-secondary)',
+                      fontSize: 11,
+                    }}
+                  />
+                )}
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="var(--brand-primary)"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorRevenue)"
+                  isAnimationActive={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
 
-      {/* Two-up: Keep going + Recent activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        {/* Earnings by category */}
+        {/* Reservation status mix */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden flex flex-col"
+        >
+          <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Reservation status')}</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('All reservations by status')}</p>
+            </div>
+            <button
+              onClick={() => navigate('/reservations')}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer shrink-0"
+            >
+              {t('View all')}
+              <ArrowUpRight className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="px-6 py-5 flex-1 flex items-center gap-5">
+            <div className="relative w-[128px] h-[128px] shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusMix}
+                    dataKey="value"
+                    nameKey="status"
+                    innerRadius={44}
+                    outerRadius={62}
+                    paddingAngle={2}
+                    stroke="none"
+                    isAnimationActive={false}
+                  >
+                    {statusMix.map((d) => (
+                      <Cell key={d.status} fill={d.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-medium text-[var(--text-primary)] tabular-nums leading-none">
+                  {reservations.length}
+                </span>
+                <span className="text-[11px] text-[var(--text-tertiary)] mt-1">{t('total')}</span>
+              </div>
+            </div>
+            <ul className="flex-1 min-w-0 space-y-2">
+              {statusMix.map((d) => (
+                <li key={d.status} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
+                    <span className="text-[var(--text-secondary)] truncate">{t(d.status)}</span>
+                  </span>
+                  <span className="font-medium text-[var(--text-primary)] tabular-nums">{d.value}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Two-up: Arrivals & departures + Revenue by room type */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start mb-6">
+        {/* Arrivals & departures next 7 days */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.3 }}
           className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
         >
-          <div className="px-4 sm:px-6 pt-5 pb-4 flex items-start justify-between gap-4">
+          <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-medium text-[var(--text-primary)]">
-                {t('Earnings by category')}
-              </h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                {t('Where your rewards come from')}
-              </p>
+              <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Arrivals & departures')}</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Next 7 days')}</p>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] shrink-0">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--brand-primary)' }} />
+                {t('Arrivals')}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--brand-accent)' }} />
+                {t('Departures')}
+              </span>
+            </div>
+          </div>
+          <div className="px-4 sm:px-6 py-5 h-[220px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={flow7} margin={{ top: 6, right: 6, left: -20, bottom: 0 }} barGap={3} barCategoryGap="24%">
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-subtle)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={8} />
+                <YAxis axisLine={false} tickLine={false} allowDecimals={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} />
+                <Tooltip cursor={{ fill: 'var(--surface-subtle)' }} content={<FlowTooltip t={t} />} />
+                <Bar dataKey="arrivals" fill="var(--brand-primary)" radius={[3, 3, 0, 0]} maxBarSize={14} isAnimationActive={false} />
+                <Bar dataKey="departures" fill="var(--brand-accent)" radius={[3, 3, 0, 0]} maxBarSize={14} isAnimationActive={false} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+
+        {/* Revenue by room type */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.35 }}
+          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
+        >
+          <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Revenue by room type')}</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Confirmed stays this month')}</p>
             </div>
             <button
-              onClick={() => navigate('/my-surveys')}
-              className="flex items-center gap-1 text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer shrink-0"
+              onClick={() => navigate('/hotel/rooms')}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer shrink-0"
             >
-              {t('See all')}
-              <ArrowRight className="w-3.5 h-3.5" />
+              {t('Rooms')}
+              <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>
 
-          {categoryBreakdown.rows.length === 0 ? (
-            <div className="border-t border-[var(--surface-subtle)] px-6 py-8 text-center text-sm text-[var(--text-secondary)]">
-              {t('No paid rewards yet.')}
+          {roomTypeBreakdown.rows.length === 0 ? (
+            <div className="px-6 py-8 text-center text-sm text-[var(--text-secondary)]">
+              {t('No confirmed revenue yet.')}
             </div>
           ) : (
-            <ul className="border-t border-[var(--surface-subtle)] px-4 sm:px-6 py-4 space-y-3.5">
-              {categoryBreakdown.rows.map((row) => {
-                const pct = categoryBreakdown.max === 0
-                  ? 0
-                  : (row.earned / categoryBreakdown.max) * 100;
+            <ul className="px-6 py-5 space-y-3.5">
+              {roomTypeBreakdown.rows.map((row) => {
+                const pct = roomTypeBreakdown.max === 0 ? 0 : (row.revenue / roomTypeBreakdown.max) * 100;
                 return (
-                  <li key={row.category}>
+                  <li key={row.roomType}>
                     <div className="flex items-center justify-between mb-1.5 text-xs">
-                      <span className="font-medium text-[var(--text-primary)]">
-                        {row.category}
-                      </span>
+                      <span className="font-medium text-[var(--text-primary)]">{t(row.roomType)}</span>
                       <span className="flex items-center gap-2 text-[var(--text-secondary)] tabular-nums">
                         <span>
-                          {row.count} {row.count === 1 ? t('survey') : t('surveys')}
+                          {row.count} {row.count === 1 ? t('booking') : t('bookings')}
                         </span>
                         <span className="text-[var(--border-strong)]">·</span>
-                        <span className="font-medium text-[var(--text-primary)] lining-nums">
-                          {formatMnt(row.earned)}
-                        </span>
+                        <span className="font-medium text-[var(--text-primary)]">{formatAmount(row.revenue)}</span>
                       </span>
                     </div>
                     <div className="h-2 w-full bg-[var(--surface-subtle)] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
-                        transition={{
-                          duration: 0.7,
-                          ease: [0.22, 1, 0.36, 1],
-                        }}
+                        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                         className="h-full bg-[var(--brand-primary)] rounded-full"
                       />
                     </div>
@@ -510,101 +561,91 @@ export default function Dashboard() {
             </ul>
           )}
         </motion.div>
-
-        {/* Recent activity */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.35 }}
-          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
-        >
-          <div className="px-4 sm:px-6 pt-5 pb-4 flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-base font-medium text-[var(--text-primary)]">
-                {t('Recent activity')}
-              </h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                {t('Latest rewards and status changes')}
-              </p>
-            </div>
-            <button
-              onClick={() => navigate('/my-surveys')}
-              className="flex items-center gap-1 text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer shrink-0"
-            >
-              {t('View all')}
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <ol className="divide-y divide-[var(--surface-subtle)] border-t border-[var(--surface-subtle)]">
-            {activity.length === 0 ? (
-              <li className="px-6 py-8 text-center text-sm text-[var(--text-secondary)]">
-                {t('No recent activity.')}
-              </li>
-            ) : (
-              activity.map((ev, i) => {
-                const { Icon, tone } = feedIcon(ev.kind);
-                const pill = feedPill(ev.kind);
-                return (
-                  <li key={`${ev.kind}-${i}`}>
-                    <button
-                      onClick={() => navigate(ev.href)}
-                      className="w-full flex items-center gap-3 px-4 sm:px-6 py-3.5 text-left hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
-                    >
-                      <div className={cn('w-9 h-9 rounded-full flex items-center justify-center shrink-0', tone)}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-medium text-[var(--text-primary)] truncate">
-                            {ev.primary}
-                          </span>
-                          {pill && (
-                            <span
-                              className={cn(
-                                'text-[10px] font-medium px-1.5 py-0.5 rounded-md',
-                                pill.tone,
-                              )}
-                            >
-                              {pill.label}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">
-                          {ev.secondary} · {format(new Date(ev.date), 'MMM d')}
-                        </div>
-                      </div>
-                      {ev.amount !== undefined && (
-                        <div
-                          className={cn(
-                            'text-sm font-medium tabular-nums lining-nums shrink-0',
-                            ev.kind === 'paid' ? 'text-[var(--success)]' : 'text-[var(--text-primary)]',
-                          )}
-                        >
-                          {ev.kind === 'paid' ? '+' : ''}
-                          {formatMnt(ev.amount)}
-                        </div>
-                      )}
-                    </button>
-                  </li>
-                );
-              })
-            )}
-          </ol>
-        </motion.div>
       </div>
+
+      {/* Recent activity (full width) */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+        className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
+      >
+        <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Recent activity')}</h2>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Latest reservations and requests')}</p>
+          </div>
+          <button
+            onClick={() => navigate('/reservations')}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer shrink-0"
+          >
+            {t('View all')}
+            <ArrowUpRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        <ol className="divide-y divide-[var(--surface-subtle)]">
+          {activity.length === 0 ? (
+            <li className="px-6 py-8 text-center text-sm text-[var(--text-secondary)]">
+              {t('No recent activity.')}
+            </li>
+          ) : (
+            activity.map((ev, i) => {
+              const Icon = ev.kind === 'reservation' ? CalendarCheck : CalendarPlus;
+              return (
+                <li key={`${ev.kind}-${i}`}>
+                  <button
+                    onClick={() => navigate(ev.href)}
+                    className="w-full flex items-center gap-3 px-6 py-3.5 text-left hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+                  >
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 bg-[var(--surface-subtle)] text-[var(--text-tertiary)]">
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-[var(--text-primary)] truncate">
+                          {ev.primary}
+                        </span>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusPill(ev.status)}`}
+                        >
+                          {t(ev.status)}
+                        </span>
+                      </div>
+                      <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">
+                        {ev.secondary} · {format(new Date(ev.date), 'MMM d')}
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium tabular-nums shrink-0 text-[var(--text-primary)]">
+                      {formatAmount(ev.amount)}
+                    </div>
+                  </button>
+                </li>
+              );
+            })
+          )}
+        </ol>
+      </motion.div>
     </motion.div>
   );
+}
+
+// Trend chip classes (up = success, down = danger), shared by the chart header.
+function cnTrend(trend: number): string {
+  return [
+    'text-xs font-medium flex items-center gap-0.5',
+    trend >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger-strong)]',
+  ].join(' ');
 }
 
 interface ChartPoint {
   name: string;
   value: number;
-  surveys: number;
+  bookings: number;
   date: Date;
 }
 
-function EarningsTooltip({
+function RevenueTooltip({
   active,
   payload,
   bucketUnit,
@@ -622,133 +663,144 @@ function EarningsTooltip({
   return (
     <div className="bg-[var(--text-primary)] text-white rounded-md px-3 py-2 text-xs shadow-lg">
       <div className="text-[var(--text-muted)] mb-1">{label}</div>
-      <div className="font-medium tabular-nums lining-nums">{formatMnt(p.value)}</div>
+      <div className="font-medium tabular-nums">{formatAmount(p.value)}</div>
       <div className="text-[var(--text-muted)] mt-0.5 tabular-nums">
-        {p.surveys} {p.surveys === 1 ? t('survey') : t('surveys')}
+        {p.bookings} {p.bookings === 1 ? t('booking') : t('bookings')}
       </div>
     </div>
   );
 }
 
-function buildEarningsChart(
-  paidSurveys: typeof DEMO_FILLED_SURVEYS,
+function FlowTooltip({
+  active,
+  payload,
+  t,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: { date: Date; arrivals: number; departures: number } }>;
+  t: (key: string) => string;
+}) {
+  if (!active || !payload || payload.length === 0) return null;
+  const p = payload[0].payload;
+  return (
+    <div className="bg-[var(--text-primary)] text-white rounded-md px-3 py-2 text-xs shadow-lg">
+      <div className="text-[var(--text-muted)] mb-1.5">{format(p.date, 'EEE, MMM d')}</div>
+      <div className="flex items-center gap-2 tabular-nums">
+        <span className="w-2 h-2 rounded-full" style={{ background: 'var(--brand-primary)' }} />
+        {p.arrivals} {t('arrivals')}
+      </div>
+      <div className="flex items-center gap-2 tabular-nums mt-0.5">
+        <span className="w-2 h-2 rounded-full" style={{ background: 'var(--brand-accent)' }} />
+        {p.departures} {t('departures')}
+      </div>
+    </div>
+  );
+}
+
+function buildRevenueChart(
+  reservations: Reservation[],
   range: RangeKey,
+  today: Date,
 ): {
   chartData: ChartPoint[];
   rangeTotal: number;
   rangeTrend: number | null;
   rangeSubtitle: string;
-  rangeSurveys: number;
+  rangeBookings: number;
   rangeAvgPerBucket: number;
   bucketUnit: 'day' | 'week';
 } {
-  const today = startOfDay(NOW);
-
   let from: Date;
   let to: Date = today;
-  let buckets: 'day' | 'week' = 'day';
+  let bucketUnit: 'day' | 'week' = 'day';
   let subtitle = '';
 
   switch (range) {
     case '7d':
       from = subDays(today, 6);
-      buckets = 'day';
+      bucketUnit = 'day';
       subtitle = 'in the last 7 days';
       break;
     case '30d':
       from = subDays(today, 29);
-      buckets = 'week';
+      bucketUnit = 'week';
       subtitle = 'in the last 30 days';
       break;
     case 'this_month':
       from = startOfMonth(today);
-      buckets = 'week';
+      to = endOfMonth(today);
+      bucketUnit = 'week';
       subtitle = 'this month';
       break;
     case 'last_month':
     default:
       from = startOfMonth(subMonths(today, 1));
-      to = subDays(startOfMonth(today), 1);
-      buckets = 'week';
+      to = endOfMonth(subMonths(today, 1));
+      bucketUnit = 'week';
       subtitle = 'last month';
       break;
   }
 
-  // Build daily or weekly buckets (skeleton only — values come from demo pattern below)
-  let chartData: ChartPoint[] = [];
-  if (buckets === 'day') {
-    const days = differenceInDays(to, from) + 1;
-    for (let i = 0; i < days; i++) {
-      const d = subDays(to, days - 1 - i);
-      chartData.push({
-        name: format(d, 'EEE'),
-        value: 0,
-        surveys: 0,
-        date: d,
-      });
+  const revenueRows = reservations.filter((r) => countsAsRevenue(r.status));
+
+  // Build empty buckets across [from, to].
+  const chartData: ChartPoint[] = [];
+  const lengthDays = differenceInDays(to, from) + 1;
+  if (bucketUnit === 'day') {
+    for (let i = 0; i < lengthDays; i++) {
+      const d = startOfDay(subDays(to, lengthDays - 1 - i));
+      chartData.push({ name: format(d, 'EEE'), value: 0, bookings: 0, date: d });
     }
   } else {
-    const weeks = Math.ceil((differenceInDays(to, from) + 1) / 7);
+    const weeks = Math.ceil(lengthDays / 7);
     for (let i = 0; i < weeks; i++) {
-      const start = subDays(to, (weeks - i) * 7 - 1);
-      chartData.push({
-        name: `Wk ${i + 1}`,
-        value: 0,
-        surveys: 0,
-        date: start,
-      });
+      const start = startOfDay(subDays(to, (weeks - i) * 7 - 1));
+      chartData.push({ name: `Wk ${i + 1}`, value: 0, bookings: 0, date: start });
     }
   }
 
-  // Demo values — zigzag patterns per range so the line actually has life
-  const DEMO_PATTERNS: Record<RangeKey, { values: number[]; surveys: number[] }> = {
-    '7d': {
-      values: [6500, 2000, 11500, 4000, 14500, 3500, 9000],
-      surveys: [2, 1, 3, 1, 3, 1, 2],
-    },
-    '30d': {
-      values: [18500, 9500, 22000, 12500, 19000],
-      surveys: [5, 3, 6, 4, 5],
-    },
-    this_month: {
-      values: [14500, 26000, 10500, 22500, 8500],
-      surveys: [4, 6, 3, 5, 2],
-    },
-    last_month: {
-      values: [21000, 12000, 27500, 15000, 19500],
-      surveys: [5, 3, 7, 4, 5],
-    },
+  // Assign each reservation's revenue to its bucket by check-in date.
+  const assign = (checkIn: Date): number => {
+    const day = startOfDay(checkIn);
+    const offset = differenceInDays(day, startOfDay(from));
+    if (offset < 0 || offset >= lengthDays) return -1;
+    return bucketUnit === 'day' ? offset : Math.min(chartData.length - 1, Math.floor(offset / 7));
   };
 
-  const pattern = DEMO_PATTERNS[range];
-  chartData.forEach((p, i) => {
-    p.value = pattern.values[i % pattern.values.length];
-    p.surveys = pattern.surveys[i % pattern.surveys.length];
+  revenueRows.forEach((r) => {
+    const checkIn = new Date(r.checkIn);
+    if (!isWithinInterval(startOfDay(checkIn), { start: startOfDay(from), end: startOfDay(to) })) return;
+    const idx = assign(checkIn);
+    if (idx < 0) return;
+    chartData[idx].value += r.amount;
+    chartData[idx].bookings += 1;
   });
 
   const rangeTotal = chartData.reduce((sum, p) => sum + p.value, 0);
-  const rangeSurveys = chartData.reduce((sum, p) => sum + p.surveys, 0);
+  const rangeBookings = chartData.reduce((sum, p) => sum + p.bookings, 0);
 
-  // Trend vs a plausible prior period — varies by range so each view tells its own story
-  const prevMultiplier: Record<RangeKey, number> = {
-    '7d': 0.82,
-    '30d': 1.12,
-    this_month: 0.94,
-    last_month: 1.05,
-  };
-  const prevTotal = Math.round(rangeTotal * prevMultiplier[range]);
+  // Trend vs the immediately preceding period of equal length (real data).
+  const prevTo = subDays(from, 1);
+  const prevFrom = subDays(prevTo, lengthDays - 1);
+  const prevTotal = revenueRows
+    .filter((r) =>
+      isWithinInterval(startOfDay(new Date(r.checkIn)), {
+        start: startOfDay(prevFrom),
+        end: startOfDay(prevTo),
+      }),
+    )
+    .reduce((sum, r) => sum + r.amount, 0);
   const rangeTrend = prevTotal === 0 ? null : ((rangeTotal - prevTotal) / prevTotal) * 100;
 
-  const rangeAvgPerBucket =
-    chartData.length === 0 ? 0 : Math.round(rangeTotal / chartData.length);
+  const rangeAvgPerBucket = chartData.length === 0 ? 0 : Math.round(rangeTotal / chartData.length);
 
   return {
     chartData,
     rangeTotal,
     rangeTrend,
     rangeSubtitle: subtitle,
-    rangeSurveys,
+    rangeBookings,
     rangeAvgPerBucket,
-    bucketUnit: buckets,
+    bucketUnit,
   };
 }

@@ -285,7 +285,7 @@ function downloadCsv(filename: string, rows: string[][]) {
 }
 
 function formatMnt(n: number) {
-  return `₩${n.toLocaleString('en-US')}`;
+  return `${n.toLocaleString('en-US')}`;
 }
 
 function qualityBadge(q: QualityTier) {
@@ -626,7 +626,7 @@ export default function SurveyDetail() {
           icon={<DollarSign className="w-5 h-5" />}
           iconTone="blue"
           label={t('Budget Spent')}
-          value={`₩${(survey.budgetSpent / 1000).toFixed(0)}K`}
+          value={`${(survey.budgetSpent / 1000).toFixed(0)}K`}
         />
       </div>
 
@@ -995,7 +995,7 @@ export default function SurveyDetail() {
                       <div className="grid grid-cols-3 gap-3">
                         <StatTile icon={<Clock className="w-4 h-4" />} tone="neutral" value={formatDuration(totalSec)} label={t('Time taken')} />
                         <StatTile icon={<BarChart3 className="w-4 h-4" />} tone="brand"   value={`×${mult.toFixed(1)}`} label={t('Multiplier')} />
-                        <StatTile icon={<DollarSign className="w-4 h-4" />} tone="amber" value={`₩${earned.toLocaleString()}`} label={t('Reward')} />
+                        <StatTile icon={<DollarSign className="w-4 h-4" />} tone="amber" value={`${earned.toLocaleString()}`} label={t('Reward')} />
                       </div>
                     </div>
                   );

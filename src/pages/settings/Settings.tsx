@@ -483,10 +483,10 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
             </div>
             <div>
               <span className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-                {t('Earn ₩5,000 per qualified friend')}
+                {t('Earn 5,000 per qualified friend')}
               </span>
               <p className="text-sm text-[var(--text-secondary)]">
-                {t('They complete one paid survey — you both get ₩5,000. No limit.')}
+                {t('They complete one paid survey — you both get 5,000. No limit.')}
               </p>
             </div>
           </div>
@@ -636,11 +636,11 @@ function DemographicsPanel({ t }: { t: TFn }) {
           </label>
           <div className="relative">
             <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-              <option>{t('Under ₩500,000')}</option>
-              <option>₩500,000 – ₩1,000,000</option>
-              <option>₩1,000,000 – ₩2,000,000</option>
-              <option>₩2,000,000 – ₩5,000,000</option>
-              <option>{t('Over ₩5,000,000')}</option>
+              <option>{t('Under 500,000')}</option>
+              <option>500,000 – 1,000,000</option>
+              <option>1,000,000 – 2,000,000</option>
+              <option>2,000,000 – 5,000,000</option>
+              <option>{t('Over 5,000,000')}</option>
               <option>{t('Prefer not to say')}</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
@@ -696,10 +696,10 @@ function SurveyPreferencesPanel({ t }: { t: TFn }) {
               <div className="relative">
                 <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
                   <option>{t('Any')}</option>
-                  <option>₩1,000+</option>
-                  <option>₩5,000+</option>
-                  <option>₩10,000+</option>
-                  <option>₩15,000+</option>
+                  <option>1,000+</option>
+                  <option>5,000+</option>
+                  <option>10,000+</option>
+                  <option>15,000+</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
               </div>

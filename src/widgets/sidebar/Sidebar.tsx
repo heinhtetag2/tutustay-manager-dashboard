@@ -6,19 +6,12 @@ import {
   Settings,
   HelpCircle,
   Bell,
-  Sparkles,
   PanelLeftClose,
   PanelLeftOpen,
   LogOut,
   LayoutDashboard,
-  Gift,
   Clock,
-  Trophy,
   CheckCircle2,
-  Wallet,
-  Newspaper,
-  ClipboardCheck,
-  Flag,
   UserCog,
   Users,
   Star,
@@ -26,6 +19,8 @@ import {
   CalendarPlus,
   CalendarCheck,
   CalendarDays,
+  TicketPercent,
+  Landmark,
   X,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
@@ -172,37 +167,6 @@ export function Sidebar({
 
         {effectiveCollapsed && <div className="border-t border-[var(--border-default)] mx-2" />}
 
-        {/* Surveys */}
-        <div>
-          <div className={cn(
-            "mb-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            effectiveCollapsed ? "opacity-0 h-0 overflow-hidden text-center" : "px-3 opacity-100 h-auto"
-          )}>
-            {t("SURVEYS")}
-          </div>
-          <div className="space-y-0.5">
-            <NavItem icon={Newspaper} label={t("Survey Feed")} path="/survey-feed" isCollapsed={effectiveCollapsed} />
-            <NavItem icon={ClipboardCheck} label={t("My Surveys")} path="/my-surveys" isCollapsed={effectiveCollapsed} />
-          </div>
-        </div>
-
-        {effectiveCollapsed && <div className="border-t border-[var(--border-default)] mx-2" />}
-
-        {/* Moderation */}
-        <div>
-          <div className={cn(
-            "mb-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            effectiveCollapsed ? "opacity-0 h-0 overflow-hidden text-center" : "px-3 opacity-100 h-auto"
-          )}>
-            {t("MODERATION")}
-          </div>
-          <div className="space-y-0.5">
-            <NavItem icon={Flag} label={t("Reports")} path="/reports" isCollapsed={effectiveCollapsed} />
-          </div>
-        </div>
-
-        {effectiveCollapsed && <div className="border-t border-[var(--border-default)] mx-2" />}
-
         {/* Team */}
         <div>
           <div className={cn(
@@ -237,16 +201,31 @@ export function Sidebar({
 
         {effectiveCollapsed && <div className="border-t border-[var(--border-default)] mx-2" />}
 
-        {/* Payments */}
+        {/* Marketing */}
         <div>
           <div className={cn(
             "mb-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
             effectiveCollapsed ? "opacity-0 h-0 overflow-hidden text-center" : "px-3 opacity-100 h-auto"
           )}>
-            {t("PAYMENTS")}
+            {t("MARKETING")}
           </div>
           <div className="space-y-0.5">
-            <NavItem icon={Wallet} label={t("Wallet")} path="/wallet" isCollapsed={effectiveCollapsed} />
+            <NavItem icon={TicketPercent} label={t("Coupon Management")} path="/coupons" isCollapsed={effectiveCollapsed} />
+          </div>
+        </div>
+
+        {effectiveCollapsed && <div className="border-t border-[var(--border-default)] mx-2" />}
+
+        {/* Finance */}
+        <div>
+          <div className={cn(
+            "mb-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            effectiveCollapsed ? "opacity-0 h-0 overflow-hidden text-center" : "px-3 opacity-100 h-auto"
+          )}>
+            {t("FINANCE")}
+          </div>
+          <div className="space-y-0.5">
+            <NavItem icon={Landmark} label={t("Settlement")} path="/settlements" isCollapsed={effectiveCollapsed} />
           </div>
         </div>
 
@@ -395,16 +374,16 @@ export function Sidebar({
                   {t("New")}
                 </h3>
                 <div className="space-y-2">
-                  {/* New matching survey */}
-                  <NavLink to="/survey-feed" className="group block text-left p-3 rounded-md bg-white border border-[var(--border-default)] hover:bg-[var(--surface-muted)] transition-colors relative cursor-pointer">
+                  {/* New booking request */}
+                  <NavLink to="/booking-requests" className="group block text-left p-3 rounded-md bg-white border border-[var(--border-default)] hover:bg-[var(--surface-muted)] transition-colors relative cursor-pointer">
                     <div className="absolute top-3.5 right-3 w-2 h-2 rounded-full bg-[var(--brand-primary)]" />
                     <div className="flex gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[var(--success-tint)] flex items-center justify-center shrink-0 mt-0.5">
-                        <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />
+                      <div className="w-8 h-8 rounded-full bg-[var(--brand-tint)] flex items-center justify-center shrink-0 mt-0.5">
+                        <CalendarPlus className="w-4 h-4 text-[var(--brand-primary)]" />
                       </div>
                       <div className="flex-1 pr-4">
                         <p className="text-sm text-[var(--text-primary)] leading-snug">
-                          <span className="font-medium">{t("Khan Bank")}</span> — {t("Brand Awareness Survey is a 95% match.")} <span className="font-medium">{t("₩15,000 reward.")}</span>
+                          {t("New booking request from ")}<span className="font-medium">{t("Grace Park")}</span>{t(" — Superior, 3 nights.")} <span className="font-medium">{t("270,000.")}</span>
                         </p>
                         <span className="text-xs text-[var(--text-secondary)] mt-1.5 block">
                           {t("10 mins ago")}
@@ -413,18 +392,16 @@ export function Sidebar({
                     </div>
                   </NavLink>
 
-                  {/* Reward cleared the 24h hold */}
-                  <NavLink to="/wallet" className="group block text-left p-3 rounded-md bg-white border border-[var(--border-default)] hover:bg-[var(--surface-muted)] transition-colors relative cursor-pointer">
+                  {/* New guest review */}
+                  <NavLink to="/reviews" className="group block text-left p-3 rounded-md bg-white border border-[var(--border-default)] hover:bg-[var(--surface-muted)] transition-colors relative cursor-pointer">
                     <div className="absolute top-3.5 right-3 w-2 h-2 rounded-full bg-[var(--brand-primary)]" />
                     <div className="flex gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[var(--brand-tint)] flex items-center justify-center shrink-0 mt-0.5">
-                        <Wallet className="w-4 h-4 text-[var(--brand-primary)]" />
+                      <div className="w-8 h-8 rounded-full bg-[var(--success-tint)] flex items-center justify-center shrink-0 mt-0.5">
+                        <Star className="w-4 h-4 text-[var(--success)]" />
                       </div>
                       <div className="flex-1 pr-4">
                         <p className="text-sm text-[var(--text-primary)] leading-snug">
-                          {t("Your ")}
-                          <span className="font-medium">{t("₩15,000")}</span>
-                          {t(" reward for Service Quality Assessment cleared the 24-hour hold.")}
+                          <span className="font-medium">{t("Daniel Foster")}</span>{t(" left a ")}<span className="font-medium">{t("5-star review")}</span>{t(" for his Deluxe stay.")}
                         </p>
                         <span className="text-xs text-[var(--text-secondary)] mt-1.5 block">
                           {t("1 hour ago")}
@@ -444,14 +421,14 @@ export function Sidebar({
               <div className="space-y-2">
                 {!hasUnread && (
                   <>
-                    <NavLink to="/survey-feed" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                    <NavLink to="/booking-requests" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
                       <div className="flex gap-3">
                         <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0 mt-0.5">
-                          <CheckCircle2 className="w-4 h-4 text-[var(--text-tertiary)]" />
+                          <CalendarPlus className="w-4 h-4 text-[var(--text-tertiary)]" />
                         </div>
                         <div className="flex-1">
                           <p className="text-sm text-[var(--text-tertiary)] leading-snug">
-                            <span className="font-medium text-[var(--text-primary)]">{t("Khan Bank")}</span> — {t("Brand Awareness Survey is a 95% match.")} <span className="font-medium text-[var(--text-primary)]">{t("₩15,000 reward.")}</span>
+                            {t("New booking request from ")}<span className="font-medium text-[var(--text-primary)]">{t("Grace Park")}</span>{t(" — Superior, 3 nights.")} <span className="font-medium text-[var(--text-primary)]">{t("270,000.")}</span>
                           </p>
                           <span className="text-xs text-[var(--text-secondary)] mt-1.5 block">
                             {t("10 mins ago")}
@@ -460,16 +437,14 @@ export function Sidebar({
                       </div>
                     </NavLink>
 
-                    <NavLink to="/wallet" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                    <NavLink to="/reviews" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
                       <div className="flex gap-3">
                         <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0 mt-0.5">
-                          <Wallet className="w-4 h-4 text-[var(--text-tertiary)]" />
+                          <Star className="w-4 h-4 text-[var(--text-tertiary)]" />
                         </div>
                         <div className="flex-1">
                           <p className="text-sm text-[var(--text-tertiary)] leading-snug">
-                            {t("Your ")}
-                            <span className="font-medium text-[var(--text-primary)]">{t("₩15,000")}</span>
-                            {t(" reward for Service Quality Assessment cleared the 24-hour hold.")}
+                            <span className="font-medium text-[var(--text-primary)]">{t("Daniel Foster")}</span>{t(" left a ")}<span className="font-medium text-[var(--text-primary)]">{t("5-star review")}</span>{t(" for his Deluxe stay.")}
                           </p>
                           <span className="text-xs text-[var(--text-secondary)] mt-1.5 block">
                             {t("1 hour ago")}
@@ -480,17 +455,17 @@ export function Sidebar({
                   </>
                 )}
 
-                {/* Withdrawal successful */}
-                <NavLink to="/wallet" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                {/* Booking confirmed */}
+                <NavLink to="/reservations" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
                   <div className="flex gap-3">
                     <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0 mt-0.5">
-                      <Wallet className="w-4 h-4 text-[var(--text-tertiary)]" />
+                      <CheckCircle2 className="w-4 h-4 text-[var(--text-tertiary)]" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-[var(--text-tertiary)] leading-snug">
-                        {t("Withdrawal of ")}
-                        <span className="font-medium text-[var(--text-primary)]">{t("₩50,000")}</span>
-                        {t(" to QPay ••12 was successful.")}
+                        {t("Reservation ")}
+                        <span className="font-medium text-[var(--text-primary)]">{t("RSV-1053")}</span>
+                        {t(" for Sofia Marin is confirmed — Deluxe, 4 nights.")}
                       </p>
                       <span className="text-xs text-[var(--text-secondary)] mt-1.5 block">
                         {t("Yesterday")}
@@ -499,75 +474,56 @@ export function Sidebar({
                   </div>
                 </NavLink>
 
-                {/* Trust level up */}
-                <NavLink to="/survey-feed" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                {/* Check-in reminder */}
+                <NavLink to="/reservations" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
                   <div className="flex gap-3">
                     <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0 mt-0.5">
-                      <Trophy className="w-4 h-4 text-[var(--text-tertiary)]" />
+                      <CalendarCheck className="w-4 h-4 text-[var(--text-tertiary)]" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-[var(--text-tertiary)] leading-snug">
-                        {t("You unlocked ")}
-                        <span className="font-medium text-[var(--text-primary)]">{t("Trust Level 2")}</span>
-                        {t(" — higher-paying surveys are now in your feed.")}
+                        <span className="font-medium text-[var(--text-primary)]">{t("Daniel Foster")}</span>
+                        {t(" is due to check in today — Room 305.")}
                       </p>
                       <span className="text-xs text-[var(--text-secondary)] mt-1.5 block">
-                        {t("Apr 18")}
+                        {t("Yesterday")}
                       </span>
                     </div>
                   </div>
                 </NavLink>
 
-                {/* Streak bonus */}
-                <NavLink to="/wallet" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0 mt-0.5">
-                      <Sparkles className="w-4 h-4 text-[var(--text-tertiary)]" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-[var(--text-tertiary)] leading-snug">
-                        <span className="font-medium text-[var(--text-primary)]">{t("7-day streak")}</span>
-                        {t(" bonus of ₩1,000 applied to your wallet.")}
-                      </p>
-                      <span className="text-xs text-[var(--text-secondary)] mt-1.5 block">
-                        {t("Apr 14")}
-                      </span>
-                    </div>
-                  </div>
-                </NavLink>
-
-                {/* Response held for review */}
-                <NavLink to="/my-surveys" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                {/* Booking request declined */}
+                <NavLink to="/booking-requests" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
                   <div className="flex gap-3">
                     <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0 mt-0.5">
                       <Clock className="w-4 h-4 text-[var(--text-tertiary)]" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-[var(--text-tertiary)] leading-snug">
-                        {t("Your response to ")}
-                        <span className="font-medium text-[var(--text-primary)]">{t("5G Rollout Feedback")}</span>
-                        {t(" is held for quality review.")}
+                        {t("Request from ")}
+                        <span className="font-medium text-[var(--text-primary)]">{t("Marcus Lee")}</span>
+                        {t(" was declined — no availability for those dates.")}
                       </p>
                       <span className="text-xs text-[var(--text-secondary)] mt-1.5 block">
-                        {t("Apr 12")}
+                        {t("May 31")}
                       </span>
                     </div>
                   </div>
                 </NavLink>
 
-                {/* Referral completed */}
-                <NavLink to="/settings" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                {/* New customer registered */}
+                <NavLink to="/customers" className="group block text-left p-3 rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
                   <div className="flex gap-3">
                     <div className="w-8 h-8 rounded-full bg-[var(--surface-subtle)] flex items-center justify-center shrink-0 mt-0.5">
-                      <Gift className="w-4 h-4 text-[var(--text-tertiary)]" />
+                      <Users className="w-4 h-4 text-[var(--text-tertiary)]" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-[var(--text-tertiary)] leading-snug">
-                        <span className="font-medium text-[var(--text-primary)]">{t("Bataa")}</span>
-                        {t(" completed their first paid survey. You both earned ₩5,000.")}
+                        <span className="font-medium text-[var(--text-primary)]">{t("Elena Rossi")}</span>
+                        {t(" registered as a new customer.")}
                       </p>
                       <span className="text-xs text-[var(--text-secondary)] mt-1.5 block">
-                        {t("Apr 10")}
+                        {t("May 28")}
                       </span>
                     </div>
                   </div>

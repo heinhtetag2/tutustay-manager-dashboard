@@ -36,9 +36,9 @@ const EARN_RANGES: Record<Exclude<EarnFilter, 'All'>, [number, number]> = {
 };
 
 function formatMnt(value: number): string {
-  if (value >= 1_000_000) return `₩${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `₩${Math.round(value / 1_000)}K`;
-  return `₩${value}`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${Math.round(value / 1_000)}K`;
+  return `${value}`;
 }
 
 function getStatusStyles(status: RespondentStatus) {
@@ -294,10 +294,10 @@ export default function Respondents() {
             className="sm:w-auto"
             options={[
               { value: 'All', label: t('Any earnings') },
-              { value: 'under-100k', label: t('Under ₩100K') },
-              { value: '100k-300k', label: t('₩100K – ₩300K') },
-              { value: '300k-500k', label: t('₩300K – ₩500K') },
-              { value: 'over-500k', label: t('Over ₩500K') },
+              { value: 'under-100k', label: t('Under 100K') },
+              { value: '100k-300k', label: t('100K – 300K') },
+              { value: '300k-500k', label: t('300K – 500K') },
+              { value: 'over-500k', label: t('Over 500K') },
             ]}
           />
 

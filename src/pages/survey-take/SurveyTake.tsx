@@ -28,7 +28,7 @@ import {
 } from '@/pages/my-surveys/my-surveys-data';
 
 function formatMnt(value: number): string {
-  return `₩${value.toLocaleString('en-US')}`;
+  return `${value.toLocaleString('en-US')}`;
 }
 
 export default function SurveyTake() {

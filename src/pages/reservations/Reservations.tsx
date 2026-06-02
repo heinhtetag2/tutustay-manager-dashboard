@@ -13,9 +13,11 @@ import {
   ArrowUpDown,
   ListFilter,
   Calendar as CalendarIcon,
+  CalendarClock,
   Check,
   CalendarSearch,
   X,
+  Moon,
 } from 'lucide-react';
 
 import { BrandSelect } from '@/shared/ui/brand-select';
@@ -26,14 +28,14 @@ import { formatAmount, countsAsRevenue, RESERVATION_STATUSES, type Reservation, 
 import { useReservations } from './use-reservations';
 
 type StatusFilter = 'All' | ReservationStatus | 'Overdue';
+type NightsFilter = 'All' | '1' | '2-3' | '4+';
 type Sort = 'checkin' | 'recent' | 'amount';
 
 const COL_DEFS: ColumnDef[] = [
   { key: 'no', w: 60, min: 52 },
   { key: 'guest', w: 280, min: 220 },
   { key: 'room', w: 160, min: 120 },
-  { key: 'checkIn', w: 150, min: 120 },
-  { key: 'checkOut', w: 150, min: 120 },
+  { key: 'stay', w: 240, min: 190 },
   { key: 'nights', w: 90, min: 72 },
   { key: 'amount', w: 150, min: 120 },
   { key: 'status', w: 150, min: 120 },
@@ -79,14 +81,21 @@ export default function Reservations() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const reservations = useReservations((s) => s.reservations);
-  const { formatDate } = useDateFormat();
+  const { formatDate, formatDateTime } = useDateFormat();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
+  const [roomTypeFilter, setRoomTypeFilter] = useState('All');
+  const [nightsFilter, setNightsFilter] = useState<NightsFilter>('All');
   const [sort, setSort] = useState<Sort>('checkin');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('Custom date range');
+
+  const roomTypeOptions = [
+    { value: 'All', label: t('All types') },
+    ...Array.from(new Set(reservations.map((r) => r.roomType))).sort().map((rt) => ({ value: rt, label: t(rt) })),
+  ];
   const { widths: colWidths, onResizeStart } = useResizableColumns(COL_DEFS);
 
   const counts = {
@@ -96,8 +105,8 @@ export default function Reservations() {
     revenue: reservations.filter((r) => countsAsRevenue(r.status)).reduce((n, r) => n + r.amount, 0),
   };
 
-  const hasActiveFilters = search !== '' || statusFilter !== 'All' || !!dateRange?.from;
-  const clearFilters = () => { setSearch(''); setStatusFilter('All'); setDateRange(undefined); };
+  const hasActiveFilters = search !== '' || statusFilter !== 'All' || roomTypeFilter !== 'All' || nightsFilter !== 'All' || !!dateRange?.from;
+  const clearFilters = () => { setSearch(''); setStatusFilter('All'); setRoomTypeFilter('All'); setNightsFilter('All'); setDateRange(undefined); };
 
   const dateLabel = dateRange?.from
     ? dateRange.to
@@ -109,6 +118,10 @@ export default function Reservations() {
   const visible = reservations
     .filter((r) => {
       if (statusFilter !== 'All' && displayStatus(r.checkOut, r.status) !== statusFilter) return false;
+      if (roomTypeFilter !== 'All' && r.roomType !== roomTypeFilter) return false;
+      if (nightsFilter === '1' && r.nights !== 1) return false;
+      if (nightsFilter === '2-3' && (r.nights < 2 || r.nights > 3)) return false;
+      if (nightsFilter === '4+' && r.nights < 4) return false;
       if (dateRange?.from) {
         const ci = new Date(r.checkIn);
         if (isBefore(ci, dateRange.from)) return false;
@@ -131,8 +144,8 @@ export default function Reservations() {
   ];
 
   const colLabel: Record<string, string> = {
-    no: t('No.'), guest: t('Guest'), room: t('Room'), checkIn: t('Check-in'),
-    checkOut: t('Check-out'), nights: t('Nights'), amount: t('Amount'), status: t('Status'),
+    no: t('No.'), guest: t('Guest'), room: t('Room'), stay: t('Stay'),
+    nights: t('Nights'), amount: t('Amount'), status: t('Status'),
   };
 
   return (
@@ -167,6 +180,8 @@ export default function Reservations() {
         </div>
         <div className="flex gap-3 w-full sm:w-auto flex-wrap">
           <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<ListFilter />} className="sm:w-auto" options={[{ value: 'All', label: t('All statuses') }, ...RESERVATION_STATUSES.map((s) => ({ value: s, label: t(s) })), { value: 'Overdue', label: t('Overdue') }]} />
+          <BrandSelect value={roomTypeFilter} onValueChange={setRoomTypeFilter} leftIcon={<BedSingle />} className="sm:w-auto" options={roomTypeOptions} />
+          <BrandSelect value={nightsFilter} onValueChange={(v) => setNightsFilter(v as NightsFilter)} leftIcon={<Moon />} className="sm:w-auto" options={[{ value: 'All', label: t('All nights') }, { value: '1', label: t('1 night') }, { value: '2-3', label: t('2–3 nights') }, { value: '4+', label: t('4+ nights') }]} />
           <BrandSelect value={sort} onValueChange={(v) => setSort(v as Sort)} leftIcon={<ArrowUpDown />} className="sm:w-auto" options={[{ value: 'checkin', label: t('Check-in soonest') }, { value: 'recent', label: t('Recently booked') }, { value: 'amount', label: t('Highest amount') }]} />
 
           {/* Check-in date range filter */}
@@ -243,7 +258,7 @@ export default function Reservations() {
                 </tr>
               ) : (
                 visible.map((r, index) => (
-                  <ReservationRow key={r.id} reservation={r} index={index} formatDate={formatDate} onOpen={() => navigate(`/reservations/${r.id}`)} t={t} />
+                  <ReservationRow key={r.id} reservation={r} index={index} formatDateTime={formatDateTime} onOpen={() => navigate(`/reservations/${r.id}`)} t={t} />
                 ))
               )}
             </tbody>
@@ -263,7 +278,7 @@ export default function Reservations() {
   );
 }
 
-function ReservationRow({ reservation: r, index, formatDate, onOpen, t }: { reservation: Reservation; index: number; formatDate: (v: string) => string; onOpen: () => void; t: (k: string) => string }) {
+function ReservationRow({ reservation: r, index, formatDateTime, onOpen, t }: { reservation: Reservation; index: number; formatDateTime: (v: string) => string; onOpen: () => void; t: (k: string) => string }) {
   const ds = displayStatus(r.checkOut, r.status);
   return (
     <motion.tr initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: index * 0.02 }} onClick={onOpen} className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer">
@@ -281,8 +296,12 @@ function ReservationRow({ reservation: r, index, formatDate, onOpen, t }: { rese
         <div>{t(r.roomType)}</div>
         <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">{t('Room')} {r.roomNo}</div>
       </td>
-      <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{formatDate(r.checkIn)}</td>
-      <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{formatDate(r.checkOut)}</td>
+      <td className="px-6 py-4 text-[var(--text-tertiary)]">
+        <span className="inline-flex items-center gap-2 tabular-nums">
+          <CalendarClock className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
+          {format(new Date(r.checkIn), 'MMM d')} – {format(new Date(r.checkOut), 'MMM d, yyyy')}
+        </span>
+      </td>
       <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums text-center">{r.nights}</td>
       <td className="px-6 py-4 text-[var(--text-primary)] font-medium tabular-nums">{formatAmount(r.amount)}</td>
       <td className="px-6 py-4">
