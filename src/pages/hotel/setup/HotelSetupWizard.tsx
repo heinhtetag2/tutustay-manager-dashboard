@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
-import { Portal } from '@/shared/ui/portal';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { ImageCropper } from '@/pages/agents/ImageCropper';
 import { useHotel } from '../use-hotel';
@@ -122,25 +121,9 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
   const stepProps: StepProps = { draft, set, t, showErrors, errors };
 
   return (
-    <Portal>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-50 bg-[var(--text-primary)]/40 flex items-center justify-center p-4 md:p-6"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.96, opacity: 0, y: 12 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.96, opacity: 0, y: 12 }}
-          transition={{ type: 'spring', stiffness: 320, damping: 32, mass: 0.9 }}
-          onClick={(e) => e.stopPropagation()}
-          className="relative w-[min(1080px,96vw)] h-[min(88vh,820px)] bg-white rounded-xl overflow-hidden flex shadow-[0_24px_70px_rgba(44,38,39,0.22)]"
-        >
+    <div className="fixed inset-0 z-40 bg-white flex">
           {/* Left intro / step rail */}
-          <aside className="hidden md:flex w-[296px] shrink-0 flex-col justify-between p-7 border-r border-[var(--border-default)] bg-[var(--brand-tint)]">
+          <aside className="hidden md:flex w-[320px] xl:w-[360px] shrink-0 flex-col justify-between p-8 border-r border-[var(--border-default)] bg-[var(--brand-tint)]">
             <div>
               <h2 className="text-2xl font-serif text-[var(--text-primary)] leading-snug">
                 {t('Set up your hotel')}
@@ -263,9 +246,7 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
           >
             <X className="w-5 h-5" />
           </button>
-        </motion.div>
-      </motion.div>
-    </Portal>
+    </div>
   );
 }
 

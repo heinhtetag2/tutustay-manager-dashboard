@@ -14,7 +14,7 @@ import {
   CalendarRange,
   Users,
   CreditCard,
-  Moon,
+  CloudMoon,
   Clock,
   ArrowUpRight,
   User,
@@ -23,12 +23,13 @@ import {
   CalendarCheck,
   TriangleAlert,
   CheckCircle2,
+  Tag,
 } from 'lucide-react';
 
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { useCustomers } from '@/pages/customers/use-customers';
 import { formatMoney } from '@/pages/customers/customers-data';
-import { formatAmount, type ReservationStatus } from './reservations-data';
+import { formatAmount, rateLabel, type ReservationStatus } from './reservations-data';
 import { useReservations } from './use-reservations';
 
 const TODAY = new Date('2026-06-01T00:00:00');
@@ -84,8 +85,11 @@ export default function ReservationDetail() {
   const dob = customer?.dateOfBirth ? new Date(customer.dateOfBirth) : null;
   const age = dob ? differenceInYears(TODAY, dob) : null;
 
+  const dayUse = r.rateType === 'Session';
   const stats = [
-    { title: 'Nights', Icon: Moon, value: String(r.nights), subtitle: `${formatDateTime(r.checkIn)} → ${formatDateTime(r.checkOut)}` },
+    dayUse
+      ? { title: 'Booking type', Icon: CloudMoon, value: t('Day use'), subtitle: `${formatDateTime(r.checkIn)} → ${formatDateTime(r.checkOut)}` }
+      : { title: 'Nights', Icon: CloudMoon, value: String(r.nights), subtitle: `${formatDateTime(r.checkIn)} → ${formatDateTime(r.checkOut)}` },
     { title: 'Guests', Icon: Users, value: String(r.guests), subtitle: t('In this reservation') },
     { title: 'Amount', Icon: CreditCard, value: formatAmount(r.amount), subtitle: t('Total for the stay') },
     { title: 'Booked on', Icon: Clock, value: formatDate(r.createdAt), subtitle: r.code },
@@ -184,9 +188,14 @@ export default function ReservationDetail() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 px-6 py-5">
               <InfoRow Icon={Hash} label={t('Reservation code')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{r.code}</span></InfoRow>
               <InfoRow Icon={BedDouble} label={t('Room')}><span className="text-sm text-[var(--text-primary)]">{t(r.roomType)} · {t('Room')} {r.roomNo}</span></InfoRow>
+              <InfoRow Icon={Tag} label={t('Booking type')}>
+                <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-full bg-[var(--brand-tint)] text-[var(--brand-primary)]">
+                  {t(rateLabel(r.rateType))}
+                </span>
+              </InfoRow>
               <InfoRow Icon={CalendarRange} label={t('Check-in')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(r.checkIn)}</span></InfoRow>
               <InfoRow Icon={CalendarRange} label={t('Check-out')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(r.checkOut)}</span></InfoRow>
-              <InfoRow Icon={Moon} label={t('Nights')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{r.nights}</span></InfoRow>
+              <InfoRow Icon={CloudMoon} label={t('Duration')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{dayUse ? t('Day use') : `${r.nights} ${r.nights === 1 ? t('night') : t('nights')}`}</span></InfoRow>
               <InfoRow Icon={Users} label={t('Guests')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{r.guests}</span></InfoRow>
               <InfoRow Icon={CreditCard} label={t('Amount')}><span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatAmount(r.amount)}</span></InfoRow>
               <InfoRow Icon={Clock} label={t('Booked on')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(r.createdAt)}</span></InfoRow>

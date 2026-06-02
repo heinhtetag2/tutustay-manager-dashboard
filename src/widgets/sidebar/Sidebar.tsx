@@ -59,6 +59,76 @@ function useNavTooltip(label: string, enabled: boolean) {
   return { ref, onMouseEnter, onMouseLeave, node };
 }
 
+/** User profile chip + dropdown. The menu is rendered in a Portal (fixed
+ *  position) so it isn't clipped by the sidebar's overflow-hidden; a short
+ *  close delay lets the pointer travel from the chip into the menu. */
+function ProfileMenu({ collapsed }: { collapsed: boolean }) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [open, setOpen] = React.useState(false);
+  const [pos, setPos] = React.useState({ left: 0, bottom: 0 });
+
+  const show = () => {
+    if (timer.current) clearTimeout(timer.current);
+    if (ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setPos({ left: r.right + 8, bottom: window.innerHeight - r.bottom });
+    }
+    setOpen(true);
+  };
+  const hide = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setOpen(false), 140);
+  };
+
+  return (
+    <div ref={ref} onMouseEnter={show} onMouseLeave={hide}>
+      <div className={cn(
+        "mt-4 flex items-center hover:bg-[var(--surface-subtle)] rounded-md cursor-pointer transition-colors w-full",
+        collapsed ? "justify-center px-0 py-2" : "gap-3 px-2 py-2"
+      )}>
+        <div className="w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center text-xs font-medium shrink-0">H</div>
+        {!collapsed && (
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-sm font-medium text-[var(--text-primary)] truncate text-left">Hein Htet</span>
+            <span className="text-xs text-[var(--text-secondary)] truncate text-left">heincise@gmail.com</span>
+          </div>
+        )}
+      </div>
+
+      {open && (
+        <Portal>
+          <div
+            onMouseEnter={show}
+            onMouseLeave={hide}
+            style={{ position: 'fixed', left: pos.left, bottom: pos.bottom }}
+            className="z-[100] w-56 bg-white border border-[var(--border-default)] rounded-md p-1.5 flex flex-col gap-0.5 shadow-[0_8px_28px_rgba(44,38,39,0.16)]"
+          >
+            <div className="px-2.5 py-2 mb-1">
+              <span className="block text-sm font-medium text-[var(--text-primary)] truncate">Hein Htet</span>
+              <span className="block text-xs text-[var(--text-secondary)] truncate">heincise@gmail.com</span>
+            </div>
+            <div className="h-px bg-[var(--border-default)] mx-1 mb-1" />
+            <button className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
+              <Settings className="w-4 h-4 text-[var(--text-secondary)]" />
+              Account Settings
+            </button>
+            <button className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
+              <HelpCircle className="w-4 h-4 text-[var(--text-secondary)]" />
+              Support
+            </button>
+            <div className="h-px bg-[var(--border-default)] mx-1 my-1" />
+            <button className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
+              <LogOut className="w-4 h-4" />
+              Log out
+            </button>
+          </div>
+        </Portal>
+      )}
+    </div>
+  );
+}
+
 export function Sidebar({
   isCollapsed,
   onToggle,
@@ -297,48 +367,7 @@ export function Sidebar({
         />
 
         {/* User Profile */}
-        <div className="relative group">
-          <div className={cn(
-            "mt-4 flex items-center hover:bg-[var(--surface-subtle)] rounded-md cursor-pointer transition-colors w-full",
-            effectiveCollapsed ? "justify-center px-0 py-2" : "gap-3 px-2 py-2"
-          )}>
-            <div className="w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center text-xs font-medium shrink-0">
-              H
-            </div>
-            {!effectiveCollapsed && (
-              <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-medium text-[var(--text-primary)] truncate text-left">Hein Htet</span>
-                <span className="text-xs text-[var(--text-secondary)] truncate text-left">heincise@gmail.com</span>
-              </div>
-            )}
-          </div>
-          
-          {/* Profile Menu Dropdown */}
-          <div className="absolute left-full bottom-0 ml-2 w-56 bg-white border border-[var(--border-default)] rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 p-1.5 flex flex-col gap-0.5">
-            <div className="px-2.5 py-2 mb-1">
-              <span className="block text-sm font-medium text-[var(--text-primary)] truncate">Hein Htet</span>
-              <span className="block text-xs text-[var(--text-secondary)] truncate">heincise@gmail.com</span>
-            </div>
-            
-            <div className="h-px bg-[var(--border-default)] mx-1 mb-1"></div>
-            
-            <button className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5">
-              <Settings className="w-4 h-4 text-[var(--text-secondary)]" />
-              Account Settings
-            </button>
-            <button className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5">
-              <HelpCircle className="w-4 h-4 text-[var(--text-secondary)]" />
-              Support
-            </button>
-            
-            <div className="h-px bg-[var(--border-default)] mx-1 my-1"></div>
-            
-            <button className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5">
-              <LogOut className="w-4 h-4" />
-              Log out
-            </button>
-          </div>
-        </div>
+        <ProfileMenu collapsed={effectiveCollapsed} />
       </div>
     </motion.aside>
 

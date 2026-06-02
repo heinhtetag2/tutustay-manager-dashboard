@@ -82,6 +82,8 @@ interface Bucket {
   periodEnd: string;
   bookings: SettlementBooking[];
   adjustments: number;
+  grossOverride?: number;
+  countOverride?: number;
 }
 
 function bucketBounds(iso: string): { start: string; end: string } {
@@ -90,20 +92,44 @@ function bucketBounds(iso: string): { start: string; end: string } {
   return { start: `${y}-${pad(m)}-16`, end: `${y}-${pad(m)}-${pad(lastDayOfMonth(y, m))}` };
 }
 
+/** Deterministic pseudo figures for an archived (synthetic) period. */
+function synthFigures(i: number): { gross: number; count: number; adjustments: number } {
+  return {
+    gross: 1_700_000 + ((i * 53) % 9) * 210_000 + ((i * 29) % 5) * 160_000,
+    count: 11 + ((i * 7) % 11),
+    adjustments: i % 4 === 0 ? 60_000 + ((i * 17) % 4) * 30_000 : 0,
+  };
+}
+
 /**
- * Build settlements from real reservations: revenue bookings are grouped into
- * bi-weekly payout periods by check-out date; cancellations book a refund
- * adjustment; status is derived from the payout date relative to `now`.
+ * Build settlements: recent periods come from real reservations (grouped into
+ * bi-weekly payout periods by check-out, with cancellation refund adjustments);
+ * a short synthetic archive (Sep 2025 → Apr 2026) gives enough history to page.
+ * Status is derived from the payout date relative to `now`.
  */
 export function buildSettlements(now: Date = SETTLEMENT_NOW): Settlement[] {
   const buckets = new Map<string, Bucket>();
 
-  // Revenue bookings → period buckets.
+  // Synthetic archive: bi-weekly periods from Sep 2025 → Apr 2026.
+  let si = 0;
+  const archive: Array<[number, number]> = [
+    [2025, 9], [2025, 10], [2025, 11], [2025, 12], [2026, 1], [2026, 2], [2026, 3], [2026, 4],
+  ];
+  archive.forEach(([y, m]) => {
+    for (const half of [1, 2] as const) {
+      const start = half === 1 ? `${y}-${pad(m)}-01` : `${y}-${pad(m)}-16`;
+      const end = half === 1 ? `${y}-${pad(m)}-15` : `${y}-${pad(m)}-${pad(lastDayOfMonth(y, m))}`;
+      const f = synthFigures(si++);
+      buckets.set(`${y}-${pad(m)}-${half}`, { periodStart: start, periodEnd: end, bookings: [], adjustments: f.adjustments, grossOverride: f.gross, countOverride: f.count });
+    }
+  });
+
+  // Real revenue bookings → period buckets (May 2026 onward).
   DEMO_RESERVATIONS.forEach((r) => {
     if (!countsAsRevenue(r.status)) return;
     const key = periodKey(r.checkOut);
     let b = buckets.get(key);
-    if (!b) {
+    if (!b || b.grossOverride !== undefined) {
       const { start, end } = bucketBounds(r.checkOut);
       b = { periodStart: start, periodEnd: end, bookings: [], adjustments: 0 };
       buckets.set(key, b);
@@ -111,17 +137,17 @@ export function buildSettlements(now: Date = SETTLEMENT_NOW): Settlement[] {
     b.bookings.push({ id: r.id, code: r.code, guestName: r.guestName, roomType: r.roomType, checkOut: r.checkOut, amount: r.amount });
   });
 
-  // Cancellations → refund adjustments on an existing period.
+  // Cancellations → refund adjustments on a real period.
   DEMO_RESERVATIONS.forEach((r) => {
     if (r.status !== 'Cancelled') return;
     const b = buckets.get(periodKey(r.checkOut));
-    if (b) b.adjustments += Math.round(r.amount * CANCELLATION_REFUND_RATE);
+    if (b && b.grossOverride === undefined) b.adjustments += Math.round(r.amount * CANCELLATION_REFUND_RATE);
   });
 
   return [...buckets.values()]
     .sort((a, b) => a.periodStart.localeCompare(b.periodStart))
     .map((b, i) => {
-      const grossAmount = b.bookings.reduce((n, x) => n + x.amount, 0);
+      const grossAmount = b.bookings.length ? b.bookings.reduce((n, x) => n + x.amount, 0) : b.grossOverride ?? 0;
       const payoutDate = addDays(new Date(`${b.periodEnd}T23:59:59`), PAYOUT_DELAY_DAYS);
       const periodStarted = new Date(`${b.periodStart}T00:00:00`) <= now;
 
@@ -141,10 +167,10 @@ export function buildSettlements(now: Date = SETTLEMENT_NOW): Settlement[] {
 
       return {
         id: `st${i + 1}`,
-        reference: `STL-${2036 + i}`,
+        reference: `STL-${2020 + i}`,
         periodStart: b.periodStart,
         periodEnd: b.periodEnd,
-        bookingsCount: b.bookings.length,
+        bookingsCount: b.bookings.length || b.countOverride || 0,
         grossAmount,
         commissionRate: COMMISSION_RATE,
         adjustments: b.adjustments,

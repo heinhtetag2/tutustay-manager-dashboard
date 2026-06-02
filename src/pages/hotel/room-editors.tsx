@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Wifi, Utensils, Car, Waves, Dumbbell, Flower2, Banknote, Plane, Coffee, Tag, Moon, Users } from 'lucide-react';
+import { X, Wifi, Utensils, Car, Waves, Dumbbell, Flower2, Banknote, Plane, Coffee, Tag, CloudMoon, Users, Info } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { AMENITIES, totalBeds, type Room, type RoomType, type RoomStatus } from './hotel-data';
@@ -91,8 +91,9 @@ export function RoomEditor({ initial, roomTypes, onClose, onSave }: { initial: R
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--text-secondary)]">{t('Type')}</span>
         <BrandSelect value={d.typeName} onValueChange={onTypeChange} options={roomTypes.map((rt) => ({ value: rt.name, label: rt.name }))} />
-        <span className="text-[11px] text-[var(--text-tertiary)] leading-relaxed">
-          {t('Sets pricing, beds, occupancy and amenities for this room.')}
+        <span className="flex items-start gap-1.5 pl-1 text-[11px] text-[var(--text-tertiary)] leading-relaxed">
+          <Info className="w-3.5 h-3.5 mt-px shrink-0" />
+          <span>{t('Sets pricing, beds, occupancy and amenities for this room.')}</span>
         </span>
       </label>
       <F label={t('Status')}><BrandSelect value={d.status} onValueChange={(v) => set({ status: v as RoomStatus })} options={[{ value: 'Active', label: t('Active') }, { value: 'Inactive', label: t('Inactive') }]} /></F>
@@ -102,9 +103,9 @@ export function RoomEditor({ initial, roomTypes, onClose, onSave }: { initial: R
         const rt = roomTypes.find((r) => r.name === d.typeName);
         if (!rt) return null;
         const tabs = [
-          { key: 'regular' as const, label: t('Regular'), enabled: true },
-          { key: 'session' as const, label: t('Session'), enabled: rt.sessionEnabled },
-          { key: 'weekend' as const, label: t('Weekend'), enabled: rt.weekendEnabled },
+          { key: 'regular' as const, label: t('Regular'), badge: t('Night'), enabled: true },
+          { key: 'session' as const, label: t('Session'), badge: t('Day'), enabled: rt.sessionEnabled },
+          { key: 'weekend' as const, label: t('Weekend'), badge: t('Uplift'), enabled: rt.weekendEnabled },
         ];
         return (
           <div className="sm:col-span-2 space-y-3">
@@ -121,18 +122,22 @@ export function RoomEditor({ initial, roomTypes, onClose, onSave }: { initial: R
                 <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{t('Regular nightly rate, optional hourly sessions, and weekend rate.')}</p>
               </div>
               <div className="flex w-full p-1 bg-white border border-[var(--border-default)] rounded-lg">
-                {tabs.map(({ key, label, enabled }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    disabled={!enabled}
-                    onClick={() => enabled && setPriceTab(key)}
-                    className={`flex-1 px-4 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer disabled:cursor-default
-                      ${priceTab === key ? 'bg-[var(--text-primary)] text-white' : enabled ? 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]' : 'text-[var(--text-muted)] line-through'}`}
-                  >
-                    {label}
-                  </button>
-                ))}
+                {tabs.map(({ key, label, badge, enabled }) => {
+                  const on = priceTab === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      disabled={!enabled}
+                      onClick={() => enabled && setPriceTab(key)}
+                      className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md transition-colors disabled:cursor-not-allowed
+                        ${on ? 'bg-[var(--text-primary)] text-white cursor-pointer' : enabled ? 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer' : 'text-[var(--text-muted)] opacity-60'}`}
+                    >
+                      <span className="text-sm font-medium">{label}</span>
+                      <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${on ? 'bg-white/20 text-white' : enabled ? 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]' : 'bg-[var(--surface-subtle)] text-[var(--text-muted)]'}`}>{enabled ? badge : t('Off')}</span>
+                    </button>
+                  );
+                })}
               </div>
               <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
                 {priceTab === 'regular' && <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Base price (per night)')}</span><span>{fmt(rt.regularPrice)}</span></div>}
@@ -144,7 +149,7 @@ export function RoomEditor({ initial, roomTypes, onClose, onSave }: { initial: R
                 )}
                 {priceTab === 'weekend' && rt.weekendEnabled && (
                   <div className="space-y-2">
-                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Base price (per night)')}</span><span>{fmt(rt.weekendPrice)}</span></div>
+                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Weekend rate (per night)')}</span><span>{fmt(rt.weekendPrice)}</span></div>
                     <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Days')}</span><span className="text-sm">{rt.weekendDays.join(', ')}</span></div>
                   </div>
                 )}
@@ -159,7 +164,7 @@ export function RoomEditor({ initial, roomTypes, onClose, onSave }: { initial: R
               </div>
               <div className="flex items-center gap-5">
                 <div className="flex items-center gap-1.5 text-sm text-[var(--text-primary)]">
-                  <Moon className="w-4 h-4 text-[var(--text-tertiary)]" />
+                  <CloudMoon className="w-4 h-4 text-[var(--text-tertiary)]" />
                   <span className="font-medium tabular-nums">{d.beds}</span>
                   <span className="text-[var(--text-secondary)]">{d.beds === 1 ? t('bed') : t('beds')}</span>
                 </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
@@ -17,18 +17,18 @@ import {
   Check,
   CalendarSearch,
   X,
-  Moon,
+  CloudMoon,
 } from 'lucide-react';
 
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
-import { formatAmount, countsAsRevenue, RESERVATION_STATUSES, type Reservation, type ReservationStatus } from './reservations-data';
+import { formatAmount, countsAsRevenue, rateLabel, RESERVATION_STATUSES, type Reservation, type ReservationStatus, type RateType } from './reservations-data';
 import { useReservations } from './use-reservations';
 
 type StatusFilter = 'All' | ReservationStatus | 'Overdue';
-type NightsFilter = 'All' | '1' | '2-3' | '4+';
+type NightsFilter = 'All' | 'day-use' | '1' | '2-3' | '4+';
 type Sort = 'checkin' | 'recent' | 'amount';
 
 const COL_DEFS: ColumnDef[] = [
@@ -66,6 +66,15 @@ function displayStatus(checkOut: string, status: ReservationStatus): DisplayStat
   return isOverdue(checkOut, status) ? 'Overdue' : status;
 }
 
+/** Chip styling for non-Regular booking types (Day use / Weekend). */
+function rateChipStyle(rate: RateType): string {
+  switch (rate) {
+    case 'Session': return 'bg-[var(--brand-tint)] text-[var(--brand-primary)]';
+    case 'Weekend': return 'bg-[var(--accent-violet-tint)] text-[var(--accent-violet-deep)]';
+    default: return 'bg-[var(--surface-subtle)] text-[var(--text-secondary)]';
+  }
+}
+
 function statusStyle(status: DisplayStatus): string {
   switch (status) {
     case 'Confirmed': return 'bg-[var(--brand-tint)] text-[var(--brand-primary)]';
@@ -91,6 +100,7 @@ export default function Reservations() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('Custom date range');
+  const [page, setPage] = useState(1);
 
   const roomTypeOptions = [
     { value: 'All', label: t('All types') },
@@ -119,7 +129,8 @@ export default function Reservations() {
     .filter((r) => {
       if (statusFilter !== 'All' && displayStatus(r.checkOut, r.status) !== statusFilter) return false;
       if (roomTypeFilter !== 'All' && r.roomType !== roomTypeFilter) return false;
-      if (nightsFilter === '1' && r.nights !== 1) return false;
+      if (nightsFilter === 'day-use' && r.rateType !== 'Session') return false;
+      if (nightsFilter === '1' && (r.rateType === 'Session' || r.nights !== 1)) return false;
       if (nightsFilter === '2-3' && (r.nights < 2 || r.nights > 3)) return false;
       if (nightsFilter === '4+' && r.nights < 4) return false;
       if (dateRange?.from) {
@@ -136,6 +147,15 @@ export default function Reservations() {
       return a.checkIn.localeCompare(b.checkIn);
     });
 
+  // Pagination
+  const PAGE_SIZE = 10;
+  useEffect(() => setPage(1), [search, statusFilter, roomTypeFilter, nightsFilter, sort, dateRange]);
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paged = visible.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const rangeStart = visible.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, visible.length);
+
   const stats = [
     { title: 'Total reservations', Icon: CalendarCheck, value: String(counts.total), subtitle: t('All statuses') },
     { title: 'Overdue', Icon: TriangleAlert, value: String(counts.overdue), subtitle: t('Past checkout, not closed') },
@@ -145,7 +165,7 @@ export default function Reservations() {
 
   const colLabel: Record<string, string> = {
     no: t('No.'), guest: t('Guest'), room: t('Room'), stay: t('Stay'),
-    nights: t('Nights'), amount: t('Amount'), status: t('Status'),
+    nights: t('Duration'), amount: t('Amount'), status: t('Status'),
   };
 
   return (
@@ -181,7 +201,7 @@ export default function Reservations() {
         <div className="flex gap-3 w-full sm:w-auto flex-wrap">
           <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<ListFilter />} className="sm:w-auto" options={[{ value: 'All', label: t('All statuses') }, ...RESERVATION_STATUSES.map((s) => ({ value: s, label: t(s) })), { value: 'Overdue', label: t('Overdue') }]} />
           <BrandSelect value={roomTypeFilter} onValueChange={setRoomTypeFilter} leftIcon={<BedSingle />} className="sm:w-auto" options={roomTypeOptions} />
-          <BrandSelect value={nightsFilter} onValueChange={(v) => setNightsFilter(v as NightsFilter)} leftIcon={<Moon />} className="sm:w-auto" options={[{ value: 'All', label: t('All nights') }, { value: '1', label: t('1 night') }, { value: '2-3', label: t('2–3 nights') }, { value: '4+', label: t('4+ nights') }]} />
+          <BrandSelect value={nightsFilter} onValueChange={(v) => setNightsFilter(v as NightsFilter)} leftIcon={<CloudMoon />} className="sm:w-auto" options={[{ value: 'All', label: t('Any duration') }, { value: 'day-use', label: t('Day use') }, { value: '1', label: t('1 night') }, { value: '2-3', label: t('2–3 nights') }, { value: '4+', label: t('4+ nights') }]} />
           <BrandSelect value={sort} onValueChange={(v) => setSort(v as Sort)} leftIcon={<ArrowUpDown />} className="sm:w-auto" options={[{ value: 'checkin', label: t('Check-in soonest') }, { value: 'recent', label: t('Recently booked') }, { value: 'amount', label: t('Highest amount') }]} />
 
           {/* Check-in date range filter */}
@@ -257,8 +277,8 @@ export default function Reservations() {
                   </td>
                 </tr>
               ) : (
-                visible.map((r, index) => (
-                  <ReservationRow key={r.id} reservation={r} index={index} formatDateTime={formatDateTime} onOpen={() => navigate(`/reservations/${r.id}`)} t={t} />
+                paged.map((r, i) => (
+                  <ReservationRow key={r.id} reservation={r} index={(currentPage - 1) * PAGE_SIZE + i} formatDateTime={formatDateTime} onOpen={() => navigate(`/reservations/${r.id}`)} t={t} />
                 ))
               )}
             </tbody>
@@ -266,11 +286,19 @@ export default function Reservations() {
         </div>
 
         <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
-          <span className="text-sm text-[var(--text-secondary)]">{t('Showing')} 1 {t('to')} {visible.length} {t('of')} {counts.total} {t('reservations')}</span>
+          <span className="text-sm text-[var(--text-secondary)] tabular-nums">{t('Showing')} {rangeStart} {t('to')} {rangeEnd} {t('of')} {visible.length} {t('reservations')}</span>
           <div className="flex items-center gap-1">
-            <button disabled className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{t('Previous')}</button>
-            <button className="h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border border-[var(--brand-primary)] rounded-md bg-[var(--brand-primary)] text-white tabular-nums cursor-default">1</button>
-            <button className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">{t('Next')}</button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">{t('Previous')}</button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border rounded-md tabular-nums transition-colors cursor-pointer ${p === currentPage ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-[var(--border-default)] bg-white text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}
+              >
+                {p}
+              </button>
+            ))}
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">{t('Next')}</button>
           </div>
         </div>
       </div>
@@ -297,12 +325,23 @@ function ReservationRow({ reservation: r, index, formatDateTime, onOpen, t }: { 
         <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">{t('Room')} {r.roomNo}</div>
       </td>
       <td className="px-6 py-4 text-[var(--text-tertiary)]">
-        <span className="inline-flex items-center gap-2 tabular-nums">
-          <CalendarClock className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
-          {format(new Date(r.checkIn), 'MMM d')} – {format(new Date(r.checkOut), 'MMM d, yyyy')}
-        </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="inline-flex items-center gap-2 tabular-nums">
+            <CalendarClock className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
+            {r.rateType === 'Session'
+              ? format(new Date(r.checkIn), 'MMM d, yyyy')
+              : `${format(new Date(r.checkIn), 'MMM d')} – ${format(new Date(r.checkOut), 'MMM d, yyyy')}`}
+          </span>
+          {r.rateType && r.rateType !== 'Regular' && (
+            <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full ${rateChipStyle(r.rateType)}`}>{t(rateLabel(r.rateType))}</span>
+          )}
+        </div>
       </td>
-      <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums text-center">{r.nights}</td>
+      <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums text-center">
+        {r.rateType === 'Session'
+          ? <span className="text-[var(--text-secondary)]">{t('Day use')}</span>
+          : `${r.nights} ${r.nights === 1 ? t('night') : t('nights')}`}
+      </td>
       <td className="px-6 py-4 text-[var(--text-primary)] font-medium tabular-nums">{formatAmount(r.amount)}</td>
       <td className="px-6 py-4">
         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusStyle(ds)}`}>

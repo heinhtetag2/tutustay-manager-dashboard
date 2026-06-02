@@ -16,7 +16,7 @@ import {
   CalendarCheck,
   BedDouble,
   Users,
-  Moon,
+  CloudMoon,
   Check,
   RotateCcw,
   X,
@@ -302,7 +302,7 @@ function RateChip({ rate, t }: { rate: RateType; t: (k: string) => string }) {
   }[rate];
   return (
     <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full border ${cls}`}>
-      {t(rate)} {t('rate')}
+      {rate === 'Session' ? t('Day use') : `${t(rate)} ${t('rate')}`}
     </span>
   );
 }
@@ -372,7 +372,7 @@ function RequestCard({
         </div>
         {/* Nights */}
         <div>
-          <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-1"><Moon className="w-3 h-3" />{t('Nights')}</div>
+          <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-1"><CloudMoon className="w-3 h-3" />{t('Nights')}</div>
           <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{r.nights}</div>
         </div>
         {/* Guests */}

@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { format, isSameMonth } from 'date-fns';
+import { format, isSameMonth, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
 import {
   CheckCircle2,
   Clock,
@@ -12,9 +13,14 @@ import {
   ListFilter,
   Calendar as CalendarIcon,
   Download,
+  Check,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import {
   formatAmount,
   commissionAmount,
@@ -28,6 +34,7 @@ import { useSettlements } from './use-settlements';
 const NOW = new Date('2026-06-02T10:00:00');
 
 type StatusFilter = 'All' | SettlementStatus;
+type AmountFilter = 'All' | 'lt1m' | '1to3m' | 'gt3m';
 type ChartMetric = 'net' | 'gross' | 'commission';
 const METRICS: Record<ChartMetric, { label: string; title: string; subtitle: string }> = {
   net: { label: 'Net payout', title: 'Net payout by period', subtitle: 'Amount paid out each settlement period' },
@@ -42,7 +49,11 @@ export default function Settlements() {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
+  const [amountFilter, setAmountFilter] = useState<AmountFilter>('All');
   const [chartMetric, setChartMetric] = useState<ChartMetric>('net');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [isDateOpen, setIsDateOpen] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState('Custom date range');
 
   const counts = useMemo(() => {
     const paidOut = settlements.filter((s) => s.status === 'Paid').reduce((n, s) => n + netAmount(s), 0);
@@ -67,15 +78,52 @@ export default function Settlements() {
     .filter((s) => {
       if (statusFilter !== 'All' && s.status !== statusFilter) return false;
       if (query && !s.reference.toLowerCase().includes(query)) return false;
+      if (dateRange?.from) {
+        const from = dateRange.from;
+        const to = dateRange.to ?? dateRange.from;
+        // Keep settlements whose period overlaps the selected range.
+        if (new Date(s.periodEnd) < from || new Date(s.periodStart) > to) return false;
+      }
+      if (amountFilter !== 'All') {
+        const net = netAmount(s);
+        if (amountFilter === 'lt1m' && net >= 1_000_000) return false;
+        if (amountFilter === '1to3m' && (net < 1_000_000 || net > 3_000_000)) return false;
+        if (amountFilter === 'gt3m' && net <= 3_000_000) return false;
+      }
       return true;
     })
     .sort((a, b) => b.periodStart.localeCompare(a.periodStart));
 
-  // Net payout per period, oldest → newest, for the chart.
+  const dateLabel = dateRange?.from
+    ? dateRange.to && +dateRange.to !== +dateRange.from
+      ? `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d, yyyy')}`
+      : format(dateRange.from, 'MMM d, yyyy')
+    : t('Any period');
+  const hasActiveFilters = search !== '' || statusFilter !== 'All' || amountFilter !== 'All' || !!dateRange?.from;
+  const clearFilters = () => {
+    setSearch('');
+    setStatusFilter('All');
+    setAmountFilter('All');
+    setDateRange(undefined);
+    setSelectedPreset('Custom date range');
+  };
+
+  // Pagination
+  const PAGE_SIZE = 10;
+  const [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [search, statusFilter, amountFilter, dateRange]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const rangeStart = filtered.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, filtered.length);
+
+  // Net payout per period for the chart — most recent 8 periods, so it stays readable.
   const chartData = useMemo(
     () =>
       [...settlements]
         .sort((a, b) => a.periodStart.localeCompare(b.periodStart))
+        .slice(-8)
         .map((s) => ({ name: format(new Date(s.periodStart), 'MMM d'), net: netAmount(s), gross: s.grossAmount, commission: commissionAmount(s), status: s.status, ref: s.reference })),
     [settlements],
   );
@@ -231,6 +279,62 @@ export default function Settlements() {
           className="sm:w-auto"
           options={[{ value: 'All', label: t('All statuses') }, ...SETTLEMENT_STATUSES.map((s) => ({ value: s, label: t(s) }))]}
         />
+
+        {/* Period date-range filter */}
+        <div className="relative">
+          <button onClick={() => setIsDateOpen((v) => !v)} className={`flex items-center gap-2 px-4 py-2 border rounded-md text-sm font-medium transition-colors shadow-none cursor-pointer ${dateRange?.from ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]' : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white hover:bg-[var(--surface-subtle)]'}`}>
+            <CalendarIcon className="w-4 h-4" />
+            {dateLabel}
+          </button>
+          {isDateOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setIsDateOpen(false)} />
+              <div className="absolute top-full right-0 mt-2 bg-white border border-[var(--border-default)] rounded-md z-20 flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
+                <div className="w-48 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
+                  {['This month', 'Last 30 days', 'Last 90 days', 'This year', 'Custom date range'].map((preset) => (
+                    <button key={preset} onClick={() => {
+                        setSelectedPreset(preset);
+                        if (preset === 'This month') setDateRange({ from: startOfMonth(NOW), to: endOfMonth(NOW) });
+                        else if (preset === 'Last 30 days') setDateRange({ from: subDays(NOW, 30), to: NOW });
+                        else if (preset === 'Last 90 days') setDateRange({ from: subDays(NOW, 90), to: NOW });
+                        else if (preset === 'This year') setDateRange({ from: new Date('2026-01-01'), to: new Date('2026-12-31') });
+                      }}
+                      className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors shadow-none cursor-pointer ${selectedPreset === preset ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium' : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}>
+                      {t(preset)}
+                      {selectedPreset === preset && <Check className="w-4 h-4 text-[var(--brand-primary)]" />}
+                    </button>
+                  ))}
+                </div>
+                <div className="p-4" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}>
+                  <CalendarUI mode="range" defaultMonth={dateRange?.from ?? NOW} selected={dateRange} onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }} numberOfMonths={2} className="border-0 shadow-none p-0" />
+                  <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-[var(--surface-subtle)]">
+                    <button onClick={() => { setDateRange(undefined); setSelectedPreset('Custom date range'); setIsDateOpen(false); }} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors shadow-none cursor-pointer">{t('Clear')}</button>
+                    <button onClick={() => setIsDateOpen(false)} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors shadow-none cursor-pointer"><Check className="w-4 h-4" />{t('Apply')}</button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        <BrandSelect
+          value={amountFilter}
+          onValueChange={(v) => setAmountFilter(v as AmountFilter)}
+          leftIcon={<Coins />}
+          className="sm:w-auto"
+          options={[
+            { value: 'All', label: t('Any amount') },
+            { value: 'lt1m', label: t('Under 1M') },
+            { value: '1to3m', label: t('1M – 3M') },
+            { value: 'gt3m', label: t('Over 3M') },
+          ]}
+        />
+
+        {hasActiveFilters && (
+          <button onClick={clearFilters} className="flex items-center justify-center w-9 h-9 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-full transition-colors border border-transparent hover:border-[var(--border-default)] shadow-none cursor-pointer flex-shrink-0" title={t('Clear filters')}>
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -254,7 +358,7 @@ export default function Settlements() {
                   <td colSpan={7} className="px-6 py-12 text-center text-sm text-[var(--text-secondary)]">{t('No settlements match your filters.')}</td>
                 </tr>
               ) : (
-                filtered.map((s) => (
+                pageRows.map((s) => (
                   <tr
                     key={s.id}
                     onClick={() => navigate(`/settlements/${s.id}`)}
@@ -280,6 +384,29 @@ export default function Settlements() {
             </tbody>
           </table>
         </div>
+
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
+            <span className="text-sm text-[var(--text-secondary)] tabular-nums">{t('Showing')} {rangeStart} {t('to')} {rangeEnd} {t('of')} {filtered.length} {t('settlements')}</span>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 px-3 inline-flex items-center gap-1 text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                <ChevronLeft className="w-4 h-4" />{t('Previous')}
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border rounded-md tabular-nums transition-colors cursor-pointer ${p === currentPage ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-[var(--border-default)] bg-white text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-8 px-3 inline-flex items-center gap-1 text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                {t('Next')}<ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );

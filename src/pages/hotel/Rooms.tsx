@@ -25,7 +25,6 @@ import { useHotel } from './use-hotel';
 import { AMENITIES, formatPrice, totalBeds, emptyRoomType, type Room, type RoomType, type RoomStatus } from './hotel-data';
 import { RoomEditor, AmenityIcon } from './room-editors';
 import { RoomTypeEditor } from './RoomTypeEditor';
-import { HotelSetupWizard } from './setup/HotelSetupWizard';
 
 type View = 'rooms' | 'types';
 
@@ -110,7 +109,6 @@ export default function Rooms() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [roomEditor, setRoomEditor] = useState<Room | null>(null);
   const [typeEditor, setTypeEditor] = useState<RoomType | null>(null);
-  const [setupOpen, setSetupOpen] = useState(false);
 
   const switchView = (v: View) => { setView(v); setSelected(new Set()); };
 
@@ -210,7 +208,7 @@ export default function Rooms() {
           <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Room types, pricing and individual rooms')}</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setSetupOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-[var(--text-primary)] border border-[var(--border-default)] bg-white hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+          <button onClick={() => navigate('/hotel/setup')} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-[var(--text-primary)] border border-[var(--border-default)] bg-white hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
             <Building2 className="w-4 h-4 text-[var(--text-secondary)]" />
             {t('Hotel setup')}
           </button>
@@ -371,7 +369,6 @@ export default function Rooms() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {setupOpen && <HotelSetupWizard onClose={() => setSetupOpen(false)} />}
       </AnimatePresence>
 
       {/* Bulk delete confirm */}

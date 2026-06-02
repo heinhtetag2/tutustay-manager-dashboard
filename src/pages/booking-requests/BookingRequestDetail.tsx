@@ -17,7 +17,7 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  Moon,
+  CloudMoon,
   ArrowUpRight,
   Inbox,
   RotateCcw,
@@ -54,7 +54,7 @@ function RateChip({ rate, t }: { rate: RateType; t: (k: string) => string }) {
     Weekend: 'bg-[var(--accent-violet-tint)] text-[var(--accent-violet-deep)] border-[var(--accent-violet-tint-2)]',
     Session: 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]',
   }[rate];
-  return <span className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-full border ${cls}`}>{t(rate)} {t('rate')}</span>;
+  return <span className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-full border ${cls}`}>{rate === 'Session' ? t('Day use') : `${t(rate)} ${t('rate')}`}</span>;
 }
 
 export default function BookingRequestDetail() {
@@ -85,7 +85,7 @@ export default function BookingRequestDetail() {
   const age = dob ? differenceInYears(NOW, dob) : null;
 
   const stats = [
-    { title: 'Nights', Icon: Moon, value: String(request.nights), subtitle: `${formatDateTime(request.checkIn)} → ${formatDateTime(request.checkOut)}` },
+    { title: 'Nights', Icon: CloudMoon, value: String(request.nights), subtitle: `${formatDateTime(request.checkIn)} → ${formatDateTime(request.checkOut)}` },
     { title: 'Guests', Icon: Users, value: String(request.guests), subtitle: t('In this booking') },
     { title: 'Amount', Icon: CreditCard, value: formatAmount(request.amount), subtitle: `${t(request.rateType)} ${t('rate')}` },
     { title: 'Requested', Icon: Clock, value: formatDate(request.requestedAt), subtitle: t('Request received') },
@@ -175,7 +175,7 @@ export default function BookingRequestDetail() {
               <InfoRow Icon={Tag} label={t('Rate type')}><RateChip rate={request.rateType} t={t} /></InfoRow>
               <InfoRow Icon={CalendarRange} label={t('Check-in')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(request.checkIn)}</span></InfoRow>
               <InfoRow Icon={CalendarRange} label={t('Check-out')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(request.checkOut)}</span></InfoRow>
-              <InfoRow Icon={Moon} label={t('Nights')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{request.nights}</span></InfoRow>
+              <InfoRow Icon={CloudMoon} label={t('Nights')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{request.nights}</span></InfoRow>
               <InfoRow Icon={Users} label={t('Guests')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{request.guests}</span></InfoRow>
               <InfoRow Icon={CreditCard} label={t('Amount')}><span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatAmount(request.amount)}</span></InfoRow>
               <InfoRow Icon={Clock} label={t('Requested at')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(request.requestedAt)}</span></InfoRow>

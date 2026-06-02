@@ -1,12 +1,12 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as Popover from '@radix-ui/react-popover';
-import { X, Plus, Trash2, Clock, Info, ChevronDown } from 'lucide-react';
+import { X, Plus, Trash2, Clock, Info, ChevronDown, TriangleAlert } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { ImageCropper } from '@/pages/agents/ImageCropper';
 import { AmenityToggles, fieldInput } from './room-editors';
-import { BED_TYPES, WEEKEND_DAYS, type RoomType, type BedType, type SizeUnit } from './hotel-data';
+import { BED_TYPES, WEEKEND_DAYS, formatPrice, computeWeekendPrice, type RoomType, type BedType, type SizeUnit, type WeekendMode } from './hotel-data';
 
 type PriceTab = 'regular' | 'session' | 'weekend';
 
@@ -19,6 +19,15 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
   const set = (p: Partial<RoomType>) => setD((s) => ({ ...s, ...p }));
   const isEdit = Boolean(initial.id);
 
+  // Weekend rate is derived from the chosen mode + surcharge; keep weekendPrice in sync.
+  const weekendMode: WeekendMode = d.weekendMode ?? 'percent';
+  const weekendSurcharge = d.weekendSurcharge ?? 0;
+  useEffect(() => {
+    const computed = computeWeekendPrice(d.regularPrice, weekendMode, weekendSurcharge);
+    if (computed !== d.weekendPrice) set({ weekendPrice: computed });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [d.regularPrice, weekendMode, weekendSurcharge]);
+
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -30,6 +39,8 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
 
   const updateBed = (i: number, patch: Partial<{ type: BedType; count: number }>) => set({ beds: d.beds.map((b, idx) => (idx === i ? { ...b, ...patch } : b)) });
   const toggleDay = (day: string) => set({ weekendDays: d.weekendDays.includes(day) ? d.weekendDays.filter((x) => x !== day) : [...d.weekendDays, day] });
+  // Move a photo to the front so it becomes the cover.
+  const setCover = (i: number) => set({ photos: [d.photos[i], ...d.photos.filter((_, idx) => idx !== i)] });
 
   const save = () => { if (d.name.trim()) onSave({ ...d, name: d.name.trim(), id: d.id || `rt-${Date.now()}` }); };
 
@@ -46,19 +57,33 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
             <div>
               <span className="text-xs font-medium text-[var(--text-secondary)] block mb-1">{t('Room Photos')}<span className="text-[var(--danger)] ml-0.5">*</span></span>
               <p className="text-xs text-[var(--text-secondary)] mb-3">{t('Add at least one photo. The first is used as the cover. JPG/PNG up to 5 MB.')}</p>
-              <div className="flex flex-wrap gap-3">
-                {d.photos.map((p, i) => (
-                  <div key={i} className="relative w-24 h-24 rounded-md overflow-hidden border border-[var(--border-default)] group">
-                    <img src={p} alt="" className="w-full h-full object-cover" />
-                    <button onClick={() => set({ photos: d.photos.filter((_, idx) => idx !== i) })} className="absolute top-1 right-1 p-1 rounded-full bg-[var(--text-primary)]/60 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"><X className="w-3 h-3" /></button>
-                    {i === 0 && <span className="absolute bottom-1 left-1 px-1.5 py-0.5 text-[10px] font-medium rounded bg-white/90 text-[var(--text-primary)]">{t('Cover')}</span>}
-                  </div>
-                ))}
+              <div className="space-y-3">
                 <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={onFile} />
-                <button onClick={() => fileRef.current?.click()} className="w-24 h-24 rounded-md border-2 border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] flex flex-col items-center justify-center gap-1 text-[var(--text-secondary)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition-colors cursor-pointer">
-                  <Plus className="w-5 h-5" />
-                  <span className="text-[11px] font-medium">{t('Upload')}</span>
-                </button>
+                {d.photos.length > 0 ? (
+                  <div className="flex flex-wrap gap-3">
+                    {d.photos.map((p, i) => (
+                      <div key={i} className={`relative w-24 h-24 rounded-md overflow-hidden border group ${i === 0 ? 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]' : 'border-[var(--border-default)]'}`}>
+                        <img src={p} alt="" className="w-full h-full object-cover" />
+                        <button onClick={() => set({ photos: d.photos.filter((_, idx) => idx !== i) })} title={t('Remove')} className="absolute top-1 right-1 p-1 rounded-full bg-[var(--text-primary)]/60 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"><X className="w-3 h-3" /></button>
+                        {i === 0 ? (
+                          <span className="absolute bottom-1 left-1 px-1.5 py-0.5 text-[10px] font-medium rounded bg-[var(--brand-primary)] text-white">{t('Cover')}</span>
+                        ) : (
+                          <button onClick={() => setCover(i)} className="absolute inset-x-1 bottom-1 px-1.5 py-0.5 text-[10px] font-medium rounded bg-white/90 text-[var(--text-primary)] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-white">{t('Set as cover')}</button>
+                        )}
+                      </div>
+                    ))}
+                    {/* Add-more tile — matches the photo size and sits after them */}
+                    <button onClick={() => fileRef.current?.click()} className="w-24 h-24 rounded-md border-2 border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] flex flex-col items-center justify-center gap-1 text-[var(--text-secondary)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition-colors cursor-pointer shrink-0">
+                      <Plus className="w-5 h-5" />
+                      <span className="text-[11px] font-medium">{t('Upload')}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => fileRef.current?.click()} className="w-full h-32 rounded-md border-2 border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] flex flex-col items-center justify-center gap-1.5 text-[var(--text-secondary)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition-colors cursor-pointer">
+                    <Plus className="w-6 h-6" />
+                    <span className="text-sm font-medium">{t('Upload')}</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -74,16 +99,20 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
             <div>
               <div className="flex items-center gap-1.5">
                 <h3 className="text-sm font-medium text-[var(--text-primary)]">{t('Price')}</h3>
-                <InfoTip text={t('Regular = standard nightly rate. Session = sell short hourly blocks. Weekend = a different rate on the days you choose.')} />
+                <InfoTip text={t('Regular = standard nightly rate. Session = sell short hourly blocks. Weekend = an uplift applied to both the nightly and session rate on the days you choose.')} />
               </div>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{t('Set how this room type is priced — a regular nightly rate, optional hourly sessions, and a separate weekend rate.')}</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{t('Set how this room type is priced — a regular nightly rate, optional hourly sessions, and a weekend uplift that applies to both on selected days.')}</p>
             </div>
             <div className="flex w-full p-1 bg-white border border-[var(--border-default)] rounded-lg">
-              {([['regular', t('Regular')], ['session', t('Session')], ['weekend', t('Weekend')]] as const).map(([key, label]) => (
-                <button key={key} type="button" onClick={() => setPriceTab(key)} className={`flex-1 px-4 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer ${priceTab === key ? 'bg-[var(--text-primary)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
-                  {label}
-                </button>
-              ))}
+              {([['regular', t('Regular'), t('Night')], ['session', t('Session'), t('Day')], ['weekend', t('Weekend'), t('Uplift')]] as const).map(([key, label, badge]) => {
+                const on = priceTab === key;
+                return (
+                  <button key={key} type="button" onClick={() => setPriceTab(key)} className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md transition-colors cursor-pointer ${on ? 'bg-[var(--text-primary)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
+                    <span className="text-sm font-medium">{label}</span>
+                    <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${on ? 'bg-white/20 text-white' : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]'}`}>{badge}</span>
+                  </button>
+                );
+              })}
             </div>
             <div>
               {priceTab === 'regular' && <Field label={t('Base Price (per night)')} required><Money value={d.regularPrice} onChange={(v) => set({ regularPrice: v })} /></Field>}
@@ -103,7 +132,7 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
               )}
               {priceTab === 'weekend' && (
                 <div className="space-y-4">
-                  <Toggle checked={d.weekendEnabled} onChange={(v) => set({ weekendEnabled: v })} label={t('Enable weekend pricing')} hint={t('Charge a different rate on selected days')} />
+                  <Toggle checked={d.weekendEnabled} onChange={(v) => set({ weekendEnabled: v })} label={t('Enable weekend pricing')} hint={t('Apply an uplift to the night and session rate on selected days')} />
                   <div className={d.weekendEnabled ? 'space-y-4' : 'opacity-50 pointer-events-none space-y-4'}>
                     <Field label={t('Weekend days')}>
                       <div className="flex flex-wrap gap-2">
@@ -113,7 +142,84 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
                         })}
                       </div>
                     </Field>
-                    <Field label={t('Base Price (per night)')}><Money value={d.weekendPrice} onChange={(v) => set({ weekendPrice: v })} /></Field>
+                    <Field label={t('Weekend uplift')}>
+                      <div className="space-y-3">
+                        {/* How the uplift is set */}
+                        <div className="grid grid-cols-2 gap-2">
+                          {([['percent', t('% over base')], ['amount', t('+ Amount')]] as const).map(([m, label]) => {
+                            const on = weekendMode === m;
+                            return (
+                              <button
+                                key={m}
+                                type="button"
+                                onClick={() => set({ weekendMode: m })}
+                                className={`px-2 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer ${on ? 'border-[var(--brand-primary)] bg-[var(--brand-tint)] text-[var(--brand-primary)]' : 'border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)]'}`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* The uplift value */}
+                        {weekendMode === 'percent' ? (
+                          <div className="relative">
+                            <input
+                              type="number"
+                              min={0}
+                              className={`${fieldInput} pr-9 tabular-nums`}
+                              value={weekendSurcharge}
+                              onChange={(e) => set({ weekendSurcharge: Number(e.target.value) })}
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-secondary)] pointer-events-none">%</span>
+                          </div>
+                        ) : (
+                          <Money value={weekendSurcharge} onChange={(v) => set({ weekendSurcharge: v })} wide />
+                        )}
+
+                        {/* Edge case: the uplift builds on the base rates — warn if a base is unset */}
+                        {(() => {
+                          const needsRegular = d.regularPrice <= 0;
+                          const needsSession = d.sessionEnabled && d.sessionPrice <= 0;
+                          if (!needsRegular && !needsSession) return null;
+                          const msg = needsRegular && needsSession
+                            ? t('Set the Regular and Session rates first — the weekend uplift is added on top of them.')
+                            : needsRegular
+                              ? t('Set the Regular night rate first — the weekend uplift is added on top of it.')
+                              : t('Set the Session rate first — the weekend uplift is added on top of it.');
+                          return (
+                            <div className="flex items-start gap-2 rounded-md bg-[var(--warning-tint)] border border-[var(--warning-tint)] px-3 py-2 text-xs text-[var(--warning-strong)]">
+                              <TriangleAlert className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                              <span>{msg}</span>
+                            </div>
+                          );
+                        })()}
+
+                        {/* Live preview — the uplift applies to both rates on selected days */}
+                        <div className="rounded-md bg-white border border-[var(--border-default)] divide-y divide-[var(--surface-subtle)]">
+                          <div className="flex items-center justify-between px-3 py-2">
+                            <span className="text-xs text-[var(--text-secondary)]">{t('Weekend night rate')}</span>
+                            <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
+                              <span className="text-xs text-[var(--text-muted)] font-normal line-through mr-1.5">{formatPrice(d.regularPrice)}</span>
+                              {formatPrice(d.weekendPrice)}
+                            </span>
+                          </div>
+                          {d.sessionEnabled && (
+                            <div className="flex items-center justify-between px-3 py-2">
+                              <span className="text-xs text-[var(--text-secondary)]">{t('Weekend session rate')}</span>
+                              <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
+                                <span className="text-xs text-[var(--text-muted)] font-normal line-through mr-1.5">{formatPrice(d.sessionPrice)}</span>
+                                {formatPrice(computeWeekendPrice(d.sessionPrice, weekendMode, weekendSurcharge))}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="flex items-start gap-1.5 text-xs text-[var(--text-secondary)] pl-1">
+                          <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[var(--text-tertiary)]" />
+                          <span>{weekendMode === 'percent' ? `+${weekendSurcharge}%` : `+${formatPrice(weekendSurcharge)}`} {t('added to the night and session rate on selected days.')}</span>
+                        </p>
+                      </div>
+                    </Field>
                   </div>
                 </div>
               )}
@@ -208,9 +314,9 @@ function Divider({ label }: { label: string }) {
   );
 }
 
-function Money({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function Money({ value, onChange, wide }: { value: number; onChange: (v: number) => void; wide?: boolean }) {
   return (
-    <div className="relative max-w-xs">
+    <div className={`relative ${wide ? '' : 'max-w-xs'}`}>
       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-secondary)] pointer-events-none select-none">MMK</span>
       <input
         type="text"

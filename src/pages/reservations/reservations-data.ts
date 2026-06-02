@@ -2,6 +2,22 @@ export type ReservationStatus = 'Confirmed' | 'Checked-in' | 'Checked-out' | 'Ca
 
 export const RESERVATION_STATUSES: ReservationStatus[] = ['Confirmed', 'Checked-in', 'Checked-out', 'Cancelled', 'No-show'];
 
+/** How the stay is priced/booked: per-night (Regular), short day-use block
+ *  (Session), or a weekend rate. Defaults to Regular when unset. */
+export type RateType = 'Regular' | 'Session' | 'Weekend';
+
+/** Whether a booking is a short day-use (session) booking rather than an overnight stay. */
+export function isDayUse(rateType: RateType | undefined): boolean {
+  return rateType === 'Session';
+}
+
+/** Short human label for the booking type. */
+export function rateLabel(rateType: RateType | undefined): string {
+  if (rateType === 'Session') return 'Day use';
+  if (rateType === 'Weekend') return 'Weekend';
+  return 'Per night';
+}
+
 export interface Reservation {
   id: string;
   /** Business-facing reservation code shown in the table. */
@@ -15,10 +31,13 @@ export interface Reservation {
   /** ISO dates. */
   checkIn: string;
   checkOut: string;
+  /** Number of nights; 0 for day-use (Session) bookings. */
   nights: number;
   guests: number;
   /** Total amount for the stay. */
   amount: number;
+  /** Booking/pricing type. Omitted = Regular (per night). */
+  rateType?: RateType;
   status: ReservationStatus;
   /** ISO datetime the reservation was created. */
   createdAt: string;
@@ -42,17 +61,17 @@ export const DEMO_RESERVATIONS: Reservation[] = [
   {
     id: 'rsv2', code: 'RSV-1051', customerId: 'c2', guestName: 'Grace Park', guestEmail: 'grace.park@example.com',
     roomType: 'Superior', roomNo: '210', checkIn: '2026-06-04T14:00:00', checkOut: '2026-06-07T12:00:00', nights: 3, guests: 1, amount: 270000,
-    status: 'Confirmed', createdAt: '2026-06-01T08:10:00',
+    rateType: 'Weekend', status: 'Confirmed', createdAt: '2026-06-01T08:10:00',
   },
   {
     id: 'rsv3', code: 'RSV-1048', customerId: 'c3', guestName: 'Marcus Lee', guestEmail: 'marcus.lee@example.com',
-    roomType: 'Deluxe', roomNo: '402', checkIn: '2026-06-01T14:00:00', checkOut: '2026-06-02T12:00:00', nights: 1, guests: 2, amount: 90000,
-    status: 'Checked-in', createdAt: '2026-05-30T22:05:00',
+    roomType: 'Deluxe', roomNo: '402', checkIn: '2026-06-01T13:00:00', checkOut: '2026-06-01T18:00:00', nights: 0, guests: 2, amount: 45000,
+    rateType: 'Session', status: 'Checked-in', createdAt: '2026-05-30T22:05:00',
   },
   {
     id: 'rsv4', code: 'RSV-1053', customerId: 'c4', guestName: 'Sofia Marin', guestEmail: 'sofia.marin@example.com',
     roomType: 'Deluxe', roomNo: '308', checkIn: '2026-06-07T14:00:00', checkOut: '2026-06-11T12:00:00', nights: 4, guests: 3, amount: 320000,
-    status: 'Confirmed', createdAt: '2026-05-31T14:20:00',
+    rateType: 'Weekend', status: 'Confirmed', createdAt: '2026-05-31T14:20:00',
   },
   {
     id: 'rsv5', code: 'RSV-1009', customerId: 'c5', guestName: 'Aiko Tanaka', guestEmail: 'aiko.tanaka@example.com',
@@ -83,8 +102,8 @@ export const DEMO_RESERVATIONS: Reservation[] = [
   },
   {
     id: 'rsv10', code: 'RSV-1057', guestName: 'Noah Williams', guestEmail: 'noah.williams@example.com',
-    roomType: 'Standard', roomNo: '112', checkIn: '2026-06-03T14:00:00', checkOut: '2026-06-04T12:00:00', nights: 1, guests: 1, amount: 70000,
-    status: 'Confirmed', createdAt: '2026-05-29T09:20:00',
+    roomType: 'Standard', roomNo: '112', checkIn: '2026-06-03T10:00:00', checkOut: '2026-06-03T15:00:00', nights: 0, guests: 1, amount: 35000,
+    rateType: 'Session', status: 'Confirmed', createdAt: '2026-05-29T09:20:00',
   },
   {
     id: 'rsv11', code: 'RSV-1058', customerId: 'c8', guestName: 'Yuki Sato', guestEmail: 'yuki.sato@example.com',

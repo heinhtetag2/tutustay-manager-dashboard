@@ -102,7 +102,12 @@ export interface RoomType {
   sessionPrice: number;
   sessionHours: number;
   weekendEnabled: boolean;
+  /** Effective absolute weekend rate (derived from the mode + surcharge). */
   weekendPrice: number;
+  /** How the weekend rate is set: % over regular, fixed amount over regular, or an absolute price. */
+  weekendMode?: WeekendMode;
+  /** The surcharge value (percent or amount), or the absolute price when mode is 'fixed'. */
+  weekendSurcharge?: number;
   weekendDays: string[];
   // Layout & occupancy
   beds: BedConfig[];
@@ -115,6 +120,16 @@ export interface RoomType {
 /** Total bed count across all bed configs. */
 export function totalBeds(rt: RoomType): number {
   return rt.beds.reduce((n, b) => n + b.count, 0);
+}
+
+/** Weekend pricing can be a % uplift over regular, a flat amount over regular, or an absolute price. */
+export type WeekendMode = 'percent' | 'amount' | 'fixed';
+
+/** Resolve the absolute weekend rate from the chosen mode and surcharge value. */
+export function computeWeekendPrice(regularPrice: number, mode: WeekendMode, surcharge: number): number {
+  if (mode === 'percent') return Math.round(regularPrice * (1 + surcharge / 100));
+  if (mode === 'amount') return regularPrice + surcharge;
+  return surcharge; // 'fixed' — surcharge holds the absolute price
 }
 
 export function emptyRoomType(): RoomType {
@@ -130,6 +145,8 @@ export function emptyRoomType(): RoomType {
     sessionHours: 3,
     weekendEnabled: false,
     weekendPrice: 0,
+    weekendMode: 'percent',
+    weekendSurcharge: 20,
     weekendDays: ['Sat', 'Sun'],
     beds: [{ type: 'Single', count: 1 }],
     roomSize: undefined,
@@ -187,7 +204,9 @@ export const DEMO_ROOM_TYPES: RoomType[] = [
     sessionPrice: 40000,
     sessionHours: 3,
     weekendEnabled: false,
-    weekendPrice: 80000,
+    weekendPrice: 96000,
+    weekendMode: 'percent',
+    weekendSurcharge: 20,
     weekendDays: ['Sat', 'Sun'],
     beds: [{ type: 'King', count: 1 }],
     roomSize: 32,
@@ -206,6 +225,8 @@ export const DEMO_ROOM_TYPES: RoomType[] = [
     sessionHours: 3,
     weekendEnabled: true,
     weekendPrice: 90000,
+    weekendMode: 'amount',
+    weekendSurcharge: 10000,
     weekendDays: ['Sat', 'Sun'],
     beds: [{ type: 'Twin', count: 2 }],
     roomSize: 26,

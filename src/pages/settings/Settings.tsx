@@ -835,7 +835,7 @@ function LanguageRegionPanel({ t, i18n }: { t: TFn; i18n: { language: string; ch
               {t('Display language')}
             </label>
             <p className="text-sm text-[var(--text-secondary)] mb-3">
-              {t('Language used across the iDap interface.')}
+              {t('Language used across the TutuStay interface.')}
             </p>
             <div className="relative">
               <select
@@ -845,6 +845,7 @@ function LanguageRegionPanel({ t, i18n }: { t: TFn; i18n: { language: string; ch
               >
                 <option value="en">English</option>
                 <option value="ko">한국어</option>
+                <option value="my">မြန်မာ</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             </div>

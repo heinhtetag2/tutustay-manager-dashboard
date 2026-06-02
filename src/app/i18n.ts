@@ -1,9 +1,10 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import ko from './locales/ko.json';
+import my from './locales/my.json';
 
 const STORAGE_KEY = 'idap.lang';
-const SUPPORTED = ['en', 'ko'] as const;
+const SUPPORTED = ['en', 'ko', 'my'] as const;
 type Lang = (typeof SUPPORTED)[number];
 
 function readStoredLang(): Lang {
@@ -17,6 +18,7 @@ function readStoredLang(): Lang {
 const resources = {
   en: { translation: {} },
   ko: { translation: ko as Record<string, string> },
+  my: { translation: my as Record<string, string> },
 };
 
 i18n.use(initReactI18next).init({

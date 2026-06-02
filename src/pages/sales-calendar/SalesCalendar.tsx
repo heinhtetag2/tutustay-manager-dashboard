@@ -7,7 +7,7 @@ import {
   addMonths, isSameMonth, isSameDay, format,
 } from 'date-fns';
 import {
-  ChevronLeft, ChevronRight, CalendarDays, CreditCard, Moon, CalendarCheck,
+  ChevronLeft, ChevronRight, CalendarDays, CreditCard, CloudMoon, CalendarCheck,
   X, ChevronRight as ArrowR, Users, ArrowRight, Search, ListFilter,
 } from 'lucide-react';
 
@@ -92,7 +92,7 @@ export default function SalesCalendar() {
   const stats = [
     { title: 'Bookings', Icon: CalendarCheck, value: String(counts.bookings), subtitle: t('This month') },
     { title: 'Revenue', Icon: CreditCard, value: formatAmount(counts.revenue), subtitle: t('Excludes cancellations') },
-    { title: 'Room-nights', Icon: Moon, value: String(counts.nights), subtitle: t('Sold this month') },
+    { title: 'Room-nights', Icon: CloudMoon, value: String(counts.nights), subtitle: t('Sold this month') },
     { title: 'Arrivals', Icon: CalendarDays, value: String(counts.arrivals), subtitle: t('Confirmed & in-house') },
   ];
 
@@ -233,7 +233,7 @@ export default function SalesCalendar() {
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { Icon: CreditCard, label: t('Revenue'), value: formatAmount(dayTotal) },
-                      { Icon: Moon, label: t('Room-nights'), value: String(dayNights) },
+                      { Icon: CloudMoon, label: t('Room-nights'), value: String(dayNights) },
                       { Icon: Users, label: t('Guests'), value: String(dayGuests) },
                     ].map((tile) => (
                       <div key={tile.label} className="rounded-md border border-[var(--border-default)] bg-[var(--surface-subtle)]/40 px-3 py-2.5">
@@ -326,7 +326,7 @@ export default function SalesCalendar() {
                           <span className="text-[var(--text-muted)]">{format(new Date(r.checkOut), 'h:mm a')}</span>
                         </span>
                         <span>·</span>
-                        <span className="inline-flex items-center gap-1"><Moon className="w-3 h-3" />{r.nights} {r.nights === 1 ? t('night') : t('nights')}</span>
+                        <span className="inline-flex items-center gap-1"><CloudMoon className="w-3 h-3" />{r.nights} {r.nights === 1 ? t('night') : t('nights')}</span>
                         <span>·</span>
                         <span className="inline-flex items-center gap-1"><Users className="w-3 h-3" />{r.guests}</span>
                         <span>·</span>

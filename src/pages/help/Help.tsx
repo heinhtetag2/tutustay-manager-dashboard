@@ -46,43 +46,42 @@ function ArticleBody({ article }: { article: HelpArticleMeta }) {
 
       <h3 className="text-base font-medium text-[var(--text-primary)] pt-2">Before you start</h3>
       <p>
-        Make sure your profile is up to date — iDap uses your{' '}
-        <span className="font-medium text-[var(--text-primary)]">demographics</span> and{' '}
-        <span className="font-medium text-[var(--text-primary)]">trust level</span> to match you to
-        surveys. A complete profile means more surveys in your feed and higher-paying
-        matches.
+        Keep your <span className="font-medium text-[var(--text-primary)]">rooms</span> and{' '}
+        <span className="font-medium text-[var(--text-primary)]">pricing</span> up to date — accurate
+        room types, rates, and availability mean cleaner bookings, fewer cancellations, and
+        revenue figures you can trust across the dashboard.
       </p>
 
       <div className="bg-[var(--brand-tint)] border border-[var(--brand-tint-2)] rounded-md p-4 flex gap-3">
         <span className="text-[var(--brand-primary)] font-medium shrink-0">Tip</span>
         <p className="text-[var(--text-tertiary)]">
-          Check your Survey Feed in the morning — that's when most new surveys drop and
-          spots fill fastest. First-come-first-served on paid spots.
+          Start each day on the Dashboard — review today's arrivals and departures, then clear
+          any pending booking requests so dates don't sit unconfirmed.
         </p>
       </div>
 
       <h3 className="text-base font-medium text-[var(--text-primary)] pt-2">Step-by-step</h3>
       <ol className="list-decimal list-outside pl-5 space-y-2">
-        <li>Open <span className="font-medium text-[var(--text-primary)]">Survey Feed</span> from the left sidebar to see surveys matched to you.</li>
-        <li>Pick a card that fits your available time — reward and duration are shown up front.</li>
-        <li>Answer the screener questions honestly. They confirm you match the target audience.</li>
-        <li>Complete the survey. Rewards land in your wallet after a 24-hour quality hold.</li>
-        <li>Withdraw via QPay, Bonum, Social Pay, or bank transfer from the Wallet page.</li>
+        <li>Open <span className="font-medium text-[var(--text-primary)]">Booking Requests</span> from the sidebar to review incoming requests.</li>
+        <li>Approve or decline each one — approving creates a confirmed reservation.</li>
+        <li>Manage stays under <span className="font-medium text-[var(--text-primary)]">Reservation Management</span>: check guests in and out.</li>
+        <li>Track occupancy and revenue on the <span className="font-medium text-[var(--text-primary)]">Sales Calendar</span> and Dashboard.</li>
+        <li>Reconcile payouts under <span className="font-medium text-[var(--text-primary)]">Settlement</span> when each period closes.</li>
       </ol>
 
       <h3 className="text-base font-medium text-[var(--text-primary)] pt-2">What to do next</h3>
       <ul className="list-disc list-outside pl-5 space-y-2">
-        <li>Track earnings, trust level, and your streak on the <span className="font-medium text-[var(--text-primary)]">Dashboard</span>.</li>
-        <li>Level up your trust to unlock higher-paying gated surveys in the feed.</li>
-        <li>Invite friends from Settings — you both earn 5,000 when they complete a paid survey.</li>
+        <li>Run promotions from <span className="font-medium text-[var(--text-primary)]">Coupon Management</span> — coupons go live once the super-admin approves them.</li>
+        <li>Reply to guest feedback under <span className="font-medium text-[var(--text-primary)]">Customer Reviews</span> to keep your rating strong.</li>
+        <li>Adjust room types, rates, and amenities anytime under <span className="font-medium text-[var(--text-primary)]">Room Management</span>.</li>
       </ul>
 
       <div className="bg-[var(--surface-muted)] border border-[var(--border-default)] rounded-md p-4">
         <p className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-1">Good to know</p>
         <p className="text-sm text-[var(--text-tertiary)]">
-          Rewards sit in a 24-hour hold so companies can flag low-quality responses. If a
-          response passes the hold, it pays out automatically — no action needed from you.
-          Rejected responses are reviewable from your My Surveys history.
+          Booking revenue is paid out in bi-weekly settlements: gross minus the platform
+          commission and any refund adjustments equals your net payout. You can review every
+          period and export the records as a CSV from the Settlement page.
         </p>
       </div>
     </div>
@@ -123,7 +122,7 @@ export default function Help() {
       <div className="mb-8 max-w-3xl">
         <h1 className="text-2xl sm:text-3xl font-serif text-[var(--text-primary)]">{t('Help Center')}</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          {t('How iDap works, tips for earning more, and answers to common questions.')}
+          {t('How the TutuStay dashboard works, tips for running your property, and answers to common questions.')}
         </p>
       </div>
 
@@ -314,9 +313,9 @@ export default function Help() {
             className="grid grid-cols-1 sm:grid-cols-3 gap-4"
           >
             {[
-              { title: 'Video tutorials', description: 'Short walkthroughs of the feed, wallet, and trust levels', Icon: Video },
-              { title: 'iDap rules & payment policy', description: 'Quality rules, the 24-hour hold, and payout terms', Icon: Book },
-              { title: 'Contact support', description: 'Chat or email the iDap team', Icon: MessageSquare },
+              { title: 'Video tutorials', description: 'Short walkthroughs of reservations, rooms, and settlement', Icon: Video },
+              { title: 'Policies & payout terms', description: 'Commission, the settlement schedule, and payout terms', Icon: Book },
+              { title: 'Contact support', description: 'Chat or email the TutuStay team', Icon: MessageSquare },
             ].map((r) => (
               <button
                 key={r.title}
