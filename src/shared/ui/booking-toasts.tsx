@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { create } from 'zustand';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -41,6 +41,40 @@ export function BookingToastHost() {
   const toasts = useBookingToasts((s) => s.toasts);
   const dismiss = useBookingToasts((s) => s.dismiss);
 
+  // Collapsed = a deck: newest in front, older ones peek behind it. Hovering the
+  // stack fans them out into a readable column. Heights are measured per toast
+  // so the expanded layout stacks them exactly with no overlap.
+  const [expanded, setExpanded] = useState(false);
+  const heights = useRef<Map<number, number>>(new Map());
+  const [, forceRender] = useState(0);
+  const measure = (id: number) => (el: HTMLDivElement | null) => {
+    if (!el) return;
+    const h = el.offsetHeight;
+    if (heights.current.get(id) !== h) {
+      heights.current.set(id, h);
+      forceRender((n) => n + 1);
+    }
+  };
+
+  const GAP = 12; // gap between cards when fanned out
+  const PEEK = 14; // how far each card behind peeks up when collapsed
+  const h = (id: number) => heights.current.get(id) ?? 132;
+  // Vertical offset (upward) for the card at index i (0 = newest/front).
+  const offsetFor = (i: number) => {
+    if (expanded) {
+      let off = 0;
+      for (let j = 0; j < i; j++) off += h(toasts[j].id) + GAP;
+      return off;
+    }
+    return i * PEEK;
+  };
+  // Total height of the stack — the front card plus either the peeks (collapsed)
+  // or every card + gaps (fanned out). Drives the hover hit-area height.
+  const frontH = toasts.length ? h(toasts[0].id) : 0;
+  const stackHeight = expanded
+    ? toasts.reduce((sum, tt) => sum + h(tt.id), 0) + Math.max(0, toasts.length - 1) * GAP
+    : frontH + Math.max(0, toasts.length - 1) * PEEK;
+
   return (
     <>
       {/* Soft radial glow behind incoming booking toasts */}
@@ -61,17 +95,29 @@ export function BookingToastHost() {
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-5 right-5 z-[80] flex flex-col gap-3 w-[360px] max-w-[calc(100vw-2.5rem)] pointer-events-none">
+      <div
+        onMouseEnter={() => setExpanded(true)}
+        onMouseLeave={() => setExpanded(false)}
+        style={{ height: toasts.length === 0 ? 0 : stackHeight }}
+        className="fixed bottom-5 right-5 z-[80] w-[360px] max-w-[calc(100vw-2.5rem)]"
+      >
       <AnimatePresence>
-        {toasts.map((toast) => (
+        {toasts.map((toast, i) => (
           <motion.div
             key={toast.id}
-            layout
+            ref={measure(toast.id)}
             initial={{ opacity: 0, x: 40, scale: 0.96 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
+            animate={{
+              opacity: 1,
+              x: 0,
+              y: -offsetFor(i),
+              // Cards behind shrink slightly when collapsed; full size when fanned.
+              scale: expanded ? 1 : 1 - i * 0.04,
+            }}
             exit={{ opacity: 0, x: 40, scale: 0.96 }}
-            transition={{ type: 'spring', duration: 0.4 }}
-            className="pointer-events-auto bg-white border border-[var(--border-default)] rounded-2xl shadow-[0_8px_28px_rgba(44,38,39,0.14)] overflow-hidden"
+            transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
+            style={{ zIndex: toasts.length - i }}
+            className="pointer-events-auto absolute bottom-0 right-0 left-0 origin-bottom bg-white border border-[var(--border-default)] rounded-2xl shadow-[0_8px_28px_rgba(44,38,39,0.14)] overflow-hidden"
           >
             <div className="p-4">
               <div className="flex items-start gap-3">
@@ -190,8 +236,9 @@ export function useBookingSimulator() {
         amount: `${b.amount.toLocaleString('en-US')}`,
       });
     };
-    const first = setTimeout(fire, 3500);
+    // Quick burst on load so the stacked deck is visible, then a gentle drip.
+    const burst = [setTimeout(fire, 1500), setTimeout(fire, 2300), setTimeout(fire, 3100)];
     const interval = setInterval(fire, 45000);
-    return () => { clearTimeout(first); clearInterval(interval); };
+    return () => { burst.forEach(clearTimeout); clearInterval(interval); };
   }, [push, addRequest]);
 }

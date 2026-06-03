@@ -436,7 +436,10 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: 'cv11', 'ss01', 'tnum';
+    /* Keep kerning on; avoid Inter-only stylistic sets (cv11/ss01) that don't
+       belong to ABC Diatype. Tabular figures are opted into per-element via the
+       `tabular-nums` utility, so they aren't forced globally here. */
+    font-feature-settings: 'kern';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;

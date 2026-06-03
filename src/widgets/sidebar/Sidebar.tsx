@@ -175,17 +175,18 @@ export function Sidebar({
   // Notif panel content stagger. Items fade/slide in *with* the panel opening
   // (no delayChildren) so you never see a blank panel expand on its own — the
   // content rides the open motion as one cohesive gesture. A light stagger adds
-  // life without reading as a slow cascade. On exit, items fade out together
-  // (no reverse stagger) so the close feels like one smooth motion.
+  // life without reading as a slow cascade. On *close* the items do NOT animate
+  // out — the content stays put and the panel collapses around it as one rigid
+  // clipped block, so the close reads as a single smooth slide (like the toast).
   const notifContainerVariants = {
     hidden: {},
     visible: { transition: { staggerChildren: 0.03, delayChildren: 0.02 } },
-    exit: { transition: { staggerChildren: 0, when: 'afterChildren' as const } },
+    exit: {},
   };
   const notifItemVariants = {
     hidden: { opacity: 0, y: 6 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
-    exit: { opacity: 0, transition: { duration: 0.18, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] } },
+    exit: { opacity: 1, y: 0, transition: { duration: 0 } },
   };
 
   return (
@@ -385,23 +386,21 @@ export function Sidebar({
           />
           <motion.div
             initial={isDesktop ? { width: 0, opacity: 0 } : { x: '100%' }}
-            animate={
-              isDesktop
-                ? { width: 320, opacity: 1, transition: { width: { duration: 0.36, ease: [0.16, 1, 0.3, 1] }, opacity: { duration: 0.28, ease: 'easeOut' } } }
-                : { x: 0, transition: { duration: 0.34, ease: [0.16, 1, 0.3, 1] } }
-            }
-            exit={
-              isDesktop
-                ? { width: 0, opacity: 0, transition: { width: { duration: 0.26, ease: [0.4, 0, 1, 1] }, opacity: { duration: 0.18, ease: 'easeIn' } } }
-                : { x: '100%', transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } }
-            }
+            animate={isDesktop ? { width: 320, opacity: 1 } : { x: 0 }}
+            // Close collapses the width back (no opacity fade competing) so the
+            // content re-expands as one motion. Same spring for open + close.
+            exit={isDesktop ? { width: 0 } : { x: '100%' }}
+            // One spring drives both directions; bounce: 0 keeps the width from
+            // overshooting (which would reflow-jump the content it pushes).
+            transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
             className={cn(
               'bg-white overflow-hidden flex flex-col',
               // Mobile: full-screen overlay
               'fixed inset-0 z-50',
-              // Desktop: inline next to sidebar (width is animated, not set via class)
+              // Desktop: inline next to the sidebar — pushes the page content,
+              // width is animated (not set via class).
               'md:relative md:inset-auto md:h-full md:border-r md:border-[var(--border-default)] md:flex-shrink-0 md:z-10',
-              // Keep inner content at full 320px width during the desktop width animation
+              // Keep inner content at full 320px width during the width animation.
               'md:min-w-[320px]',
             )}
           >

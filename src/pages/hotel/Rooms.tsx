@@ -6,6 +6,7 @@ import {
   Search,
   Plus,
   BedDouble,
+  KeyRound,
   CheckCircle,
   XCircle,
   Layers,
@@ -220,22 +221,26 @@ export default function Rooms() {
       </div>
 
       {/* Primary view tabs */}
-      <div className="border-b border-[var(--border-default)] mb-8">
+      <div className="border-b border-[var(--border-default)] mb-5">
         <nav className="flex gap-8" aria-label={t('Rooms views')}>
-          {(['rooms', 'types'] as const).map((v) => (
-            <button
-              key={v}
-              onClick={() => switchView(v)}
-              aria-current={view === v ? 'page' : undefined}
-              className={`relative -mb-px pb-3 text-sm font-medium transition-colors cursor-pointer border-b-2 ${
-                view === v
-                  ? 'text-[var(--text-primary)] border-[var(--brand-primary)]'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-transparent'
-              }`}
-            >
-              {v === 'rooms' ? t('Rooms') : t('Room Types')}
-            </button>
-          ))}
+          {(['rooms', 'types'] as const).map((v) => {
+            const Icon = v === 'rooms' ? KeyRound : Layers;
+            return (
+              <button
+                key={v}
+                onClick={() => switchView(v)}
+                aria-current={view === v ? 'page' : undefined}
+                className={`relative -mb-px pb-3 inline-flex items-center gap-2 text-sm font-medium transition-colors cursor-pointer border-b-2 ${
+                  view === v
+                    ? 'text-[var(--text-primary)] border-[var(--brand-primary)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-transparent'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {v === 'rooms' ? t('Rooms') : t('Room Types')}
+              </button>
+            );
+          })}
         </nav>
       </div>
 
