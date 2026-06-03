@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import {
   X,
-  RotateCcw,
+  ArrowLeft,
   Building2,
   MapPin,
   ScrollText,
@@ -14,9 +14,18 @@ import {
   Trash2,
   Image as ImageIcon,
   Pencil,
-  HelpCircle,
+  ChevronDown,
+  Wifi,
+  Croissant,
+  SquareParking,
+  Waves,
+  Dumbbell,
+  Flower2,
+  Banknote,
+  Plane,
+  Coffee,
+  type LucideIcon,
 } from 'lucide-react';
-import * as Tooltip from '@radix-ui/react-tooltip';
 
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { ImageCropper } from '@/pages/agents/ImageCropper';
@@ -27,7 +36,7 @@ import {
   type ContractStatus,
   type Property,
 } from '../hotel-data';
-import { SetupField, InfoBanner, AdditionalInputs, setupInput } from './setup-fields';
+import { SetupField, AdditionalInputs, setupInput } from './setup-fields';
 import { MapPicker } from './MapPicker';
 import { TimePicker } from './TimePicker';
 import { DatePicker } from './DatePicker';
@@ -44,12 +53,24 @@ interface StepProps {
 }
 
 const STEPS = [
-  { key: 'basic', title: 'Tell us about your hotel', lead: 'The essentials guests see first — your name, type, and rating.', Icon: Building2 },
-  { key: 'address', title: 'Confirm your address', lead: "Enter your hotel's detailed address. If it isn't clear and accurate on the map, guests will struggle to find you.", Icon: MapPin },
+  { key: 'basic', title: 'Tell us about your property', lead: 'The essentials guests see first — your name, accommodation type, and rating.', Icon: Building2 },
+  { key: 'address', title: 'Confirm your address', lead: "Enter your property's detailed address. If it isn't clear and accurate on the map, guests will struggle to find you.", Icon: MapPin },
   { key: 'policies', title: 'Policies & amenities', lead: 'Set guest expectations for arrival and stay.', Icon: ScrollText },
   { key: 'owner', title: 'Owner & contract', lead: 'Who operates this property and the terms of your agreement.', Icon: Briefcase },
   { key: 'review', title: 'Review your details', lead: 'Check everything looks right, then finish setup.', Icon: ClipboardCheck },
 ] as const;
+
+const AMENITY_ICONS: Record<string, LucideIcon> = {
+  'WiFi': Wifi,
+  'Breakfast': Croissant,
+  'Parking': SquareParking,
+  'Swimming Pool': Waves,
+  'Fitness Centre/Gym': Dumbbell,
+  'SPA & Wellness Centre': Flower2,
+  'Currency Exchange & ATM': Banknote,
+  'Airport Pickup': Plane,
+  'Cafe': Coffee,
+};
 
 /** Required-field validation per step. Returns a field→message map. */
 function validate(step: number, d: Property, t: TFn): Record<string, string> {
@@ -77,7 +98,7 @@ function validate(step: number, d: Property, t: TFn): Record<string, string> {
 }
 
 export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { property, updateProperty } = useHotel();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Property>(() => ({ ...property }));
@@ -121,131 +142,77 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
   const stepProps: StepProps = { draft, set, t, showErrors, errors };
 
   return (
-    <div className="fixed inset-0 z-40 bg-white flex">
-          {/* Left intro / step rail */}
-          <aside className="hidden md:flex w-[320px] xl:w-[360px] shrink-0 flex-col justify-between p-8 border-r border-[var(--border-default)] bg-[var(--brand-tint)]">
-            <div>
-              <h2 className="text-2xl font-serif text-[var(--text-primary)] leading-snug">
-                {t('Set up your hotel')}
-              </h2>
-              <p className="text-sm text-[var(--text-secondary)] mt-3 leading-relaxed">
-                {t('Add your property details so guests can find and book you.')}
-              </p>
-            </div>
-
-            <p className="text-xs text-[var(--text-secondary)]">
-              {t('You can edit any of this later in Settings.')}
-            </p>
-          </aside>
-
-          {/* Right column */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Top header: prominent title (left) + secondary step indicator (right), no divider */}
-            <div className="shrink-0 pl-6 md:pl-8 pr-6 md:pr-14 pt-7 pb-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <h2 className="text-xl md:text-2xl font-medium text-[var(--text-primary)] tracking-tight leading-snug">
-                    {t(STEPS[step].title)}
-                  </h2>
-                  <p className="text-sm text-[var(--text-secondary)] mt-1.5 leading-relaxed">
-                    {t(STEPS[step].lead)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0 mt-1">
-                  {/* Compact inline segments — right-aligned, not full width */}
-                  <div className="flex items-center gap-1">
-                    {STEPS.map((s, i) => (
-                      <span
-                        key={s.key}
-                        className={`h-1 w-4 rounded-full transition-colors duration-300 ${
-                          i <= step ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-default)]'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs font-medium text-[var(--text-muted)] tabular-nums whitespace-nowrap">
-                    {t('Step')} {step + 1} {t('of')} {STEPS.length}
-                  </span>
-                  <Tooltip.Provider delayDuration={120}>
-                    <Tooltip.Root>
-                      <Tooltip.Trigger asChild>
-                        <button type="button" aria-label={t('About these steps')} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors cursor-help">
-                          <HelpCircle className="w-4 h-4" />
-                        </button>
-                      </Tooltip.Trigger>
-                      <Tooltip.Portal>
-                        <Tooltip.Content
-                          side="bottom"
-                          align="end"
-                          sideOffset={6}
-                          className="z-[60] max-w-[240px] rounded-md bg-[var(--text-primary)] px-3 py-2 text-xs leading-relaxed text-white shadow-[0_8px_28px_rgba(44,38,39,0.18)]"
-                        >
-                          {t('Complete all steps to publish your hotel profile. You can go back and edit any step before finishing.')}
-                          <Tooltip.Arrow className="fill-[var(--text-primary)]" />
-                        </Tooltip.Content>
-                      </Tooltip.Portal>
-                    </Tooltip.Root>
-                  </Tooltip.Provider>
-                </div>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto px-6 md:px-8 py-6">
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="max-w-2xl space-y-5"
-              >
-                {step === 0 && <BasicInfoStep {...stepProps} />}
-                {step === 1 && <AddressStep {...stepProps} />}
-                {step === 2 && <PoliciesStep {...stepProps} />}
-                {step === 3 && <OwnerStep {...stepProps} />}
-                {step === 4 && <ReviewStep draft={draft} t={t} onEdit={jumpTo} />}
-              </motion.div>
-            </div>
-
-            {/* Footer */}
-            <div className="shrink-0 flex items-center justify-between gap-3 px-6 md:px-8 py-4 border-t border-[var(--border-default)] bg-white">
-              <button
-                type="button"
-                onClick={() => setDraft({ ...property })}
-                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer"
-              >
-                <RotateCcw className="w-4 h-4" />
-                {t('Reset')}
-              </button>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={goBack}
-                  disabled={step === 0}
-                  className="inline-flex items-center px-5 py-2 text-sm font-medium text-[var(--text-primary)] border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {t('Back')}
-                </button>
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="inline-flex items-center px-5 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
-                >
-                  {isLast ? t('Finish setup') : t('Next')}
-                </button>
-              </div>
-            </div>
+    <div className="fixed inset-0 z-40 bg-[var(--surface-muted)] flex flex-col">
+      {/* Top bar */}
+      <header className="h-16 shrink-0 flex items-center justify-between px-6 md:px-10 bg-[var(--surface-muted)]">
+        <div aria-label="Logo placeholder" className="h-9 w-24 border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] rounded-md flex items-center justify-center text-[10px] font-medium tracking-wide text-[var(--text-secondary)] select-none">
+          LOGO
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <select
+              value={i18n.language}
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              aria-label={t('Display language')}
+              className="appearance-none bg-white border border-[var(--border-default)] rounded-md pl-3 pr-7 py-1.5 text-xs font-medium text-[var(--text-secondary)] focus:outline-none focus:border-[var(--brand-primary)] cursor-pointer"
+            >
+              <option value="en">EN</option>
+              <option value="ko">KO</option>
+              <option value="my">MY</option>
+            </select>
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-secondary)] pointer-events-none" />
           </div>
-
-          {/* Close */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer"
-            aria-label={t('Close')}
-          >
+          <button type="button" onClick={onClose} aria-label={t('Close')} className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
+        </div>
+      </header>
+
+      {/* Body: form (left) + setup guide (right) */}
+      <div className="flex-1 flex min-h-0">
+        {/* The form */}
+        <div className="flex-1 min-w-0 overflow-y-auto">
+          <div className="w-full max-w-2xl px-6 md:px-12 lg:px-16 py-10 md:py-12">
+            <button
+              type="button"
+              onClick={step === 0 ? onClose : goBack}
+              className="-ml-2 mb-6 inline-flex items-center justify-center w-9 h-9 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+              aria-label={t('Back')}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)] mb-3">{t('Step')} {step + 1} {t('of')} {STEPS.length}</div>
+            <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-primary)] leading-snug">{t(STEPS[step].title)}</h1>
+            <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">{t(STEPS[step].lead)}</p>
+
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8 space-y-5"
+            >
+              {step === 0 && <BasicInfoStep {...stepProps} />}
+              {step === 1 && <AddressStep {...stepProps} />}
+              {step === 2 && <PoliciesStep {...stepProps} />}
+              {step === 3 && <OwnerStep {...stepProps} />}
+              {step === 4 && <ReviewStep draft={draft} t={t} onEdit={jumpTo} />}
+            </motion.div>
+
+            {/* Action */}
+            <div className="mt-10">
+              <button
+                type="button"
+                onClick={goNext}
+                className="inline-flex items-center justify-center px-12 py-3 text-sm font-medium text-white bg-[var(--text-primary)] rounded-md hover:bg-[var(--text-primary)]/90 transition-colors cursor-pointer"
+              >
+                {isLast ? t('Finish setup') : t('Continue')}
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
@@ -268,10 +235,6 @@ function BasicInfoStep({ draft, set, t, showErrors, errors }: StepProps) {
 
   return (
     <>
-      <InfoBanner>
-        {t('This information appears on your public property profile and across booking listings.')}
-      </InfoBanner>
-
       {/* Photo */}
       <div>
         <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Hotel photo')}</label>
@@ -302,7 +265,6 @@ function BasicInfoStep({ draft, set, t, showErrors, errors }: StepProps) {
         label={t('Hotel or property name')}
         hint={t('The official name guests will recognise.')}
         required
-        counter={{ value: draft.name.length, max: 120 }}
         error={err('name')}
       >
         <input
@@ -368,7 +330,6 @@ function AddressStep({ draft, set, t, showErrors, errors }: StepProps) {
         label={t('Street address')}
         hint={t('Building number, street, and any landmark.')}
         required
-        counter={{ value: draft.address.length, max: 200 }}
         error={err('address')}
       >
         <textarea
@@ -414,17 +375,19 @@ function PoliciesStep({ draft, set, t, showErrors, errors }: StepProps) {
         <div className="flex flex-wrap gap-2">
           {AMENITIES.map((a) => {
             const on = draft.mainAmenities.includes(a);
+            const Icon = AMENITY_ICONS[a];
             return (
               <button
                 key={a}
                 type="button"
                 onClick={() => toggle(a)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-full border transition-colors cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors cursor-pointer ${
                   on
-                    ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]'
+                    ? 'bg-[var(--text-primary)] text-white border-[var(--text-primary)]'
                     : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)] hover:bg-[var(--surface-subtle)]'
                 }`}
               >
+                {Icon && <Icon className="w-3.5 h-3.5" />}
                 {t(a)}
               </button>
             );
@@ -531,32 +494,30 @@ function ReviewStep({ draft, t, onEdit }: { draft: Property; t: TFn; onEdit: (i:
   ];
 
   return (
-    <>
-      <div className="space-y-4">
-        {sections.map((sec) => (
-          <div key={sec.step} className="border border-[var(--border-default)] rounded-md overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--surface-subtle)] border-b border-[var(--border-default)]">
-              <h4 className="text-sm font-medium text-[var(--text-primary)]">{sec.title}</h4>
-              <button
-                type="button"
-                onClick={() => onEdit(sec.step)}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                {t('Edit')}
-              </button>
-            </div>
-            <dl className="divide-y divide-[var(--surface-subtle)]">
-              {sec.rows.map(([k, v]) => (
-                <div key={k} className="flex items-start gap-4 px-4 py-2.5">
-                  <dt className="w-32 shrink-0 text-xs font-medium text-[var(--text-secondary)]">{k}</dt>
-                  <dd className="text-sm text-[var(--text-primary)] break-words">{v}</dd>
-                </div>
-              ))}
-            </dl>
+    <div className="space-y-5">
+      {sections.map((sec) => (
+        <section key={sec.step} className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
+          <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
+            <h2 className="text-base font-medium text-[var(--text-primary)]">{sec.title}</h2>
+            <button
+              type="button"
+              onClick={() => onEdit(sec.step)}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              {t('Edit')}
+            </button>
           </div>
-        ))}
-      </div>
-    </>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 px-6 py-5">
+            {sec.rows.map(([k, v]) => (
+              <div key={k} className="min-w-0">
+                <dt className="text-xs text-[var(--text-secondary)] mb-0.5">{k}</dt>
+                <dd className="text-sm text-[var(--text-primary)] break-words">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ))}
+    </div>
   );
 }
