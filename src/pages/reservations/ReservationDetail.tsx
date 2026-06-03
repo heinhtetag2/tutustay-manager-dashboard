@@ -137,7 +137,7 @@ export default function ReservationDetail() {
             </>
           )}
           {r.status === 'Checked-in' && (
-            <button onClick={() => setStatus(r.id, 'Checked-out')} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
+            <button onClick={() => setStatus(r.id, 'Checked-out')} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--color-data-orange-50)] rounded-md hover:bg-[var(--color-data-orange-60)] transition-colors cursor-pointer">
               <LogOut className="w-4 h-4" />
               {t('Check out')}
             </button>
