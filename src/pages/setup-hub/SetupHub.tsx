@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import {
   Check,
   ArrowRight,
+  Pencil,
   Globe,
   CalendarCheck,
   Wallet,
@@ -73,18 +74,6 @@ export default function SetupHub() {
   const editable = review === 'Draft' || review === 'Rejected';
   const nextIndex = editable ? steps.findIndex((s) => !s.complete) : -1;
   const openStep = (step: number) => navigate(`/hotel/setup?step=${step}&from=/setup`);
-  // Completed steps are edited in Settings (in-shell). Steps without a Settings
-  // home fall back to the guided wizard at that step.
-  const SETTINGS_SECTION: Record<string, string> = {
-    basics: 'Hotel profile',
-    policies: 'Policies & amenities',
-    owner: 'Owner & contract',
-  };
-  const editStep = (key: string, step: number) => {
-    const section = SETTINGS_SECTION[key];
-    if (section) navigate(`/settings?section=${encodeURIComponent(section)}`);
-    else openStep(step);
-  };
 
   const submitForReview = () => updateProperty({ reviewStatus: 'Submitted', submittedAt: new Date().toISOString(), reviewNote: undefined });
   const withdraw = () => updateProperty({ reviewStatus: 'Draft', submittedAt: undefined });
@@ -192,23 +181,35 @@ export default function SetupHub() {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => (s.complete ? editStep(s.key, s.step) : openStep(s.step))}
-                      className="group/row flex-1 min-w-0 mb-4 -mx-2 px-2 py-1.5 rounded-md text-left flex items-start justify-between gap-3 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
-                    >
-                      <span className="min-w-0">
-                        <span className="flex items-center gap-2 flex-wrap">
+                    <div className="flex-1 min-w-0 mb-4 py-1.5 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className={`text-sm font-medium ${s.complete ? 'text-[var(--text-secondary)]' : 'text-[var(--text-primary)]'}`}>{t(s.title)}</span>
                           {s.optional && !s.complete && (
                             <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-[var(--surface-subtle)] text-[var(--text-tertiary)]">{t('Optional')}</span>
                           )}
-                        </span>
-                        <span className="block text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">{t(s.desc)}</span>
-                      </span>
-                      <span className="text-xs font-medium text-[var(--text-tertiary)] opacity-0 group-hover/row:opacity-100 group-hover/row:text-[var(--brand-primary)] transition-opacity shrink-0 mt-0.5">
-                        {s.complete ? t('Edit') : t('Complete')}
-                      </span>
-                    </button>
+                        </div>
+                        <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">{t(s.desc)}</p>
+                      </div>
+                      {s.complete ? (
+                        <button
+                          onClick={() => openStep(s.step)}
+                          title={t('Edit')}
+                          aria-label={`${t('Edit')} ${t(s.title)}`}
+                          className="shrink-0 w-8 h-8 rounded-md flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--brand-primary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => openStep(s.step)}
+                          className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer mt-0.5"
+                        >
+                          {t('Complete')}
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   )}
                 </li>
               );
