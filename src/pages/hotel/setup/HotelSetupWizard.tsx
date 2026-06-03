@@ -214,8 +214,8 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Right: illustration only (desktop only) */}
-        <div className="hidden lg:flex flex-1 items-end justify-end px-20 py-12 pointer-events-none">
-          <img src={setupIllustration} alt="" className="w-[60%] max-w-[400px] h-auto" />
+        <div className="hidden lg:flex flex-1 items-end justify-end px-10 xl:px-20 py-12 pointer-events-none">
+          <img src={setupIllustration} alt="" className="w-[85%] max-w-[340px] xl:w-[60%] xl:max-w-[400px] h-auto" />
         </div>
       </div>
     </div>
