@@ -865,7 +865,7 @@ function PricingDefaultsPanel({ t }: { t: TFn }) {
                 type="button"
                 onClick={() => toggleDay(day)}
                 aria-pressed={on}
-                className={`px-4 py-2 text-sm font-medium rounded-full border transition-colors cursor-pointer ${
+                className={`px-4 py-1.5 text-sm font-medium rounded-full border transition-colors cursor-pointer ${
                   on
                     ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]'
                     : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)] hover:bg-[var(--surface-subtle)]'

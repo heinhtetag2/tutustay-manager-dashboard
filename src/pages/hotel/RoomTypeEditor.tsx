@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import * as Popover from '@radix-ui/react-popover';
-import { X, Plus, Trash2, Clock, Info, ChevronDown, TriangleAlert, Settings as SettingsIcon } from 'lucide-react';
+import { X, Plus, Trash2, Clock, Info, ChevronDown, TriangleAlert, Settings as SettingsIcon, Lock } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { ImageCropper } from '@/pages/agents/ImageCropper';
+import { useHotel } from './use-hotel';
 import { AmenityToggles, fieldInput } from './room-editors';
 import { BED_TYPES, WEEKEND_DAYS, formatPrice, computeWeekendPrice, type RoomType, type BedType, type SizeUnit, type WeekendMode } from './hotel-data';
 
@@ -14,6 +15,7 @@ type PriceTab = 'regular' | 'session' | 'weekend';
 export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType; onClose: () => void; onSave: (rt: RoomType) => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const sessionHoursDefault = useHotel((s) => s.property.defaultSessionHours);
   const goToPricingDefaults = () => { onClose(); navigate('/settings?section=Booking defaults'); };
   const [d, setD] = useState<RoomType>(initial);
   const [priceTab, setPriceTab] = useState<PriceTab>('regular');
@@ -21,6 +23,12 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
   const fileRef = useRef<HTMLInputElement>(null);
   const set = (p: Partial<RoomType>) => setD((s) => ({ ...s, ...p }));
   const isEdit = Boolean(initial.id);
+
+  // Session length is hotel-wide (Settings) — keep this room type's value locked to it.
+  useEffect(() => {
+    if (d.sessionHours !== sessionHoursDefault) set({ sessionHours: sessionHoursDefault });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionHoursDefault]);
 
   // Weekend rate is derived from the chosen mode + surcharge; keep weekendPrice in sync.
   const weekendMode: WeekendMode = d.weekendMode ?? 'percent';
@@ -127,11 +135,12 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
                     <Field label={t('Session length (hours)')}>
                       <div className="relative">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
-                        <input type="number" min={1} className={`${fieldInput} pl-9`} value={d.sessionHours} onChange={(e) => set({ sessionHours: Number(e.target.value) })} />
+                        <input type="text" readOnly disabled value={`${sessionHoursDefault} ${sessionHoursDefault === 1 ? t('hour') : t('hours')}`} className={`${fieldInput} pl-9 pr-9 bg-[var(--surface-subtle)] text-[var(--text-secondary)] cursor-not-allowed`} />
+                        <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-tertiary)] pointer-events-none" />
                       </div>
                     </Field>
                   </div>
-                  <DefaultsHint t={t} onManage={goToPricingDefaults} label={t('The default session length and daily window are set in Settings.')} />
+                  <DefaultsHint onManage={goToPricingDefaults} label={t('Session length is managed in Settings')} />
                 </div>
               )}
               {priceTab === 'weekend' && (
@@ -145,7 +154,7 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
                           return <button key={day} type="button" onClick={() => toggleDay(day)} className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${on ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]' : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)] hover:bg-[var(--surface-subtle)]'}`}>{t(day)}</button>;
                         })}
                       </div>
-                      <DefaultsHint t={t} onManage={goToPricingDefaults} label={t('Pre-filled from your hotel’s default weekend days.')} />
+                      <DefaultsHint onManage={goToPricingDefaults} label={t('Manage weekend defaults in Settings')} />
                     </Field>
                     <Field label={t('Weekend uplift')}>
                       <div className="space-y-3">
@@ -335,16 +344,17 @@ function Money({ value, onChange, wide }: { value: number; onChange: (v: number)
   );
 }
 
-/** Inline note linking to the hotel-wide defaults in Settings. */
-function DefaultsHint({ t, onManage, label }: { t: (k: string) => string; onManage: () => void; label: string }) {
+/** Small, subtle link to the hotel-wide defaults in Settings. */
+function DefaultsHint({ onManage, label }: { onManage: () => void; label: string }) {
   return (
-    <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] mt-2">
-      <SettingsIcon className="w-3.5 h-3.5 shrink-0" />
-      <span>{label}</span>
-      <button type="button" onClick={onManage} className="font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] underline underline-offset-2 transition-colors cursor-pointer">
-        {t('Manage in Settings')}
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={onManage}
+      className="inline-flex items-center gap-1.5 mt-2.5 text-[11px] font-medium text-[var(--text-tertiary)] hover:text-[var(--brand-primary)] transition-colors cursor-pointer"
+    >
+      <SettingsIcon className="w-3 h-3 shrink-0" />
+      {label}
+    </button>
   );
 }
 
