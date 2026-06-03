@@ -25,6 +25,8 @@ import RoomTypeDetail from '@/pages/hotel/RoomTypeDetail';
 import Help from '@/pages/help';
 import Settings from '@/pages/settings';
 import HotelSetupPage from '@/pages/hotel/setup/HotelSetupPage';
+import SetupHub from '@/pages/setup-hub/SetupHub';
+import DesignSystemPage from '@/pages/design-system/DesignSystemPage';
 import NotFound from '@/pages/not-found';
 
 export const router = createBrowserRouter([
@@ -36,6 +38,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: Dashboard },
       { path: 'dashboard', Component: Dashboard },
+      { path: 'setup', Component: SetupHub },
       { path: 'companies', Component: Companies },
       { path: 'companies/:id', Component: CompanyDetail },
       { path: 'respondents', Component: Respondents },
@@ -58,6 +61,7 @@ export const router = createBrowserRouter([
       { path: 'hotel/rooms/:id', Component: RoomDetail },
       { path: 'hotel/room-types/:id', Component: RoomTypeDetail },
       { path: 'help', Component: Help },
+      { path: 'design-system', Component: DesignSystemPage },
       { path: 'settings', Component: Settings },
       { path: '*', Component: NotFound },
     ],

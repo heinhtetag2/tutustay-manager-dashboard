@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
   Search, ExternalLink, ChevronDown, Upload, Trash2, ShieldAlert,
-  UserCircle, Wallet, SlidersHorizontal, Bell, Globe,
-  ShieldCheck, Laptop, UserSquare2, Gift, Share2, X, ArrowLeft,
+  UserCircle, Wallet, Bell, Globe,
+  ShieldCheck, Laptop, X, ArrowLeft,
   Building2, ScrollText, Briefcase, Star, Image as ImageIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -12,12 +13,10 @@ import PaymentMethodsSection from './PaymentMethodsSection';
 import { useHotel } from '@/pages/hotel/use-hotel';
 import { AMENITIES, type ContractStatus } from '@/pages/hotel/hotel-data';
 import { ImageCropper } from '@/pages/agents/ImageCropper';
-import { InviteFriendsDrawer } from '@/shared/ui/invite-friends-drawer';
 import { ChangeEmailDrawer } from '@/shared/ui/change-email-drawer';
 import { ChangePasswordDrawer } from '@/shared/ui/change-password-drawer';
 import { TwoStepDrawer } from '@/shared/ui/two-step-drawer';
 import { DeleteAccountDrawer } from '@/shared/ui/delete-account-drawer';
-import { BlockedCompaniesDrawer } from '@/shared/ui/blocked-companies-drawer';
 import { useCurrency } from '@/shared/hooks/useCurrency';
 import { CURRENCIES, type CurrencyCode } from '@/shared/lib/currency';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
@@ -25,9 +24,12 @@ import { DATE_FORMATS } from '@/shared/lib/date-format';
 
 export default function Settings() {
   const { t, i18n } = useTranslation();
-  const [activeSection, setActiveSection] = useState('Account');
+  const [params] = useSearchParams();
+  // Deep-link to a section via ?section=... (e.g. from the Setup hub's Edit links).
+  const initialSection = params.get('section') || 'Account';
+  const [activeSection, setActiveSection] = useState(initialSection);
   const [query, setQuery] = useState('');
-  const [mobileView, setMobileView] = useState<'nav' | 'content'>('nav');
+  const [mobileView, setMobileView] = useState<'nav' | 'content'>(params.get('section') ? 'content' : 'nav');
 
   const navigation = [
     {
@@ -60,13 +62,7 @@ export default function Settings() {
           id: 'Account',
           label: t('Account'),
           icon: UserCircle,
-          keywords: 'email password two-step mfa verification profile name phone delete referral invite friends login security',
-        },
-        {
-          id: 'Demographics',
-          label: t('Demographics'),
-          icon: UserSquare2,
-          keywords: 'age gender city district education income employment matching profile',
+          keywords: 'email password two-step mfa verification profile name phone delete login security',
         },
       ],
     },
@@ -77,7 +73,7 @@ export default function Settings() {
           id: 'Payment methods',
           label: t('Payment methods'),
           icon: Wallet,
-          keywords: 'qpay bonum socialpay withdrawal gateway linked bank payout',
+          keywords: 'qpay bonum socialpay settlement gateway linked bank payout',
         },
       ],
     },
@@ -85,16 +81,10 @@ export default function Settings() {
       category: t('Preferences'),
       items: [
         {
-          id: 'Survey preferences',
-          label: t('Survey preferences'),
-          icon: SlidersHorizontal,
-          keywords: 'categories minimum reward maximum duration qualify filter interested match',
-        },
-        {
           id: 'Notifications',
           label: t('Notifications'),
           icon: Bell,
-          keywords: 'push email in-app quiet hours reward withdrawal trust',
+          keywords: 'push email in-app quiet hours booking reservation settlement review',
         },
         {
           id: 'Language & region',
@@ -267,7 +257,7 @@ export default function Settings() {
 
             {activeSection === 'Account' && (
               <p className="text-sm text-[var(--text-secondary)] mt-8 leading-relaxed max-w-3xl">
-                {t('By using iDap you acknowledge and agree to abide by the')}{' '}
+                {t('By using TutuStay you acknowledge and agree to abide by the')}{' '}
                 <a href="#" className="font-medium underline hover:text-[var(--text-primary)] transition-colors inline-flex items-center gap-1">
                   {t('Usage Policy')} <ExternalLink className="w-3 h-3" />
                 </a>{' '}
@@ -299,10 +289,6 @@ export default function Settings() {
                 <PaymentMethodsSection />
               ) : activeSection === 'Account' ? (
                 <AccountPanel i18n={i18n} t={t} />
-              ) : activeSection === 'Demographics' ? (
-                <DemographicsPanel t={t} />
-              ) : activeSection === 'Survey preferences' ? (
-                <SurveyPreferencesPanel t={t} />
               ) : activeSection === 'Notifications' ? (
                 <NotificationsPanel t={t} />
               ) : activeSection === 'Language & region' ? (
@@ -325,7 +311,6 @@ export default function Settings() {
 type TFn = (key: string) => string;
 
 function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
-  const [inviteOpen, setInviteOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [twoStepOpen, setTwoStepOpen] = useState(false);
@@ -377,25 +362,72 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
             </div>
           </div>
 
+          {/* Gender / Address */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Gender')}</label>
+              <div className="relative">
+                <select defaultValue="Male" className="w-full appearance-none pl-3 pr-8 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
+                  <option value="Male">{t('Male')}</option>
+                  <option value="Female">{t('Female')}</option>
+                  <option value="Other">{t('Other')}</option>
+                  <option value="Prefer not to say">{t('Prefer not to say')}</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Address')}</label>
+              <input
+                type="text"
+                defaultValue="No.20 Kyat Kone Street"
+                className="w-full px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
+              />
+            </div>
+          </div>
+
           {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Phone number')}</label>
             <div className="flex gap-3">
               <div className="relative w-28 shrink-0">
                 <select className="w-full appearance-none pl-3 pr-8 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
+                  <option>+95</option>
                   <option>+976</option>
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
               </div>
               <input
                 type="tel"
-                defaultValue="99 12 34 56"
+                defaultValue="09 54 55 45 45"
                 className="flex-1 px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
               />
             </div>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
-              {t('Used for SMS confirmations and QPay payouts.')}
+              {t('Used for SMS confirmations and settlement payouts.')}
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Account status — read-only */}
+      <div>
+        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Account status')}</h3>
+        <div className="bg-white border border-[var(--border-default)] rounded-md divide-y divide-[var(--surface-subtle)]">
+          <div className="flex items-center justify-between gap-4 px-6 py-4">
+            <span className="text-sm text-[var(--text-secondary)]">{t('Status')}</span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-[var(--success-tint)] text-[var(--success)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
+              {t('Activated')}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-4 px-6 py-4">
+            <span className="text-sm text-[var(--text-secondary)]">{t('Member since')}</span>
+            <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">2026-05-26</span>
+          </div>
+          <div className="flex items-center justify-between gap-4 px-6 py-4">
+            <span className="text-sm text-[var(--text-secondary)]">{t('Last login')}</span>
+            <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">2026-06-03</span>
           </div>
         </div>
       </div>
@@ -469,36 +501,6 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
         </div>
       </div>
 
-      {/* Referral */}
-      <div>
-        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Invite friends')}</h3>
-        <button
-          type="button"
-          onClick={() => setInviteOpen(true)}
-          className="w-full bg-white border border-[var(--border-default)] rounded-md p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 text-left hover:border-[var(--brand-border)] transition-colors cursor-pointer"
-        >
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] flex items-center justify-center shrink-0">
-              <Gift className="w-4 h-4 text-[var(--brand-primary)]" strokeWidth={1.75} />
-            </div>
-            <div>
-              <span className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-                {t('Earn 5,000 per qualified friend')}
-              </span>
-              <p className="text-sm text-[var(--text-secondary)]">
-                {t('They complete one paid survey — you both get 5,000. No limit.')}
-              </p>
-            </div>
-          </div>
-          <span className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium text-white bg-[var(--brand-primary)] shrink-0 whitespace-nowrap">
-            {t('Share link')}
-            <Share2 className="w-4 h-4" strokeWidth={1.75} />
-          </span>
-        </button>
-      </div>
-
-      <InviteFriendsDrawer open={inviteOpen} onOpenChange={setInviteOpen} />
-
       {/* Delete */}
       <div>
         <h3 className="text-lg font-medium text-[var(--danger-strong)] mb-4">{t('Delete account')}</h3>
@@ -506,7 +508,7 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
           <div>
             <span className="block text-sm font-medium text-[var(--danger-strong)] mb-1">{t('Danger zone')}</span>
             <p className="text-sm text-[var(--text-secondary)]">
-              {t('Permanently delete your account, responses, and unreleased rewards. This cannot be undone.')}
+              {t('Permanently delete your account and all associated data. This cannot be undone.')}
             </p>
           </div>
           <button
@@ -528,235 +530,31 @@ function AccountPanel({ t }: { i18n: unknown; t: TFn }) {
   );
 }
 
-function DemographicsPanel({ t }: { t: TFn }) {
-  return (
-    <div className="space-y-8 pb-20">
-      <p className="text-sm text-[var(--text-secondary)] max-w-3xl -mt-4 leading-relaxed">
-        {t('These details decide which surveys match you. Keep them accurate — companies pay more for well-matched respondents, and iDap uses them only for matching.')}
-      </p>
-
-      <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              {t('Age range')}
-            </label>
-            <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-                <option>18–24</option>
-                <option>25–34</option>
-                <option>35–44</option>
-                <option>45–54</option>
-                <option>55+</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              {t('Gender')}
-            </label>
-            <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-                <option>{t('Prefer not to say')}</option>
-                <option>{t('Male')}</option>
-                <option>{t('Female')}</option>
-                <option>{t('Non-binary')}</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              {t('City')}
-            </label>
-            <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-                <option>Ulaanbaatar</option>
-                <option>Erdenet</option>
-                <option>Darkhan</option>
-                <option>Choibalsan</option>
-                <option>{t('Other')}</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              {t('District / khoroo')}
-            </label>
-            <input
-              type="text"
-              placeholder="Sükhbaatar, Khoroo 1"
-              className="w-full px-3 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              {t('Education')}
-            </label>
-            <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-                <option>{t('High school')}</option>
-                <option>{t("Bachelor's")}</option>
-                <option>{t("Master's")}</option>
-                <option>{t('Doctorate')}</option>
-                <option>{t('Other')}</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-              {t('Employment')}
-            </label>
-            <div className="relative">
-              <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-                <option>{t('Full-time')}</option>
-                <option>{t('Part-time')}</option>
-                <option>{t('Self-employed')}</option>
-                <option>{t('Student')}</option>
-                <option>{t('Unemployed')}</option>
-                <option>{t('Retired')}</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-            {t('Monthly household income (KRW)')}
-          </label>
-          <div className="relative">
-            <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-              <option>{t('Under 500,000')}</option>
-              <option>500,000 – 1,000,000</option>
-              <option>1,000,000 – 2,000,000</option>
-              <option>2,000,000 – 5,000,000</option>
-              <option>{t('Over 5,000,000')}</option>
-              <option>{t('Prefer not to say')}</option>
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
-          </div>
-          <p className="text-xs text-[var(--text-secondary)] mt-2">
-            {t('Used for matching only. Never shared in individual responses.')}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        <button className="px-4 py-2.5 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white rounded-md text-sm font-medium transition-colors">
-          {t('Save changes')}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function SurveyPreferencesPanel({ t }: { t: TFn }) {
-  const categories = [
-    { key: 'Social', label: t('Social') },
-    { key: 'Brand', label: t('Brand') },
-    { key: 'Product', label: t('Product') },
-    { key: 'HR', label: t('HR') },
-    { key: 'Finance', label: t('Finance') },
-    { key: 'Other', label: t('Other') },
-  ];
-  return (
-    <div className="space-y-8 pb-20">
-      <div>
-        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Interested categories')}</h3>
-        <div className="bg-white border border-[var(--border-default)] rounded-md p-6">
-          <p className="text-sm text-[var(--text-secondary)] mb-4">
-            {t('Show more surveys from these categories in your feed.')}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((c, i) => (
-              <CategoryChip key={c.key} label={c.label} defaultOn={i < 3} />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Match filters')}</h3>
-        <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                {t('Minimum reward')}
-              </label>
-              <div className="relative">
-                <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-                  <option>{t('Any')}</option>
-                  <option>1,000+</option>
-                  <option>5,000+</option>
-                  <option>10,000+</option>
-                  <option>15,000+</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                {t('Maximum duration')}
-              </label>
-              <div className="relative">
-                <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-                  <option>{t('Any')}</option>
-                  <option>5 {t('min')}</option>
-                  <option>10 {t('min')}</option>
-                  <option>15 {t('min')}</option>
-                  <option>20 {t('min')}</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
-              </div>
-            </div>
-          </div>
-
-          <ToggleRow
-            label={t('Only show surveys I qualify for')}
-            description={t("Hide surveys above your current trust level so you don't see locked cards.")}
-            defaultOn={false}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function NotificationsPanel({ t }: { t: TFn }) {
   const rows = [
     {
-      label: t('New matching survey'),
-      description: t('When a new survey hits your feed with a match of 85%+.'),
+      label: t('New booking request'),
+      description: t('When a guest submits a new request that needs your decision.'),
     },
     {
-      label: t('Reward paid'),
-      description: t('When a reward lands in your wallet (instant or after the 24h hold).'),
+      label: t('Reservation confirmed'),
+      description: t('When a booking is approved and added to your calendar.'),
     },
     {
-      label: t('Response held for review'),
-      description: t('When a response is pending quality review.'),
+      label: t('Arrivals & departures'),
+      description: t("A daily summary of who's checking in and out."),
     },
     {
-      label: t('Response rejected'),
-      description: t('When a response fails quality checks and no reward is paid.'),
+      label: t('Booking cancelled'),
+      description: t('When a guest or the system cancels a confirmed booking.'),
     },
     {
-      label: t('Trust level up'),
-      description: t('When you unlock the next trust level and higher-paying surveys.'),
+      label: t('Settlement paid'),
+      description: t('When a payout lands in your settlement bank account.'),
     },
     {
-      label: t('Withdrawal status'),
-      description: t('Updates on pending, paid, or failed withdrawals.'),
+      label: t('New guest review'),
+      description: t('When a guest leaves a review for one of your stays.'),
     },
   ];
   return (
@@ -855,13 +653,13 @@ function LanguageRegionPanel({ t, i18n }: { t: TFn; i18n: { language: string; ch
               {t('Timezone')}
             </label>
             <p className="text-sm text-[var(--text-secondary)] mb-3">
-              {t('Used for submission times and hold-release countdowns.')}
+              {t('Used for check-in/check-out times and booking timestamps.')}
             </p>
             <div className="relative">
               <select className="w-full appearance-none pl-3 pr-10 py-2.5 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors cursor-pointer">
-                <option>Asia/Ulaanbaatar (UTC+8)</option>
-                <option>Asia/Tokyo (UTC+9)</option>
-                <option>Asia/Seoul (UTC+9)</option>
+                <option>Asia/Yangon (UTC+6:30)</option>
+                <option>Asia/Bangkok (UTC+7)</option>
+                <option>Asia/Singapore (UTC+8)</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
             </div>
@@ -935,27 +733,26 @@ function CurrencyPicker({ t }: { t: TFn }) {
 }
 
 function PrivacyDataPanel({ t }: { t: TFn }) {
-  const [blockedOpen, setBlockedOpen] = useState(false);
   return (
     <div className="space-y-8 pb-20">
       <div>
         <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Visibility')}</h3>
         <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-5">
           <ToggleRow
-            label={t('Show on leaderboard')}
-            description={t('Let other respondents see your anonymized trust level and streaks.')}
+            label={t('Show contact details to guests')}
+            description={t('Let confirmed guests see your front-desk phone and email before arrival.')}
             defaultOn
           />
           <div className="h-px w-full bg-[var(--surface-subtle)]" />
           <ToggleRow
-            label={t('Include me in survey panels')}
-            description={t('Allow iDap to invite you to targeted paid panels that match your profile.')}
+            label={t('Feature my property in promotions')}
+            description={t('Allow TutuStay to include your property in seasonal deals and campaigns.')}
             defaultOn
           />
           <div className="h-px w-full bg-[var(--surface-subtle)]" />
           <ToggleRow
-            label={t('Share anonymized responses in public reports')}
-            description={t('Aggregated only — never your individual answers or identity.')}
+            label={t('Share anonymized performance benchmarks')}
+            description={t('Aggregated only — helps compare occupancy and rates across similar properties.')}
             defaultOn={false}
           />
         </div>
@@ -963,47 +760,29 @@ function PrivacyDataPanel({ t }: { t: TFn }) {
 
       <div>
         <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">{t('Your data')}</h3>
-        <div className="bg-white border border-[var(--border-default)] rounded-md p-6 space-y-5">
+        <div className="bg-white border border-[var(--border-default)] rounded-md p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('Download my data')}</span>
               <p className="text-sm text-[var(--text-secondary)]">
-                {t('Export every survey response, reward, and withdrawal as a CSV bundle.')}
+                {t('Export your reservations, settlements, and property details as a CSV bundle.')}
               </p>
             </div>
             <button className="px-4 py-2.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors shrink-0 whitespace-nowrap">
               {t('Request export')}
             </button>
           </div>
-          <div className="h-px w-full bg-[var(--surface-subtle)]" />
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <span className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('Blocked companies')}</span>
-              <p className="text-sm text-[var(--text-secondary)]">
-                {t("Surveys from these companies won't appear in your feed.")}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setBlockedOpen(true)}
-              className="px-4 py-2.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors shrink-0 whitespace-nowrap cursor-pointer"
-            >
-              {t('Manage')}
-            </button>
-          </div>
         </div>
       </div>
-
-      <BlockedCompaniesDrawer open={blockedOpen} onOpenChange={setBlockedOpen} />
     </div>
   );
 }
 
 function SessionsPanel({ t }: { t: TFn }) {
   const sessions = [
-    { device: 'MacBook Pro · Chrome', where: 'Ulaanbaatar, MN', when: t('Active now'), current: true },
-    { device: 'iPhone 15 · iDap App', where: 'Ulaanbaatar, MN', when: t('2 hours ago'), current: false },
-    { device: 'Windows · Firefox', where: 'Erdenet, MN', when: t('3 days ago'), current: false },
+    { device: 'MacBook Pro · Chrome', where: 'Yangon, MM', when: t('Active now'), current: true },
+    { device: 'iPhone 15 · TutuStay App', where: 'Yangon, MM', when: t('2 hours ago'), current: false },
+    { device: 'Windows · Firefox', where: 'Mandalay, MM', when: t('3 days ago'), current: false },
   ];
   return (
     <div className="space-y-8 pb-20">
@@ -1208,16 +987,26 @@ function HotelProfilePanel({ t }: { t: TFn }) {
           <HField label={t('Name')}><input className={hInput} value={property.name} onChange={(e) => updateProperty({ name: e.target.value })} /></HField>
           <HField label={t('Accommodation Type')}><input className={hInput} value={property.accommodationType} onChange={(e) => updateProperty({ accommodationType: e.target.value })} /></HField>
         </div>
-        <HField label={t('Address')}><input className={hInput} value={property.address} onChange={(e) => updateProperty({ address: e.target.value })} /></HField>
-        <HField label={t('Star Rating')}>
-          <div className="flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} type="button" onClick={() => updateProperty({ starRating: n })} className="p-0.5 cursor-pointer" aria-label={`${n} ${t('stars')}`}>
-                <Star className={`w-6 h-6 transition-colors ${n <= property.starRating ? 'text-[var(--warning-strong)] fill-[var(--warning-strong)]' : 'text-[var(--border-strong)]'}`} />
-              </button>
-            ))}
-          </div>
+        <HField label={t('Description')}>
+          <textarea className={`${hInput} min-h-[80px] resize-none`} value={property.description} onChange={(e) => updateProperty({ description: e.target.value })} placeholder={t('A short summary guests see on your listing.')} />
         </HField>
+        <HField label={t('Address')}><input className={hInput} value={property.address} onChange={(e) => updateProperty({ address: e.target.value })} /></HField>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <HField label={t('Star Rating')}>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} type="button" onClick={() => updateProperty({ starRating: n })} className="p-0.5 cursor-pointer" aria-label={`${n} ${t('stars')}`}>
+                  <Star className={`w-6 h-6 transition-colors ${n <= property.starRating ? 'text-[var(--warning-strong)] fill-[var(--warning-strong)]' : 'text-[var(--border-strong)]'}`} />
+                </button>
+              ))}
+            </div>
+          </HField>
+          <HField label={t('Number of guest rooms')}><input type="number" min={0} className={hInput} value={property.guestRooms || ''} onChange={(e) => updateProperty({ guestRooms: Number(e.target.value) })} /></HField>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <HField label={t('Contact number')}><input className={hInput} value={property.contactNumber} onChange={(e) => updateProperty({ contactNumber: e.target.value })} /></HField>
+          <HField label={t('Contact email')}><input type="email" className={hInput} value={property.contactEmail} onChange={(e) => updateProperty({ contactEmail: e.target.value })} /></HField>
+        </div>
       </HCard>
 
       {cropSrc && <ImageCropper src={cropSrc} onCancel={() => setCropSrc(null)} onSave={(url) => { updateProperty({ photoUrl: url }); setCropSrc(null); }} />}
@@ -1238,6 +1027,25 @@ function PoliciesAmenitiesPanel({ t }: { t: TFn }) {
           <HField label={t('Check-out time')}><input className={hInput} value={property.checkOutTime} onChange={(e) => updateProperty({ checkOutTime: e.target.value })} placeholder="12:00" /></HField>
           <HField label={t('Front desk number')}><input className={hInput} value={property.frontDeskNumber} onChange={(e) => updateProperty({ frontDeskNumber: e.target.value })} /></HField>
           <HField label={t('Front desk email')}><input className={hInput} value={property.frontDeskEmail} onChange={(e) => updateProperty({ frontDeskEmail: e.target.value })} /></HField>
+          <HField label={t('Foreign guest policy')}>
+            <div className="relative">
+              <select className={`${hInput} appearance-none pr-8 cursor-pointer`} value={property.foreignPolicy} onChange={(e) => updateProperty({ foreignPolicy: e.target.value })}>
+                <option value="Foreigners welcome">{t('Foreigners welcome')}</option>
+                <option value="Locals only (no foreigners)">{t('Locals only (no foreigners)')}</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
+            </div>
+          </HField>
+          <HField label={t('Breakfast policy')}>
+            <div className="relative">
+              <select className={`${hInput} appearance-none pr-8 cursor-pointer`} value={property.breakfastPolicy} onChange={(e) => updateProperty({ breakfastPolicy: e.target.value })}>
+                <option value="Free breakfast included">{t('Free breakfast included')}</option>
+                <option value="Breakfast available (paid)">{t('Breakfast available (paid)')}</option>
+                <option value="No breakfast">{t('No breakfast')}</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
+            </div>
+          </HField>
         </div>
       </HCard>
 
@@ -1261,16 +1069,24 @@ function OwnerContractPanel({ t }: { t: TFn }) {
   const { property, updateProperty } = useHotel();
   return (
     <div className="space-y-8 pb-20">
-      <HCard title={t('Seller (Owner)')}>
+      <HCard title={t('Business & verification')}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <HField label={t('Representative name')}><input className={hInput} value={property.representativeName} onChange={(e) => updateProperty({ representativeName: e.target.value })} /></HField>
-          <HField label={t('Business Registration Number')}><input className={hInput} value={property.businessRegNumber} onChange={(e) => updateProperty({ businessRegNumber: e.target.value })} /></HField>
+          <HField label={t('Legal representative / business operator')}><input className={hInput} value={property.representativeName} onChange={(e) => updateProperty({ representativeName: e.target.value })} /></HField>
           <HField label={t('Company name')}><input className={hInput} value={property.companyName} onChange={(e) => updateProperty({ companyName: e.target.value })} /></HField>
-          <HField label={t('Manager Contact')}><input className={hInput} value={property.managerContact} onChange={(e) => updateProperty({ managerContact: e.target.value })} /></HField>
+          <HField label={t('Business Registration Number')}><input className={hInput} value={property.businessRegNumber} onChange={(e) => updateProperty({ businessRegNumber: e.target.value })} /></HField>
+          <HField label={t('Document type')}><input className={hInput} value={property.documentType} onChange={(e) => updateProperty({ documentType: e.target.value })} /></HField>
+          <HField label={t('Business location')}><input className={hInput} value={property.businessLocation} onChange={(e) => updateProperty({ businessLocation: e.target.value })} /></HField>
+          <HField label={t('Nature of business')}><input className={hInput} value={property.natureOfBusiness} onChange={(e) => updateProperty({ natureOfBusiness: e.target.value })} /></HField>
         </div>
       </HCard>
 
       <HCard title={t('Contract')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <HField label={t('Contact person / host name')}><input className={hInput} value={property.contactPersonName} onChange={(e) => updateProperty({ contactPersonName: e.target.value })} /></HField>
+          <HField label={t('Contact person / host email')}><input type="email" className={hInput} value={property.contactPersonEmail} onChange={(e) => updateProperty({ contactPersonEmail: e.target.value })} /></HField>
+          <HField label={t('Contact person phone')}><input className={hInput} value={property.contactPersonPhone} onChange={(e) => updateProperty({ contactPersonPhone: e.target.value })} /></HField>
+          <HField label={t('Property contracting people')}><input className={hInput} value={property.contractingPeople} onChange={(e) => updateProperty({ contractingPeople: e.target.value })} /></HField>
+        </div>
         <HField label={t('Contract status')}>
           <div className="relative">
             <select className={`${hInput} appearance-none pr-8 cursor-pointer`} value={property.contractStatus} onChange={(e) => updateProperty({ contractStatus: e.target.value as ContractStatus })}>

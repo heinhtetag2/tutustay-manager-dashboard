@@ -15,7 +15,6 @@ import {
   MapPin,
   ScrollText,
   Briefcase,
-  ClipboardCheck,
   Star,
   Upload,
   Trash2,
@@ -46,7 +45,7 @@ import {
   type ContractStatus,
   type Property,
 } from '../hotel-data';
-import { SetupField, AdditionalInputs, setupInput } from './setup-fields';
+import { SetupField, AdditionalInputs, StepHeader, setupInput } from './setup-fields';
 import { MapPicker } from './MapPicker';
 import { TimePicker } from './TimePicker';
 import { DatePicker } from './DatePicker';
@@ -67,9 +66,8 @@ const STEPS = [
   { key: 'type', title: 'What type of property is it?', lead: 'Pick the category that best describes your place — it shapes how guests find and filter you.', Icon: Hotel },
   { key: 'address', title: 'Confirm your address', lead: "Enter your property's detailed address. If it isn't clear and accurate on the map, guests will struggle to find you.", Icon: MapPin },
   { key: 'policies', title: 'Policies & amenities', lead: 'Set guest expectations for arrival and stay.', Icon: ScrollText },
-  { key: 'owner', title: 'Owner & contract', lead: 'Who operates this property and the terms of your agreement.', Icon: Briefcase },
-  { key: 'banking', title: 'Where should we send your payouts?', lead: 'Choose the bank that receives your booking settlements. You can set this up later if you prefer.', Icon: Landmark },
-  { key: 'review', title: 'Review your details', lead: 'Check everything looks right, then finish setup.', Icon: ClipboardCheck },
+  { key: 'owner', title: 'Owner, business & contract', lead: 'The legal entity behind the property, your verification document, and the contract terms.', Icon: Briefcase },
+  { key: 'banking', title: 'Set up your settlement', lead: 'Tell us how bookings are settled and which bank account to use. You can set this up later if you prefer.', Icon: Landmark },
 ] as const;
 
 /**
@@ -82,6 +80,14 @@ const BANK_OPTIONS: { name: string; subtitle: string; logo?: string }[] = [
   { name: 'UAB Bank', subtitle: 'uab pay · online banking', logo: uabLogo },
   { name: 'Other bank', subtitle: 'Add any local bank account' },
 ];
+
+const FOREIGN_POLICIES = ['Foreigners welcome', 'Locals only (no foreigners)'] as const;
+const BREAKFAST_POLICIES = ['Free breakfast included', 'Breakfast available (paid)', 'No breakfast'] as const;
+const DOCUMENT_TYPES = ['Business license', 'Hotel license', 'Company registration', 'Other'] as const;
+const SETTLE_METHODS = [
+  { value: 'Prepaid', desc: 'Guests pay TutuStay upfront; we settle to you on schedule.' },
+  { value: 'Postpaid', desc: 'You collect from guests, then settle commission with TutuStay.' },
+] as const;
 
 /** Per-accommodation-type card metadata: icon + a one-line description. */
 const TYPE_META: Record<string, { Icon: LucideIcon; headline: string; desc: string; tint: string; fg: string }> = {
@@ -129,12 +135,13 @@ function validate(step: number, d: Property, t: TFn): Record<string, string> {
   return e;
 }
 
-export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
+export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => void; initialStep?: number }) {
   const { t, i18n } = useTranslation();
   const { property, updateProperty } = useHotel();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => Math.min(Math.max(initialStep, 0), STEPS.length - 1));
   const [draft, setDraft] = useState<Property>(() => ({ ...property }));
   const [showErrors, setShowErrors] = useState(false);
+  const [done, setDone] = useState(false);
 
   const set: Patch = (patch) => setDraft((d) => ({ ...d, ...patch }));
 
@@ -149,7 +156,7 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
     }
     if (isLast) {
       updateProperty(draft);
-      onClose();
+      setDone(true);
       return;
     }
     setShowErrors(false);
@@ -159,16 +166,17 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
     setShowErrors(false);
     setStep((s) => Math.max(0, s - 1));
   };
-  // Advance past an optional step without making a selection (e.g. banking).
+  // Advance past an optional step; on the last step this finishes setup.
   const goSkip = () => {
     setShowErrors(false);
+    if (isLast) {
+      updateProperty(draft);
+      setDone(true);
+      return;
+    }
     setStep((s) => Math.min(STEPS.length - 1, s + 1));
   };
   const isSkippable = STEPS[step].key === 'banking';
-  const jumpTo = (i: number) => {
-    setShowErrors(false);
-    setStep(i);
-  };
 
   // Esc closes
   useEffect(() => {
@@ -178,6 +186,8 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   const stepProps: StepProps = { draft, set, t, showErrors, errors };
+
+  if (done) return <SetupSuccess t={t} name={draft.name} onClose={onClose} />;
 
   return (
     <div className="fixed inset-0 z-40 bg-[var(--surface-muted)] flex flex-col">
@@ -243,7 +253,6 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
               {step === 3 && <PoliciesStep {...stepProps} />}
               {step === 4 && <OwnerStep {...stepProps} />}
               {step === 5 && <BankingStep {...stepProps} />}
-              {step === 6 && <ReviewStep draft={draft} t={t} onEdit={jumpTo} />}
             </motion.div>
 
             {/* Action */}
@@ -331,15 +340,46 @@ function BasicInfoStep({ draft, set, t, showErrors, errors }: StepProps) {
         />
       </SetupField>
 
-      <SetupField label={t('Star rating')} hint={t('Official or self-assessed star class.')} required error={err('starRating')}>
-        <div className="flex items-center gap-1 h-[42px]">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button key={n} type="button" onClick={() => set({ starRating: n })} className="p-0.5 cursor-pointer" aria-label={`${n} ${t('stars')}`}>
-              <Star className={`w-6 h-6 transition-colors ${n <= draft.starRating ? 'text-[var(--color-data-yellow-40)] fill-[var(--color-data-yellow-40)]' : 'text-[var(--border-strong)]'}`} />
-            </button>
-          ))}
-        </div>
+      <SetupField label={t('Description')} hint={t('A short summary guests see on your listing.')}>
+        <textarea
+          className={`${setupInput} min-h-[88px] resize-none`}
+          maxLength={400}
+          value={draft.description}
+          onChange={(e) => set({ description: e.target.value })}
+          placeholder={t('e.g. A riverside hotel with skyline views and a rooftop pool.')}
+        />
       </SetupField>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+        <SetupField label={t('Star rating')} hint={t('Official or self-assessed star class.')} required error={err('starRating')}>
+          <div className="flex items-center gap-1 h-[42px]">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button key={n} type="button" onClick={() => set({ starRating: n })} className="p-0.5 cursor-pointer" aria-label={`${n} ${t('stars')}`}>
+                <Star className={`w-6 h-6 transition-colors ${n <= draft.starRating ? 'text-[var(--color-data-yellow-40)] fill-[var(--color-data-yellow-40)]' : 'text-[var(--border-strong)]'}`} />
+              </button>
+            ))}
+          </div>
+        </SetupField>
+        <SetupField label={t('Number of guest rooms')} hint={t('Total rooms available to book.')}>
+          <input
+            type="number"
+            min={0}
+            className={setupInput}
+            value={draft.guestRooms || ''}
+            onChange={(e) => set({ guestRooms: Number(e.target.value) })}
+            placeholder={t('e.g. 40')}
+          />
+        </SetupField>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+        <SetupField label={t('Contact number')} hint={t('Main reception line for guests.')}>
+          <input className={setupInput} value={draft.contactNumber} onChange={(e) => set({ contactNumber: e.target.value })} placeholder={t('e.g. 09 77 25 85 55 55')} />
+        </SetupField>
+        <SetupField label={t('Contact email')} hint={t('Where booking enquiries are sent.')}>
+          <input type="email" className={setupInput} value={draft.contactEmail} onChange={(e) => set({ contactEmail: e.target.value })} placeholder={t('e.g. hello@hotel.com')} />
+        </SetupField>
+      </div>
 
       {cropSrc && <ImageCropper src={cropSrc} onCancel={() => setCropSrc(null)} onSave={(url) => { set({ photoUrl: url }); setCropSrc(null); }} />}
     </>
@@ -394,9 +434,46 @@ function AccommodationTypeStep({ draft, set, t, showErrors, errors }: StepProps)
 
 function BankingStep({ draft, set, t }: StepProps) {
   const [agreed, setAgreed] = useState(true);
+  const postpaid = draft.settleMethod === 'Postpaid';
+  const bankHeading = postpaid ? t('Where commission is settled from') : t('Where we send your payouts');
+  const consentText = postpaid
+    ? t('I confirm this account belongs to the property owner and authorise TutuStay to collect the agreed commission from it. You can change these details anytime in Settings.')
+    : t('I confirm this account belongs to the property owner and authorise TutuStay to send all booking settlements to it. Payouts follow the agreed commission and settlement schedule, and you can change these details anytime in Settings.');
   return (
     <div>
-      <div className="text-sm font-medium text-[var(--text-primary)] mb-3">{t('Choose your settlement bank')}</div>
+      {/* Settlement method */}
+      <div className="text-sm font-medium text-[var(--text-primary)] mb-3">{t('How are bookings settled?')}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8 max-w-2xl">
+        {SETTLE_METHODS.map((m) => {
+          const selected = draft.settleMethod === m.value;
+          return (
+            <button
+              key={m.value}
+              type="button"
+              onClick={() => set({ settleMethod: m.value })}
+              aria-pressed={selected}
+              className={`flex items-start gap-3 text-left rounded-md border bg-white p-4 transition-colors cursor-pointer ${
+                selected ? 'border-[var(--brand-primary)]' : 'border-[var(--border-default)] hover:border-[var(--border-strong)]'
+              }`}
+            >
+              <span
+                className={`mt-0.5 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                  selected ? 'border-[var(--brand-primary)]' : 'border-[var(--border-strong)]'
+                }`}
+              >
+                {selected && <span className="w-2.5 h-2.5 rounded-full bg-[var(--brand-primary)]" />}
+              </span>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-[var(--text-primary)]">{t(m.value)}</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1 leading-snug">{t(m.desc)}</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="text-sm font-medium text-[var(--text-primary)] mb-1">{bankHeading}</div>
+      <div className="text-xs text-[var(--text-secondary)] mb-3">{t('Choose your settlement bank')}</div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {BANK_OPTIONS.map((bank) => {
           const selected = draft.settlementBank === bank.name;
@@ -444,7 +521,7 @@ function BankingStep({ draft, set, t }: StepProps) {
           </span>
         </span>
         <span className="text-xs text-[var(--text-secondary)] leading-relaxed max-w-2xl">
-          {t('I confirm this account belongs to the property owner and authorise TutuStay to send all booking settlements to it. Payouts follow the agreed commission and settlement schedule, and you can change these details anytime in Settings.')}{' '}
+          {consentText}{' '}
           <a
             href="#"
             onClick={(e) => e.preventDefault()}
@@ -526,6 +603,23 @@ function PoliciesStep({ draft, set, t, showErrors, errors }: StepProps) {
         </SetupField>
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+        <SetupField label={t('Foreign guest policy')} hint={t('Whether non-locals can book your property.')}>
+          <BrandSelect
+            value={draft.foreignPolicy}
+            onValueChange={(v) => set({ foreignPolicy: v })}
+            options={FOREIGN_POLICIES.map((p) => ({ value: p, label: t(p) }))}
+          />
+        </SetupField>
+        <SetupField label={t('Breakfast policy')} hint={t('What guests can expect for breakfast.')}>
+          <BrandSelect
+            value={draft.breakfastPolicy}
+            onValueChange={(v) => set({ breakfastPolicy: v })}
+            options={BREAKFAST_POLICIES.map((p) => ({ value: p, label: t(p) }))}
+          />
+        </SetupField>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-[var(--text-primary)]">{t('Main amenities')}</label>
         <p className="text-xs text-[var(--text-secondary)] mt-1 mb-3">{t('Highlight what makes your stay stand out.')}</p>
@@ -567,127 +661,173 @@ function PoliciesStep({ draft, set, t, showErrors, errors }: StepProps) {
 function OwnerStep({ draft, set, t, showErrors, errors }: StepProps) {
   const err = (k: string) => (showErrors ? errors[k] : undefined);
   return (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
-        <SetupField label={t('Representative name')} required error={err('representativeName')}>
-          <input className={setupInput} value={draft.representativeName} onChange={(e) => set({ representativeName: e.target.value })} />
-        </SetupField>
-        <SetupField label={t('Business registration number')}>
-          <input className={setupInput} value={draft.businessRegNumber} onChange={(e) => set({ businessRegNumber: e.target.value })} />
-        </SetupField>
-        <SetupField label={t('Company name')} required error={err('companyName')}>
-          <input className={setupInput} value={draft.companyName} onChange={(e) => set({ companyName: e.target.value })} />
-        </SetupField>
-        <SetupField label={t('Manager contact')}>
-          <input className={setupInput} value={draft.managerContact} onChange={(e) => set({ managerContact: e.target.value })} />
+    <div className="space-y-8">
+      {/* Business & verification */}
+      <div className="space-y-5">
+        <StepHeader title={t('Business & verification')} subtitle={t('The legal entity behind the property and the document we verify it with.')} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+          <SetupField label={t('Legal representative / business operator')} required error={err('representativeName')}>
+            <input className={setupInput} value={draft.representativeName} onChange={(e) => set({ representativeName: e.target.value })} />
+          </SetupField>
+          <SetupField label={t('Company name')} required error={err('companyName')}>
+            <input className={setupInput} value={draft.companyName} onChange={(e) => set({ companyName: e.target.value })} />
+          </SetupField>
+          <SetupField label={t('Document type')}>
+            <BrandSelect
+              value={draft.documentType}
+              onValueChange={(v) => set({ documentType: v })}
+              options={DOCUMENT_TYPES.map((d) => ({ value: d, label: t(d) }))}
+            />
+          </SetupField>
+          <SetupField label={t('Business registration number')}>
+            <input className={setupInput} value={draft.businessRegNumber} onChange={(e) => set({ businessRegNumber: e.target.value })} />
+          </SetupField>
+          <SetupField label={t('Business location')}>
+            <input className={setupInput} value={draft.businessLocation} onChange={(e) => set({ businessLocation: e.target.value })} placeholder={t('e.g. Insein, Yangon')} />
+          </SetupField>
+          <SetupField label={t('Nature of business')}>
+            <input className={setupInput} value={draft.natureOfBusiness} onChange={(e) => set({ natureOfBusiness: e.target.value })} placeholder={t('e.g. Hotel & hospitality')} />
+          </SetupField>
+        </div>
+        <SetupField label={t('Document issue date')}>
+          <DatePicker value={draft.documentDate} onChange={(v) => set({ documentDate: v })} ariaLabel={t('Document issue date')} placeholder={t('Select date')} />
         </SetupField>
       </div>
 
-      <SetupField label={t('Contract status')}>
-        <BrandSelect
-          value={draft.contractStatus}
-          onValueChange={(v) => set({ contractStatus: v as ContractStatus })}
-          options={(['Pending', 'Approved', 'Rejected'] as ContractStatus[]).map((s) => ({ value: s, label: t(s) }))}
-        />
-      </SetupField>
+      {/* Contract */}
+      <div className="space-y-5">
+        <StepHeader title={t('Contract')} subtitle={t('Your commission, the contract term, and who we contact about it.')} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
-        <SetupField label={t('Contract start')}>
-          <DatePicker value={draft.contractStart} onChange={(v) => set({ contractStart: v })} ariaLabel={t('Contract start')} placeholder={t('Select date')} />
+        <SetupField label={t('Commission rate')} hint={t('Standard commission rate in your region.')}>
+          <input
+            readOnly
+            value={`${draft.commissionRate}%`}
+            className={`${setupInput} bg-[var(--surface-subtle)] text-[var(--text-secondary)] cursor-not-allowed`}
+          />
         </SetupField>
-        <SetupField label={t('Contract end')}>
-          <DatePicker value={draft.contractEnd} onChange={(v) => set({ contractEnd: v })} ariaLabel={t('Contract end')} placeholder={t('Select date')} />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+          <SetupField label={t('Contact person / host name')}>
+            <input className={setupInput} value={draft.contactPersonName} onChange={(e) => set({ contactPersonName: e.target.value })} />
+          </SetupField>
+          <SetupField label={t('Contact person / host email')}>
+            <input type="email" className={setupInput} value={draft.contactPersonEmail} onChange={(e) => set({ contactPersonEmail: e.target.value })} placeholder="host@hotel.com" />
+          </SetupField>
+          <SetupField label={t('Contact person phone')}>
+            <input className={setupInput} value={draft.contactPersonPhone} onChange={(e) => set({ contactPersonPhone: e.target.value })} placeholder="09 ..." />
+          </SetupField>
+          <SetupField label={t('Property contracting people')}>
+            <input className={setupInput} value={draft.contractingPeople} onChange={(e) => set({ contractingPeople: e.target.value })} />
+          </SetupField>
+        </div>
+
+        <SetupField label={t('Contract status')}>
+          <BrandSelect
+            value={draft.contractStatus}
+            onValueChange={(v) => set({ contractStatus: v as ContractStatus })}
+            options={(['Pending', 'Approved', 'Rejected'] as ContractStatus[]).map((s) => ({ value: s, label: t(s) }))}
+          />
         </SetupField>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+          <SetupField label={t('Contract start')}>
+            <DatePicker value={draft.contractStart} onChange={(v) => set({ contractStart: v })} ariaLabel={t('Contract start')} placeholder={t('Select date')} />
+          </SetupField>
+          <SetupField label={t('Contract end date')}>
+            <DatePicker value={draft.contractEnd} onChange={(v) => set({ contractEnd: v })} ariaLabel={t('Contract end date')} placeholder={t('Select date')} />
+          </SetupField>
+        </div>
       </div>
-    </>
-  );
-}
-
-function ReviewStep({ draft, t, onEdit }: { draft: Property; t: TFn; onEdit: (i: number) => void }) {
-  const dash = '—';
-  const sections: { step: number; title: string; rows: [string, string][] }[] = [
-    {
-      step: 0,
-      title: t('Basic information'),
-      rows: [
-        [t('Name'), draft.name || dash],
-        [t('Star rating'), draft.starRating ? `${draft.starRating} ★` : dash],
-      ],
-    },
-    {
-      step: 1,
-      title: t('Property type'),
-      rows: [
-        [t('Type'), t(draft.accommodationType) || dash],
-      ],
-    },
-    {
-      step: 2,
-      title: t('Address'),
-      rows: [
-        [t('Country'), draft.country || dash],
-        [t('State / Region'), draft.state || dash],
-        [t('District'), draft.district || dash],
-        [t('Township'), draft.township || dash],
-        [t('Street address'), draft.address || dash],
-        [t('Coordinates'), draft.latitude != null ? `${draft.latitude}, ${draft.longitude}` : dash],
-      ],
-    },
-    {
-      step: 3,
-      title: t('Policies & amenities'),
-      rows: [
-        [t('Check-in'), draft.checkInTime || dash],
-        [t('Check-out'), draft.checkOutTime || dash],
-        [t('Amenities'), draft.mainAmenities.length ? draft.mainAmenities.map((a) => t(a)).join(', ') : dash],
-        [t('Front desk'), draft.frontDeskNumber || draft.frontDeskEmail || dash],
-      ],
-    },
-    {
-      step: 4,
-      title: t('Owner & contract'),
-      rows: [
-        [t('Representative'), draft.representativeName || dash],
-        [t('Company'), draft.companyName || dash],
-        [t('Reg. number'), draft.businessRegNumber || dash],
-        [t('Contract status'), t(draft.contractStatus)],
-        [t('Contract term'), draft.contractStart ? `${draft.contractStart} → ${draft.contractEnd || dash}` : dash],
-      ],
-    },
-    {
-      step: 5,
-      title: t('Settlement'),
-      rows: [
-        [t('Payout bank'), draft.settlementBank || t('Not set up yet')],
-      ],
-    },
-  ];
-
-  return (
-    <div className="space-y-5">
-      {sections.map((sec) => (
-        <section key={sec.step} className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
-          <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
-            <h2 className="text-base font-medium text-[var(--text-primary)]">{sec.title}</h2>
-            <button
-              type="button"
-              onClick={() => onEdit(sec.step)}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              {t('Edit')}
-            </button>
-          </div>
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 px-6 py-5">
-            {sec.rows.map(([k, v]) => (
-              <div key={k} className="min-w-0">
-                <dt className="text-xs text-[var(--text-secondary)] mb-0.5">{k}</dt>
-                <dd className="text-sm text-[var(--text-primary)] break-words">{v}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      ))}
     </div>
   );
 }
+
+/* ----------------------- Completion screen ----------------------- */
+
+function SetupSuccess({ t, name, onClose }: { t: TFn; name: string; onClose: () => void }) {
+  // A few celebratory sparkles around the check, each popping in with a stagger.
+  const sparkles = [
+    { x: -90, y: -40, s: 8, d: 0.45, c: 'var(--brand-primary)' },
+    { x: 96, y: -28, s: 10, d: 0.55, c: 'var(--color-data-yellow-40)' },
+    { x: -70, y: 56, s: 7, d: 0.6, c: 'var(--success)' },
+    { x: 84, y: 60, s: 9, d: 0.5, c: 'var(--brand-accent)' },
+    { x: 0, y: -86, s: 6, d: 0.65, c: 'var(--brand-primary)' },
+  ];
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="fixed inset-0 z-40 bg-[var(--surface-muted)] flex flex-col items-center justify-center px-6 text-center"
+    >
+      <div className="relative">
+        {sparkles.map((sp, i) => (
+          <motion.span
+            key={i}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: sp.d, type: 'spring', duration: 0.6, bounce: 0.6 }}
+            className="absolute rounded-full"
+            style={{ width: sp.s, height: sp.s, background: sp.c, left: '50%', top: '50%', x: sp.x, y: sp.y }}
+          />
+        ))}
+        {/* Halo + check */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', duration: 0.6, bounce: 0.45 }}
+          className="w-28 h-28 rounded-full bg-[var(--brand-primary)]/10 flex items-center justify-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.12, type: 'spring', duration: 0.5, bounce: 0.5 }}
+            className="w-18 h-18 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center"
+            style={{ width: 72, height: 72 }}
+          >
+            <svg viewBox="0 0 24 24" className="w-9 h-9" fill="none">
+              <motion.path
+                d="M5 12.5l4 4 10-11"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ delay: 0.38, duration: 0.4, ease: 'easeOut' }}
+              />
+            </svg>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      <motion.h1
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.4 }}
+        className="text-3xl md:text-4xl font-serif text-[var(--text-primary)] mt-10"
+      >
+        {t("You're all set!")}
+      </motion.h1>
+      <motion.p
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45, duration: 0.4 }}
+        className="text-sm text-[var(--text-secondary)] mt-3 leading-relaxed max-w-md"
+      >
+        {name ? `${name} ${t('is set up and ready to take bookings. You can manage everything from your dashboard.')}` : t('Your property is set up and ready to take bookings. You can manage everything from your dashboard.')}
+      </motion.p>
+      <motion.button
+        type="button"
+        onClick={onClose}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.55, duration: 0.4 }}
+        className="mt-8 inline-flex items-center justify-center px-12 py-3 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
+      >
+        {t('Go to dashboard')}
+      </motion.button>
+    </motion.div>
+  );
+}
+

@@ -5,12 +5,15 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Settings,
   HelpCircle,
+  Code2,
   Bell,
   PanelLeftClose,
   PanelLeftOpen,
   LogOut,
   LayoutDashboard,
+  Rocket,
   Clock,
+  Check,
   CheckCircle2,
   UserCog,
   Users,
@@ -25,6 +28,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Portal } from '@/shared/ui/portal';
+import { useHotel } from '@/pages/hotel/use-hotel';
+import { setupProgress } from '@/pages/setup-hub/setup-progress';
 
 /** Hover tooltip for collapsed nav items — rendered in a Portal with fixed
  *  positioning so it isn't clipped by the sidebar's overflow-hidden. */
@@ -149,6 +154,10 @@ export function Sidebar({
   const [hasUnread, setHasUnread] = React.useState(true);
   const [isDesktop, setIsDesktop] = React.useState(true);
 
+  // Live onboarding progress for the Setup hub nav badge.
+  const property = useHotel((s) => s.property);
+  const setup = setupProgress(property);
+
   React.useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mql = window.matchMedia('(min-width: 768px)');
@@ -254,7 +263,7 @@ export function Sidebar({
       </div>
 
       {/* Navigation Links */}
-      <div className={cn("flex-1 overflow-y-auto px-3 py-4 overflow-x-hidden", effectiveCollapsed ? "space-y-3" : "space-y-6")}>
+      <div className={cn("flex-1 overflow-y-auto px-3 overflow-x-hidden", effectiveCollapsed ? "py-1.5 space-y-1.5" : "py-4 space-y-6")}>
 
         {/* Overview */}
         <div>
@@ -351,7 +360,9 @@ export function Sidebar({
       </div>
 
       {/* Bottom Actions */}
-      <div className="p-3 border-t border-[var(--border-default)] space-y-0.5 shrink-0">
+      <div className={cn("border-t border-[var(--border-default)] shrink-0", effectiveCollapsed ? "p-2 space-y-1" : "p-3 space-y-0.5")}>
+        <SetupNavItem pct={setup.pct} completed={setup.completed} total={setup.total} allDone={setup.allDone} isCollapsed={effectiveCollapsed} label={t("Setup hub")} />
+        <NavItem icon={Code2} label={t("Dev Handoff")} path="/design-system" isCollapsed={effectiveCollapsed} />
         <NavItem icon={HelpCircle} label={t("Help")} path="/help" isCollapsed={effectiveCollapsed} />
         <NavButton
           icon={({ className }) => (
@@ -619,7 +630,7 @@ export function Sidebar({
   );
 }
 
-function NavItem({ icon: Icon, label, path, isCollapsed }: { icon: React.ElementType, label: string, path: string, isCollapsed?: boolean }) {
+function NavItem({ icon: Icon, label, path, isCollapsed, badge, dot }: { icon: React.ElementType, label: string, path: string, isCollapsed?: boolean, badge?: string, dot?: boolean }) {
   const tip = useNavTooltip(label, !!isCollapsed);
   return (
     <>
@@ -630,7 +641,7 @@ function NavItem({ icon: Icon, label, path, isCollapsed }: { icon: React.Element
         onMouseLeave={tip.onMouseLeave}
         className={({ isActive }) => cn(
           "flex items-center rounded-md text-sm font-medium transition-colors group",
-          isCollapsed ? "justify-center p-2 h-10 w-10 mx-auto" : "gap-3 px-3 py-2 w-full",
+          isCollapsed ? "justify-center h-9 w-9 mx-auto" : "gap-3 px-3 py-2 w-full",
           isActive
             ? "bg-[var(--brand-tint)] text-[var(--brand-primary)]"
             : "text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)]"
@@ -638,9 +649,57 @@ function NavItem({ icon: Icon, label, path, isCollapsed }: { icon: React.Element
       >
         {({ isActive }) => (
           <>
-            <Icon strokeWidth={1.75} className={cn("w-[17px] h-[17px] shrink-0 transition-colors", isActive ? "text-[var(--brand-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-tertiary)]")} />
+            <span className="relative shrink-0">
+              <Icon strokeWidth={1.75} className={cn("w-[17px] h-[17px] transition-colors", isActive ? "text-[var(--brand-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-tertiary)]")} />
+              {isCollapsed && dot && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[var(--brand-primary)] border border-white" />}
+            </span>
             {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
+            {!isCollapsed && badge && (
+              <span className="ml-auto text-[11px] font-medium tabular-nums px-1.5 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-primary)]">{badge}</span>
+            )}
           </>
+        )}
+      </NavLink>
+      {tip.node}
+    </>
+  );
+}
+
+/** Setup hub nav item — its icon is a live progress ring; shows the step count when expanded. */
+function SetupNavItem({ pct, completed, total, allDone, isCollapsed, label }: { pct: number, completed: number, total: number, allDone: boolean, isCollapsed?: boolean, label: string }) {
+  const tip = useNavTooltip(`${label} · ${pct}%`, !!isCollapsed);
+  const size = 26, stroke = 3;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const arc = allDone ? 'var(--success)' : 'var(--brand-primary)';
+  const ring = (
+    <span className="relative inline-flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--surface-subtle)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={arc} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c - (c * pct) / 100} />
+      </svg>
+      {allDone
+        ? <Check className="absolute w-3 h-3 text-[var(--success)]" strokeWidth={3} />
+        : <Rocket className="absolute w-3 h-3 text-[var(--brand-primary)]" strokeWidth={2} />}
+    </span>
+  );
+  return (
+    <>
+      <NavLink
+        ref={tip.ref}
+        to="/setup"
+        onMouseEnter={tip.onMouseEnter}
+        onMouseLeave={tip.onMouseLeave}
+        className={({ isActive }) => cn(
+          "flex items-center rounded-md text-sm font-medium transition-colors group",
+          isCollapsed ? "justify-center h-9 w-9 mx-auto" : "gap-3 px-3 py-2 w-full",
+          isActive ? "bg-[var(--brand-tint)] text-[var(--brand-primary)]" : "text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)]"
+        )}
+      >
+        {ring}
+        {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
+        {!isCollapsed && (
+          <span className="ml-auto text-[11px] font-medium tabular-nums text-[var(--brand-primary)]">{completed}/{total}</span>
         )}
       </NavLink>
       {tip.node}
@@ -659,7 +718,7 @@ function NavButton({ icon: Icon, label, isActive, onClick, isCollapsed }: { icon
         onMouseLeave={tip.onMouseLeave}
         className={cn(
           "flex items-center rounded-md text-sm font-medium transition-colors group",
-          isCollapsed ? "justify-center p-2 h-10 w-10 mx-auto" : "gap-3 px-3 py-2 w-full",
+          isCollapsed ? "justify-center h-9 w-9 mx-auto" : "gap-3 px-3 py-2 w-full",
           isActive
             ? "bg-[var(--surface-subtle)] text-[var(--text-primary)]"
             : "text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)]"

@@ -1,4 +1,6 @@
 export type ContractStatus = 'Pending' | 'Approved' | 'Rejected';
+/** Property listing review state — driven by super-admin after the hotel submits setup. */
+export type ReviewStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected';
 export type RoomStatus = 'Active' | 'Inactive';
 
 export const AMENITIES = [
@@ -25,6 +27,12 @@ export interface Property {
   address: string;
   accommodationType: string;
   starRating: number;
+  description: string;
+  guestRooms: number;
+  contactNumber: string;
+  contactEmail: string;
+  /** Gallery images (in addition to the hero photoUrl). */
+  photos: string[];
   // Location (detailed address)
   country: string;
   state: string;
@@ -34,20 +42,37 @@ export interface Property {
   longitude?: number;
   checkInTime: string;
   checkOutTime: string;
+  foreignPolicy: string;
+  breakfastPolicy: string;
   mainAmenities: string[];
   frontDeskNumber: string;
   frontDeskEmail: string;
-  // Seller (owner)
+  // Seller (owner) + verification documents
   representativeName: string;
   businessRegNumber: string;
+  documentType: string;
+  businessLocation: string;
+  natureOfBusiness: string;
+  documentDate: string;
   contractStatus: ContractStatus;
   contractStart: string;
   contractEnd: string;
   companyName: string;
   managerContact: string;
+  // Contract contact person + terms
+  commissionRate: number;
+  contactPersonName: string;
+  contactPersonEmail: string;
+  contactPersonPhone: string;
+  contractingPeople: string;
   photoUrl?: string;
   // Settlement / payouts
+  settleMethod: string;
   settlementBank: string;
+  // Listing review (submitted by hotel → reviewed by super-admin)
+  reviewStatus: ReviewStatus;
+  submittedAt?: string;
+  reviewNote?: string;
 }
 
 /** A blank property used to start a fresh hotel setup. */
@@ -57,6 +82,11 @@ export function emptyProperty(): Property {
     address: '',
     accommodationType: 'Hotel',
     starRating: 0,
+    description: '',
+    guestRooms: 0,
+    contactNumber: '',
+    contactEmail: '',
+    photos: [],
     country: 'Myanmar',
     state: '',
     district: '',
@@ -65,17 +95,30 @@ export function emptyProperty(): Property {
     longitude: undefined,
     checkInTime: '',
     checkOutTime: '',
+    foreignPolicy: 'Foreigners welcome',
+    breakfastPolicy: 'No breakfast',
     mainAmenities: [],
     frontDeskNumber: '',
     frontDeskEmail: '',
     representativeName: '',
     businessRegNumber: '',
+    documentType: 'Business license',
+    businessLocation: '',
+    natureOfBusiness: '',
+    documentDate: '',
     contractStatus: 'Pending',
     contractStart: '',
     contractEnd: '',
     companyName: '',
     managerContact: '',
+    commissionRate: 15,
+    contactPersonName: '',
+    contactPersonEmail: '',
+    contactPersonPhone: '',
+    contractingPeople: '',
+    settleMethod: 'Postpaid',
     settlementBank: '',
+    reviewStatus: 'Draft',
   };
 }
 
@@ -173,6 +216,11 @@ export const DEMO_PROPERTY: Property = {
   address: '128 Riverside Avenue',
   accommodationType: 'Hotel',
   starRating: 5,
+  description: 'A five-star riverside hotel with skyline views, full-service dining, and a rooftop pool.',
+  guestRooms: 40,
+  contactNumber: '+65 6555 0100',
+  contactEmail: 'hello@aurorahotel.com',
+  photos: [],
   country: 'Singapore',
   state: 'Central Region',
   district: 'Downtown Core',
@@ -181,17 +229,30 @@ export const DEMO_PROPERTY: Property = {
   longitude: 103.8607,
   checkInTime: '14:00',
   checkOutTime: '12:00',
+  foreignPolicy: 'Foreigners welcome',
+  breakfastPolicy: 'Free breakfast included',
   mainAmenities: ['SPA & Wellness Centre', 'Fitness Centre/Gym', 'Swimming Pool', 'Currency Exchange & ATM'],
   frontDeskNumber: '+65 6555 0100',
   frontDeskEmail: 'frontdesk@aurorahotel.com',
   representativeName: 'Helen Carter',
   businessRegNumber: 'BRN-2024-558013',
+  documentType: 'Business license',
+  businessLocation: 'Marina Bay, Singapore',
+  natureOfBusiness: 'Hotel & hospitality',
+  documentDate: '2025-05-29',
   contractStatus: 'Approved',
   contractStart: '2025-01-01',
   contractEnd: '2026-12-31',
   companyName: 'Aurora Hospitality Group',
   managerContact: 'manager@aurorahotel.com',
+  commissionRate: 15,
+  contactPersonName: 'Helen Carter',
+  contactPersonEmail: 'helen@aurorahotel.com',
+  contactPersonPhone: '+65 9123 4567',
+  contractingPeople: 'Helen Carter',
+  settleMethod: 'Postpaid',
   settlementBank: '',
+  reviewStatus: 'Draft',
 };
 
 export const DEMO_ROOM_TYPES: RoomType[] = [
