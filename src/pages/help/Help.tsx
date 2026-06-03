@@ -122,7 +122,7 @@ export default function Help() {
       <div className="mb-8 max-w-3xl">
         <h1 className="text-2xl sm:text-3xl font-serif text-[var(--text-primary)]">{t('Help Center')}</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          {t('How the TutuStay dashboard works, tips for running your property, and answers to common questions.')}
+          {t('Learn how the dashboard works, get tips for running your property, and find quick answers.')}
         </p>
       </div>
 

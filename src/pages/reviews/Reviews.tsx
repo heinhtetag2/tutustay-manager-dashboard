@@ -115,7 +115,7 @@ export default function Reviews() {
       <div className="mb-8">
         <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Customer Reviews')}</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          {t('Read guest feedback, track ratings, and respond to reviews — all in one place.')}
+          {t('See what guests are saying, track your ratings, and reply to build loyalty.')}
         </p>
       </div>
 

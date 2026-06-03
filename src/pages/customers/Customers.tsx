@@ -153,7 +153,7 @@ export default function Customers() {
       <div className="mb-8">
         <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Customer Management')}</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          {t('Manage and track customer details, bookings, and activity — all in one place.')}
+          {t('Get to know your guests — their profiles, booking history, and recent activity.')}
         </p>
       </div>
 

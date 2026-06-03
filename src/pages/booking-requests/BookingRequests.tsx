@@ -102,7 +102,7 @@ export default function BookingRequests() {
       <div className="mb-8">
         <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Booking Requests')}</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          {t('Review incoming booking requests and approve or decline them.')}
+          {t('Respond to new requests quickly — approve or decline to keep your calendar moving.')}
         </p>
       </div>
 

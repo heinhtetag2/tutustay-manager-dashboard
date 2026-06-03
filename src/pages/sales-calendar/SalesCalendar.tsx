@@ -119,7 +119,7 @@ export default function SalesCalendar() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Sales Calendar')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('A visual month-by-month view of all bookings and revenue.')}</p>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('A month-by-month view of your bookings and revenue, day by day.')}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setMonth((m) => addMonths(m, -1))} className="w-9 h-9 inline-flex items-center justify-center border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer" aria-label={t('Previous month')}>

@@ -11,6 +11,10 @@ import {
   CalendarPlus,
   LogOut,
   Inbox,
+  Percent,
+  Gauge,
+  Tag,
+  Users,
 } from 'lucide-react';
 import {
   format,
@@ -18,6 +22,7 @@ import {
   startOfDay,
   startOfMonth,
   endOfMonth,
+  getDaysInMonth,
   isWithinInterval,
   isSameMonth,
   isSameDay,
@@ -50,6 +55,7 @@ import {
 } from '@/pages/reservations/reservations-data';
 import { useBookingRequests } from '@/pages/booking-requests/use-booking-requests';
 import type { RequestStatus } from '@/pages/booking-requests/booking-requests-data';
+import { useHotel } from '@/pages/hotel/use-hotel';
 
 type RangeKey = '7d' | '30d' | 'this_month' | 'last_month';
 
@@ -95,10 +101,26 @@ export default function Dashboard() {
 
   const reservations = useReservations((s) => s.reservations);
   const requests = useBookingRequests((s) => s.requests);
+  const rooms = useHotel((s) => s.rooms);
 
   const [range, setRange] = useState<RangeKey>('this_month');
 
   const today = startOfDay(NOW);
+
+  // Sellable capacity = active rooms (fall back to all rooms if none flagged).
+  const capacity = useMemo(() => {
+    const active = rooms.filter((r) => r.status === 'Active').length;
+    return active || rooms.length;
+  }, [rooms]);
+
+  // A reservation physically holds a room on night `d` when it has checked
+  // in/out around it and isn't cancelled. Day-use (checkIn === checkOut date)
+  // is naturally excluded since it never spans a night.
+  const occupiesNight = (r: Reservation, d: Date) =>
+    r.status !== 'Cancelled' &&
+    r.status !== 'No-show' &&
+    startOfDay(new Date(r.checkIn)) <= d &&
+    d < startOfDay(new Date(r.checkOut));
 
   // ── Stats ─────────────────────────────────────────────────────────────
   const monthRevenue = useMemo(
@@ -134,12 +156,65 @@ export default function Dashboard() {
     [requests],
   );
 
+  // Revenue this month vs the same kind of total last month → MoM % delta.
+  const lastMonthRevenue = useMemo(
+    () =>
+      reservations
+        .filter((r) => countsAsRevenue(r.status) && isSameMonth(new Date(r.checkIn), subMonths(NOW, 1)))
+        .reduce((sum, r) => sum + r.amount, 0),
+    [reservations],
+  );
+  const revenueMoM = lastMonthRevenue === 0 ? null : ((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100;
+
+  // Arrivals/departures vs yesterday, for a day-over-day feel on the cards.
+  const yesterday = subDays(today, 1);
+  const arrivalsYesterday = useMemo(
+    () => reservations.filter((r) => isSameDay(new Date(r.checkIn), yesterday) && (r.status === 'Confirmed' || r.status === 'Checked-in' || r.status === 'Checked-out')).length,
+    [reservations, yesterday],
+  );
+  const departuresYesterday = useMemo(
+    () => reservations.filter((r) => isSameDay(new Date(r.checkOut), yesterday) && (r.status === 'Checked-in' || r.status === 'Checked-out')).length,
+    [reservations, yesterday],
+  );
+
+  // ── Hotel performance metrics (Occupancy, ADR, RevPAR, in-house) ──────
+  const perf = useMemo(() => {
+    const occupiedToday = reservations.filter((r) => occupiesNight(r, today)).length;
+    const occupancyRate = capacity === 0 ? 0 : Math.round((occupiedToday / capacity) * 100);
+    const inHouseGuests = reservations
+      .filter((r) => occupiesNight(r, today))
+      .reduce((sum, r) => sum + r.guests, 0);
+
+    // ADR = room revenue / room-nights sold this month (overnight stays only).
+    const monthStays = reservations.filter(
+      (r) => countsAsRevenue(r.status) && r.nights > 0 && isSameMonth(new Date(r.checkIn), NOW),
+    );
+    const roomNights = monthStays.reduce((sum, r) => sum + r.nights, 0);
+    const roomRevenue = monthStays.reduce((sum, r) => sum + r.amount, 0);
+    const adr = roomNights === 0 ? 0 : Math.round(roomRevenue / roomNights);
+
+    // RevPAR = total month revenue / available room-nights (capacity × days).
+    const availableNights = capacity * getDaysInMonth(NOW);
+    const revpar = availableNights === 0 ? 0 : Math.round(monthRevenue / availableNights);
+
+    return { occupiedToday, occupancyRate, inHouseGuests, adr, revpar };
+  }, [reservations, capacity, today, monthRevenue]);
+
+  const performance = [
+    { title: 'Occupancy', Icon: Percent, value: `${perf.occupancyRate}%`, subtitle: `${perf.occupiedToday}/${capacity} ${t('rooms tonight')}` },
+    { title: 'ADR', Icon: Tag, value: formatAmount(perf.adr), subtitle: t('Avg. daily rate') },
+    { title: 'RevPAR', Icon: Gauge, value: formatAmount(perf.revpar), subtitle: t('Revenue per room') },
+    { title: 'In-house guests', Icon: Users, value: String(perf.inHouseGuests), subtitle: t('Staying tonight') },
+  ];
+
   const stats = [
     {
       title: 'Revenue this month',
       Icon: Coins,
       value: formatAmount(monthRevenue),
       subtitle: t('Confirmed stays in June'),
+      delta: revenueMoM,
+      deltaLabel: t('vs last month'),
       href: '/reservations',
     },
     {
@@ -147,6 +222,9 @@ export default function Dashboard() {
       Icon: CalendarCheck,
       value: String(arrivalsToday),
       subtitle: t('Guests checking in'),
+      delta: arrivalsToday - arrivalsYesterday,
+      deltaLabel: t('vs yesterday'),
+      deltaUnit: 'count' as const,
       href: '/reservations',
     },
     {
@@ -154,6 +232,9 @@ export default function Dashboard() {
       Icon: LogOut,
       value: String(departuresToday),
       subtitle: t('Guests checking out'),
+      delta: departuresToday - departuresYesterday,
+      deltaLabel: t('vs yesterday'),
+      deltaUnit: 'count' as const,
       href: '/reservations',
     },
     {
@@ -161,9 +242,25 @@ export default function Dashboard() {
       Icon: Inbox,
       value: String(pendingRequests),
       subtitle: pendingRequests > 0 ? t('Awaiting your decision') : t('All caught up'),
+      delta: null,
+      deltaLabel: '',
       href: '/booking-requests',
     },
   ];
+
+  // ── Occupancy forecast, next 7 nights ────────────────────────────────
+  const occupancy7 = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = addDays(today, i);
+      const occupied = reservations.filter((r) => occupiesNight(r, d)).length;
+      return {
+        name: format(d, 'EEE'),
+        date: d,
+        rate: capacity === 0 ? 0 : Math.round((occupied / capacity) * 100),
+        occupied,
+      };
+    });
+  }, [reservations, capacity, today]);
 
   // ── Chart: revenue over time (by check-in date) ──────────────────────
   const { chartData, rangeTotal, rangeTrend, rangeSubtitle, rangeBookings, rangeAvgPerBucket, bucketUnit } =
@@ -260,7 +357,7 @@ export default function Dashboard() {
           {t('Welcome back,')} {USER_FIRST_NAME}
         </h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          {t("Today's arrivals, revenue, and booking requests at a glance.")}
+          {t("Your day at a glance — arrivals, revenue, and requests waiting on you.")}
         </p>
       </div>
 
@@ -281,20 +378,46 @@ export default function Dashboard() {
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="text-2xl font-medium text-[var(--brand-primary)] tabular-nums">{card.value}</div>
+              {card.delta != null && card.delta !== 0 && (
+                <DeltaChip delta={card.delta} unit={card.deltaUnit} />
+              )}
+            </div>
             <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
           </motion.button>
         ))}
       </div>
 
-      {/* Revenue chart (2/3) + reservation status donut (1/3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
+      {/* Performance strip — Occupancy, ADR, RevPAR, in-house */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        className="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[var(--surface-subtle)] bg-white border border-[var(--border-default)] rounded-md shadow-none mb-8 overflow-hidden"
+      >
+        {performance.map((m) => (
+          <div key={m.title} className="px-5 py-4 flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-md bg-[var(--surface-subtle)] text-[var(--text-tertiary)] flex items-center justify-center shrink-0">
+              <m.Icon className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-medium text-[var(--text-secondary)]">{t(m.title)}</div>
+              <div className="text-lg font-medium text-[var(--text-primary)] tabular-nums leading-tight">{m.value}</div>
+              <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5 tabular-nums truncate">{m.subtitle}</div>
+            </div>
+          </div>
+        ))}
+      </motion.div>
+
+      {/* Revenue chart (3/5) + arrivals & departures (2/5) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6 items-stretch">
         {/* Revenue chart */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.25 }}
-          className="lg:col-span-2 bg-white border border-[var(--border-default)] rounded-md p-6 shadow-none"
+          className="lg:col-span-3 bg-white border border-[var(--border-default)] rounded-md p-6 shadow-none"
         >
           <div className="flex justify-between items-start mb-6 gap-3 flex-wrap">
             <div>
@@ -303,7 +426,7 @@ export default function Dashboard() {
                 {t('Confirmed bookings by check-in date')} {t(rangeSubtitle)}
               </p>
               <div className="flex items-baseline gap-2">
-                <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">
+                <div className="text-2xl font-medium text-[var(--brand-primary)] tabular-nums">
                   {formatAmount(rangeTotal)}
                 </div>
                 {rangeTrend !== null && (
@@ -350,8 +473,8 @@ export default function Dashboard() {
               ]}
             />
           </div>
-          <div className="h-[200px] sm:h-[240px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height={240}>
+          <div className="h-[180px] sm:h-[200px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -405,6 +528,76 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
+        {/* Arrivals & departures next 7 days */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="lg:col-span-2 bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden flex flex-col"
+        >
+          <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Arrivals & departures')}</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Next 7 days')}</p>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] shrink-0">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--brand-primary)' }} />
+                {t('Arrivals')}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--brand-accent)' }} />
+                {t('Departures')}
+              </span>
+            </div>
+          </div>
+          <div className="px-4 sm:px-6 py-5 flex-1 min-h-[220px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={flow7} margin={{ top: 6, right: 6, left: -20, bottom: 0 }} barGap={3} barCategoryGap="24%">
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-subtle)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={8} />
+                <YAxis axisLine={false} tickLine={false} allowDecimals={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} />
+                <Tooltip cursor={{ fill: 'var(--surface-subtle)' }} content={<FlowTooltip t={t} />} />
+                <Bar dataKey="arrivals" fill="var(--brand-primary)" radius={[3, 3, 0, 0]} maxBarSize={14} isAnimationActive={false} />
+                <Bar dataKey="departures" fill="var(--brand-accent)" radius={[3, 3, 0, 0]} maxBarSize={14} isAnimationActive={false} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Three-up: Occupancy forecast + Arrivals & departures + Revenue by room type */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-6">
+        {/* Occupancy forecast, next 7 nights */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.28 }}
+          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
+        >
+          <div className="px-6 py-4 border-b border-[var(--surface-subtle)]">
+            <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Occupancy')}</h2>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Forecast, next 7 nights')}</p>
+          </div>
+          <div className="px-4 sm:px-6 py-5 h-[220px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={occupancy7} margin={{ top: 6, right: 6, left: -24, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorOccupancy" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--success)" stopOpacity={0.22} />
+                    <stop offset="95%" stopColor="var(--success)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-subtle)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={8} />
+                <YAxis axisLine={false} tickLine={false} domain={[0, 100]} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} tickFormatter={(v: number) => `${v}%`} />
+                <Tooltip cursor={{ stroke: 'var(--border-default)', strokeWidth: 1, strokeDasharray: '4 4' }} content={<OccupancyTooltip t={t} />} />
+                <Area type="monotone" dataKey="rate" stroke="var(--success)" strokeWidth={2} fillOpacity={1} fill="url(#colorOccupancy)" isAnimationActive={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+
         {/* Reservation status mix */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -446,7 +639,7 @@ export default function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-medium text-[var(--text-primary)] tabular-nums leading-none">
+                <span className="text-2xl font-medium text-[var(--brand-primary)] tabular-nums leading-none">
                   {reservations.length}
                 </span>
                 <span className="text-[11px] text-[var(--text-tertiary)] mt-1">{t('total')}</span>
@@ -463,46 +656,6 @@ export default function Dashboard() {
                 </li>
               ))}
             </ul>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Two-up: Arrivals & departures + Revenue by room type */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start mb-6">
-        {/* Arrivals & departures next 7 days */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
-        >
-          <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Arrivals & departures')}</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Next 7 days')}</p>
-            </div>
-            <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] shrink-0">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--brand-primary)' }} />
-                {t('Arrivals')}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--brand-accent)' }} />
-                {t('Departures')}
-              </span>
-            </div>
-          </div>
-          <div className="px-4 sm:px-6 py-5 h-[220px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={flow7} margin={{ top: 6, right: 6, left: -20, bottom: 0 }} barGap={3} barCategoryGap="24%">
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-subtle)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={8} />
-                <YAxis axisLine={false} tickLine={false} allowDecimals={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} />
-                <Tooltip cursor={{ fill: 'var(--surface-subtle)' }} content={<FlowTooltip t={t} />} />
-                <Bar dataKey="arrivals" fill="var(--brand-primary)" radius={[3, 3, 0, 0]} maxBarSize={14} isAnimationActive={false} />
-                <Bar dataKey="departures" fill="var(--brand-accent)" radius={[3, 3, 0, 0]} maxBarSize={14} isAnimationActive={false} />
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </motion.div>
 
@@ -636,6 +789,42 @@ function cnTrend(trend: number): string {
     'text-xs font-medium flex items-center gap-0.5',
     trend >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger-strong)]',
   ].join(' ');
+}
+
+/** Small up/down delta pill on the KPI cards. `count` shows ±N, else ±N%. */
+function DeltaChip({ delta, unit }: { delta: number; unit?: 'count' | 'percent' }) {
+  const up = delta >= 0;
+  const text = unit === 'count' ? `${up ? '+' : ''}${delta}` : `${Math.abs(delta).toFixed(1)}%`;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-medium tabular-nums ${
+        up ? 'bg-[var(--success-tint)] text-[var(--success)]' : 'bg-[var(--danger-tint)] text-[var(--danger-strong)]'
+      }`}
+    >
+      {up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+      {text}
+    </span>
+  );
+}
+
+function OccupancyTooltip({
+  active,
+  payload,
+  t,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: { date: Date; rate: number; occupied: number } }>;
+  t: (key: string) => string;
+}) {
+  if (!active || !payload || payload.length === 0) return null;
+  const p = payload[0].payload;
+  return (
+    <div className="bg-[var(--text-primary)] text-white rounded-md px-3 py-2 text-xs shadow-lg">
+      <div className="text-[var(--text-muted)] mb-1">{format(p.date, 'EEE, MMM d')}</div>
+      <div className="font-medium tabular-nums">{p.rate}% {t('occupied')}</div>
+      <div className="text-[var(--text-muted)] mt-0.5 tabular-nums">{p.occupied} {p.occupied === 1 ? t('room') : t('rooms')}</div>
+    </div>
+  );
 }
 
 interface ChartPoint {

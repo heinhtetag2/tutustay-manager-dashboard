@@ -99,7 +99,7 @@ export default function Coupons() {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Coupon Management')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Create and manage discount coupons for your guests.')}</p>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Create discounts that attract new guests and bring past ones back.')}</p>
         </div>
         <button
           onClick={() => setIsCreateOpen(true)}

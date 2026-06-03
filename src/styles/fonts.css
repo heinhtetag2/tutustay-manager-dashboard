@@ -1,39 +1,36 @@
 /*
  * ABC Diatype (Dinamo typefaces) — primary dashboard typeface.
  *
- * This is a licensed font, so the files are NOT bundled. To enable it:
- *   1. Add the licensed web fonts to /public/fonts/ with the names below
- *      (export as .woff2 from your Dinamo license).
- *   2. That's it — Vite serves /public at the site root, so these URLs resolve.
- *
- * Until the files are present (or the font is installed locally on the machine
- * viewing the app), text falls back to Inter / system fonts — nothing breaks.
+ * Files live in /public/fonts and are served at /fonts/* by Vite, so they load
+ * on every machine regardless of what's installed locally. Map the four weights
+ * the UI uses: 300 / 400 / 500 / 700. The Regular + Medium weights are also
+ * preloaded in index.html so headings don't flash on first paint.
  */
 
 @font-face {
   font-family: 'ABC Diatype';
-  src: url('/fonts/ABCDiatype-Light.woff2') format('woff2');
+  src: url('/fonts/ABCDiatype-Light.otf') format('opentype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'ABC Diatype';
-  src: url('/fonts/ABCDiatype-Regular.woff2') format('woff2');
+  src: url('/fonts/ABCDiatype-Regular.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'ABC Diatype';
-  src: url('/fonts/ABCDiatype-Medium.woff2') format('woff2');
+  src: url('/fonts/ABCDiatype-Medium.otf') format('opentype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'ABC Diatype';
-  src: url('/fonts/ABCDiatype-Bold.woff2') format('woff2');
+  src: url('/fonts/ABCDiatype-Bold.otf') format('opentype');
   font-weight: 600 700;
   font-style: normal;
   font-display: swap;

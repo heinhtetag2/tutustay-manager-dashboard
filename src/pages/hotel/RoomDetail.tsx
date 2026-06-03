@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, ChevronRight, Pencil, Trash2, AlertCircle, X, BedDouble, DoorOpen, Layers, Users, Hash, Building, BadgeCheck, Tag } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Pencil, Trash2, AlertCircle, X, BedDouble, Layers, Users, Hash, Building, BadgeCheck, Tag } from 'lucide-react';
 import { Portal } from '@/shared/ui/portal';
 import { useHotel } from './use-hotel';
 import { formatPrice, type RoomStatus } from './hotel-data';
@@ -59,10 +59,10 @@ export default function RoomDetail() {
 
       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-8">
         <div className="flex items-start gap-4 min-w-0">
-          <div className="w-14 h-14 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="w-14 h-14 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center shrink-0 overflow-hidden text-xl font-medium">
             {roomTypes.find((rt) => rt.name === room.typeName)?.photos[0]
               ? <img src={roomTypes.find((rt) => rt.name === room.typeName)?.photos[0]} alt="" className="w-full h-full object-cover" />
-              : <DoorOpen className="w-6 h-6" />}
+              : (room.typeName.trim().charAt(0).toUpperCase() || '?')}
           </div>
           <div className="min-w-0">
             <h1 className="text-3xl font-serif text-[var(--text-primary)] leading-tight mb-1.5">{t('Room')} {room.number}</h1>

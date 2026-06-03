@@ -5,9 +5,13 @@
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>TutuStay — Manager Dashboard</title>
+      <!-- ABC Diatype: primary typeface, self-hosted from /public/fonts. Preload
+           the most-used weights so headings/body don't flash on first paint. -->
+      <link rel="preload" href="/fonts/ABCDiatype-Regular.otf" as="font" type="font/otf" crossorigin />
+      <link rel="preload" href="/fonts/ABCDiatype-Medium.otf" as="font" type="font/otf" crossorigin />
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-      <!-- Inter for Latin + Noto Sans KR for Hangul. Browsers pick the right one per glyph. -->
+      <!-- Inter for Latin + Noto Sans KR for Hangul fallbacks. Browsers pick the right one per glyph. -->
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" />
       <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
     </head>

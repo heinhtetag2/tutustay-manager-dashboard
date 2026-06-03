@@ -10,7 +10,6 @@ import {
   BedSingle,
   TriangleAlert,
   CreditCard,
-  ArrowUpDown,
   ListFilter,
   Calendar as CalendarIcon,
   CalendarClock,
@@ -29,7 +28,6 @@ import { useReservations } from './use-reservations';
 
 type StatusFilter = 'All' | ReservationStatus | 'Overdue';
 type NightsFilter = 'All' | 'day-use' | '1' | '2-3' | '4+';
-type Sort = 'checkin' | 'recent' | 'amount';
 
 const COL_DEFS: ColumnDef[] = [
   { key: 'no', w: 60, min: 52 },
@@ -96,7 +94,6 @@ export default function Reservations() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
   const [roomTypeFilter, setRoomTypeFilter] = useState('All');
   const [nightsFilter, setNightsFilter] = useState<NightsFilter>('All');
-  const [sort, setSort] = useState<Sort>('checkin');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('Custom date range');
@@ -142,14 +139,12 @@ export default function Reservations() {
       return true;
     })
     .sort((a, b) => {
-      if (sort === 'recent') return b.createdAt.localeCompare(a.createdAt);
-      if (sort === 'amount') return b.amount - a.amount;
-      return a.checkIn.localeCompare(b.checkIn);
+      return b.createdAt.localeCompare(a.createdAt);
     });
 
   // Pagination
   const PAGE_SIZE = 10;
-  useEffect(() => setPage(1), [search, statusFilter, roomTypeFilter, nightsFilter, sort, dateRange]);
+  useEffect(() => setPage(1), [search, statusFilter, roomTypeFilter, nightsFilter, dateRange]);
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const paged = visible.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -173,7 +168,7 @@ export default function Reservations() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Reservation Management')}</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Track and manage all reservations — arrivals, stays, and checkouts in one place.')}</p>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Stay on top of every arrival, in-house stay, and checkout as it happens.')}</p>
       </div>
 
       {/* Summary cards */}
@@ -202,7 +197,6 @@ export default function Reservations() {
           <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<ListFilter />} className="sm:w-auto" options={[{ value: 'All', label: t('All statuses') }, ...RESERVATION_STATUSES.map((s) => ({ value: s, label: t(s) })), { value: 'Overdue', label: t('Overdue') }]} />
           <BrandSelect value={roomTypeFilter} onValueChange={setRoomTypeFilter} leftIcon={<BedSingle />} className="sm:w-auto" options={roomTypeOptions} />
           <BrandSelect value={nightsFilter} onValueChange={(v) => setNightsFilter(v as NightsFilter)} leftIcon={<CloudMoon />} className="sm:w-auto" options={[{ value: 'All', label: t('Any duration') }, { value: 'day-use', label: t('Day use') }, { value: '1', label: t('1 night') }, { value: '2-3', label: t('2–3 nights') }, { value: '4+', label: t('4+ nights') }]} />
-          <BrandSelect value={sort} onValueChange={(v) => setSort(v as Sort)} leftIcon={<ArrowUpDown />} className="sm:w-auto" options={[{ value: 'checkin', label: t('Check-in soonest') }, { value: 'recent', label: t('Recently booked') }, { value: 'amount', label: t('Highest amount') }]} />
 
           {/* Check-in date range filter */}
           <div className="relative">

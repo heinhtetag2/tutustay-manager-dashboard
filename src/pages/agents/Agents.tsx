@@ -165,7 +165,7 @@ export default function Agents() {
         <div>
           <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Employee Management')}</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
-            {t('Manage and maintain the details of all employees')}
+            {t('Add team members, assign their roles, and keep everyone’s details up to date.')}
           </p>
         </div>
         <div className="flex gap-3">

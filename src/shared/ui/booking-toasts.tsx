@@ -42,7 +42,26 @@ export function BookingToastHost() {
   const dismiss = useBookingToasts((s) => s.dismiss);
 
   return (
-    <div className="fixed bottom-5 right-5 z-[80] flex flex-col gap-3 w-[360px] max-w-[calc(100vw-2.5rem)] pointer-events-none">
+    <>
+      {/* Soft radial glow behind incoming booking toasts */}
+      <AnimatePresence>
+        {toasts.length > 0 && (
+          <motion.div
+            key="toast-glow"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed bottom-0 right-0 z-[79] w-[520px] h-[520px] max-w-[100vw] pointer-events-none"
+            style={{
+              background:
+                'radial-gradient(ellipse 70% 70% at 100% 100%, rgba(44,38,39,0.13), rgba(44,38,39,0.05) 42%, transparent 72%)',
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="fixed bottom-5 right-5 z-[80] flex flex-col gap-3 w-[360px] max-w-[calc(100vw-2.5rem)] pointer-events-none">
       <AnimatePresence>
         {toasts.map((toast) => (
           <motion.div
@@ -52,7 +71,7 @@ export function BookingToastHost() {
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 40, scale: 0.96 }}
             transition={{ type: 'spring', duration: 0.4 }}
-            className="pointer-events-auto bg-white border border-[var(--border-default)] rounded-md shadow-[0_8px_28px_rgba(44,38,39,0.14)] overflow-hidden"
+            className="pointer-events-auto bg-white border border-[var(--border-default)] rounded-2xl shadow-[0_8px_28px_rgba(44,38,39,0.14)] overflow-hidden"
           >
             <div className="p-4">
               <div className="flex items-start gap-3">
@@ -102,7 +121,8 @@ export function BookingToastHost() {
           </motion.div>
         ))}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 }
 

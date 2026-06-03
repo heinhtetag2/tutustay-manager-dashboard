@@ -205,7 +205,7 @@ export default function Rooms() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Rooms')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Room types, pricing and individual rooms')}</p>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Set up your room types, nightly rates, and every individual room.')}</p>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/hotel/setup')} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-[var(--text-primary)] border border-[var(--border-default)] bg-white hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
@@ -217,6 +217,26 @@ export default function Rooms() {
             {view === 'rooms' ? t('Add Room') : t('Add Room Type')}
           </button>
         </div>
+      </div>
+
+      {/* Primary view tabs */}
+      <div className="border-b border-[var(--border-default)] mb-8">
+        <nav className="flex gap-8" aria-label={t('Rooms views')}>
+          {(['rooms', 'types'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => switchView(v)}
+              aria-current={view === v ? 'page' : undefined}
+              className={`relative -mb-px pb-3 text-sm font-medium transition-colors cursor-pointer border-b-2 ${
+                view === v
+                  ? 'text-[var(--text-primary)] border-[var(--brand-primary)]'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-transparent'
+              }`}
+            >
+              {v === 'rooms' ? t('Rooms') : t('Room Types')}
+            </button>
+          ))}
+        </nav>
       </div>
 
       {/* KPI cards */}
@@ -235,14 +255,6 @@ export default function Rooms() {
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
-        <div className="inline-flex p-1 bg-[var(--surface-subtle)] rounded-md">
-          {(['rooms', 'types'] as const).map((v) => (
-            <button key={v} onClick={() => switchView(v)} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer ${view === v ? 'bg-white text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
-              {v === 'rooms' ? t('Rooms') : t('Room Types')}
-            </button>
-          ))}
-        </div>
-
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'rooms' ? t('Search rooms...') : t('Search room types...')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />

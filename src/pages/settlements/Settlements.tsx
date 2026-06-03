@@ -159,7 +159,7 @@ export default function Settlements() {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Settlement')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Track payouts of your booking revenue — gross, commission, and net.')}</p>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('See how each booking becomes a payout — gross revenue, commission, and what lands in your account.')}</p>
         </div>
         <button
           onClick={exportCsv}

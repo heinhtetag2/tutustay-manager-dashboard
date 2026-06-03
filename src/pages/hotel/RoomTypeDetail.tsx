@@ -30,7 +30,8 @@ export default function RoomTypeDetail() {
     );
   }
 
-  const roomCount = rooms.filter((r) => r.typeName === rt.name).length;
+  const typeRooms = rooms.filter((r) => r.typeName === rt.name);
+  const roomCount = typeRooms.length;
   const stats = [
     { title: 'Regular price', Icon: Tag, value: formatPrice(rt.regularPrice), subtitle: t('Per night') },
     { title: 'Occupancy', Icon: Users, value: `${rt.occupancy} ${t('guests')}`, subtitle: `${totalBeds(rt)} ${totalBeds(rt) === 1 ? t('bed') : t('beds')}` },
@@ -102,6 +103,39 @@ export default function RoomTypeDetail() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Rooms belonging to this type */}
+      <section className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden mt-6">
+        <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center gap-2">
+          <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Rooms of this type')}</h2>
+          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-semibold rounded-full bg-[var(--surface-subtle)] text-[var(--text-secondary)] tabular-nums">{roomCount}</span>
+        </div>
+        {roomCount === 0 ? (
+          <div className="px-6 py-10 text-center">
+            <p className="text-sm text-[var(--text-secondary)]">{t('No rooms are assigned to this type yet.')}</p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-[var(--surface-subtle)]">
+            {typeRooms.map((r) => (
+              <li key={r.id}>
+                <button
+                  onClick={() => navigate(`/hotel/rooms/${r.id}`)}
+                  className="w-full flex items-center gap-4 px-6 py-3.5 text-left hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                >
+                  <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0">{r.typeName.trim().charAt(0).toUpperCase() || '?'}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-[var(--text-primary)]">{t('Room')} {r.number}</div>
+                    <div className="text-xs text-[var(--text-secondary)]">{t('Floor')} {r.floor}</div>
+                  </div>
+                  <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums shrink-0">{formatPrice(r.price)}</span>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium rounded-full shrink-0 ${r.status === 'Active' ? 'bg-[var(--success-tint)] text-[var(--success)]' : 'bg-[var(--surface-subtle)] text-[var(--text-secondary)]'}`}>{t(r.status)}</span>
+                  <ChevronRight className="w-4 h-4 text-[var(--text-tertiary)] shrink-0" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <AnimatePresence>
