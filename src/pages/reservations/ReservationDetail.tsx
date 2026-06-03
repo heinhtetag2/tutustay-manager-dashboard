@@ -17,6 +17,7 @@ import {
   CloudMoon,
   Clock,
   ArrowUpRight,
+  BadgeCheck,
   User,
   Cake,
   Flag,
@@ -212,10 +213,10 @@ export default function ReservationDetail() {
                 <p className="text-xs text-[var(--text-secondary)] mt-0.5">{customer ? t('Registered customer') : t('Not a registered customer')}</p>
               </div>
               {customer && (
-                <button onClick={() => navigate(`/customers/${customer.id}`)} className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer shrink-0">
-                  {t('Profile')}
-                  <ArrowUpRight className="w-4 h-4" />
-                </button>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-[var(--success-tint)] text-[var(--success)]">
+                  <BadgeCheck className="w-3.5 h-3.5" />
+                  {t('Verified')}
+                </span>
               )}
             </div>
             <div className="px-6 py-5 space-y-5">
@@ -227,6 +228,19 @@ export default function ReservationDetail() {
               <InfoRow Icon={CalendarCheck} label={t('Total bookings')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{customer ? customer.totalBookings : '—'}</span></InfoRow>
               <InfoRow Icon={CreditCard} label={t('Total payment')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{customer ? formatMoney(customer.totalPayment) : '—'}</span></InfoRow>
             </div>
+            {customer ? (
+              <button
+                onClick={() => navigate(`/customers/${customer.id}`)}
+                className="w-full flex items-center justify-center gap-1.5 px-6 py-3.5 border-t border-[var(--surface-subtle)] text-sm font-medium text-[var(--brand-primary)] hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+              >
+                {t('View full profile')}
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <div className="px-6 py-3.5 border-t border-[var(--surface-subtle)] text-xs text-[var(--text-secondary)] text-center">
+                {t('This guest booked without an account, so there’s no customer profile yet.')}
+              </div>
+            )}
           </section>
         </div>
       </div>

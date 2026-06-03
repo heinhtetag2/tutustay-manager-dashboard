@@ -98,7 +98,9 @@ function Amenities({ items }: { items: string[] }) {
 export default function Rooms() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { rooms, roomTypes, upsertRoom, upsertRoomType, removeRoom, removeRoomType } = useHotel();
+  const { rooms, roomTypes, property, upsertRoom, upsertRoomType, removeRoom, removeRoomType } = useHotel();
+  // New room types inherit the hotel's pricing defaults (configured in Settings).
+  const newRoomType = () => ({ ...emptyRoomType(), weekendDays: [...property.defaultWeekendDays], sessionHours: property.defaultSessionHours });
   const roomCols = useResizableColumns(ROOM_COLS);
   const typeCols = useResizableColumns(TYPE_COLS);
 
@@ -213,7 +215,7 @@ export default function Rooms() {
             <Building2 className="w-4 h-4 text-[var(--text-secondary)]" />
             {t('Hotel setup')}
           </button>
-          <button onClick={() => (view === 'rooms' ? setRoomEditor(emptyRoom()) : setTypeEditor(emptyRoomType()))} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
+          <button onClick={() => (view === 'rooms' ? setRoomEditor(emptyRoom()) : setTypeEditor(newRoomType()))} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
             <Plus className="w-4 h-4" />
             {view === 'rooms' ? t('Add Room') : t('Add Room Type')}
           </button>

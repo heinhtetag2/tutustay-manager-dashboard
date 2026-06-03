@@ -69,6 +69,12 @@ export interface Property {
   // Settlement / payouts
   settleMethod: string;
   settlementBank: string;
+  // Pricing defaults — new room types inherit these so they aren't reconfigured each time.
+  defaultWeekendDays: string[];
+  // Session (day-use) defaults: duration + the daily window sessions run in.
+  defaultSessionHours: number;
+  sessionStart: string;
+  sessionEnd: string;
   // Listing review (submitted by hotel → reviewed by super-admin)
   reviewStatus: ReviewStatus;
   submittedAt?: string;
@@ -118,6 +124,10 @@ export function emptyProperty(): Property {
     contractingPeople: '',
     settleMethod: 'Postpaid',
     settlementBank: '',
+    defaultWeekendDays: ['Sat', 'Sun'],
+    defaultSessionHours: 3,
+    sessionStart: '07:00',
+    sessionEnd: '10:00',
     reviewStatus: 'Draft',
   };
 }
@@ -252,6 +262,10 @@ export const DEMO_PROPERTY: Property = {
   contractingPeople: 'Helen Carter',
   settleMethod: 'Postpaid',
   settlementBank: '',
+  defaultWeekendDays: ['Sat', 'Sun'],
+  defaultSessionHours: 3,
+  sessionStart: '07:00',
+  sessionEnd: '10:00',
   reviewStatus: 'Draft',
 };
 

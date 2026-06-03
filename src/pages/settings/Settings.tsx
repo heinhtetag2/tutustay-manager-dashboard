@@ -6,12 +6,15 @@ import {
   UserCircle, Wallet, Bell, Globe,
   ShieldCheck, Laptop, X, ArrowLeft,
   Building2, ScrollText, Briefcase, Star, Image as ImageIcon,
+  SlidersHorizontal, Clock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/shared/lib/cn';
 import PaymentMethodsSection from './PaymentMethodsSection';
 import { useHotel } from '@/pages/hotel/use-hotel';
-import { AMENITIES, type ContractStatus } from '@/pages/hotel/hotel-data';
+import { AMENITIES, WEEKEND_DAYS, type ContractStatus } from '@/pages/hotel/hotel-data';
+import { BrandSelect } from '@/shared/ui/brand-select';
+import { TimePicker } from '@/pages/hotel/setup/TimePicker';
 import { ImageCropper } from '@/pages/agents/ImageCropper';
 import { ChangeEmailDrawer } from '@/shared/ui/change-email-drawer';
 import { ChangePasswordDrawer } from '@/shared/ui/change-password-drawer';
@@ -51,6 +54,17 @@ export default function Settings() {
           label: t('Payment methods'),
           icon: Wallet,
           keywords: 'qpay bonum socialpay settlement gateway linked bank payout',
+        },
+      ],
+    },
+    {
+      category: t('Configuration'),
+      items: [
+        {
+          id: 'Booking defaults',
+          label: t('Booking defaults'),
+          icon: SlidersHorizontal,
+          keywords: 'weekend days session day-use length start end time room type default configuration',
         },
       ],
     },
@@ -256,7 +270,9 @@ export default function Settings() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {activeSection === 'Payment methods' ? (
+              {activeSection === 'Booking defaults' ? (
+                <PricingDefaultsPanel t={t} />
+              ) : activeSection === 'Payment methods' ? (
                 <PaymentMethodsSection />
               ) : activeSection === 'Account' ? (
                 <AccountPanel i18n={i18n} t={t} />
@@ -822,6 +838,75 @@ function PlaceholderPanel({ title }: { title: string }) {
       </div>
       <h2 className="text-xl font-medium text-[var(--text-primary)] mb-2">{title}</h2>
       <p className="text-[var(--text-secondary)]">This section is currently under construction.</p>
+    </div>
+  );
+}
+
+function PricingDefaultsPanel({ t }: { t: TFn }) {
+  const property = useHotel((s) => s.property);
+  const updateProperty = useHotel((s) => s.updateProperty);
+  const days = property.defaultWeekendDays;
+  const toggleDay = (day: string) =>
+    updateProperty({ defaultWeekendDays: days.includes(day) ? days.filter((d) => d !== day) : [...days, day] });
+
+  return (
+    <div className="space-y-8 pb-20">
+      <div className="bg-white border border-[var(--border-default)] rounded-md p-6">
+        <h3 className="text-base font-medium text-[var(--text-primary)]">{t('Weekend days')}</h3>
+        <p className="text-sm text-[var(--text-secondary)] mt-1 mb-5 leading-relaxed max-w-xl">
+          {t('Set the days counted as “weekend” for your property. New room types use these by default, so you don’t reconfigure them each time. You can still override them on an individual room type.')}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {WEEKEND_DAYS.map((day) => {
+            const on = days.includes(day);
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => toggleDay(day)}
+                aria-pressed={on}
+                className={`px-4 py-2 text-sm font-medium rounded-full border transition-colors cursor-pointer ${
+                  on
+                    ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]'
+                    : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)] hover:bg-[var(--surface-subtle)]'
+                }`}
+              >
+                {t(day)}
+              </button>
+            );
+          })}
+        </div>
+        {days.length === 0 && (
+          <p className="text-xs text-[var(--warning-strong)] mt-3">{t('Pick at least one weekend day, or weekend pricing won’t apply.')}</p>
+        )}
+      </div>
+
+      {/* Session (day-use) configuration */}
+      <div className="bg-white border border-[var(--border-default)] rounded-md p-6">
+        <h3 className="text-base font-medium text-[var(--text-primary)]">{t('Session configuration')}</h3>
+        <p className="text-sm text-[var(--text-secondary)] mt-1 mb-5 leading-relaxed max-w-xl">
+          {t('Day-use sessions sell a room in short blocks of hours. Set the default session length and the daily window — new room types use these by default.')}
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Session length')}</label>
+            <BrandSelect
+              value={String(property.defaultSessionHours)}
+              onValueChange={(v) => updateProperty({ defaultSessionHours: Number(v) })}
+              leftIcon={<Clock />}
+              options={[1, 2, 3, 4, 5, 6, 8, 12].map((h) => ({ value: String(h), label: `${h} ${h === 1 ? t('hour') : t('hours')}` }))}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Start time')}</label>
+            <TimePicker value={property.sessionStart} onChange={(v) => updateProperty({ sessionStart: v })} ariaLabel={t('Start time')} placeholder={t('Select time')} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('End time')}</label>
+            <TimePicker value={property.sessionEnd} onChange={(v) => updateProperty({ sessionEnd: v })} ariaLabel={t('End time')} placeholder={t('Select time')} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

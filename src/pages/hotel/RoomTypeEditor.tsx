@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import * as Popover from '@radix-ui/react-popover';
-import { X, Plus, Trash2, Clock, Info, ChevronDown, TriangleAlert } from 'lucide-react';
+import { X, Plus, Trash2, Clock, Info, ChevronDown, TriangleAlert, Settings as SettingsIcon } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { ImageCropper } from '@/pages/agents/ImageCropper';
@@ -12,6 +13,8 @@ type PriceTab = 'regular' | 'session' | 'weekend';
 
 export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType; onClose: () => void; onSave: (rt: RoomType) => void }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const goToPricingDefaults = () => { onClose(); navigate('/settings?section=Booking defaults'); };
   const [d, setD] = useState<RoomType>(initial);
   const [priceTab, setPriceTab] = useState<PriceTab>('regular');
   const [cropSrc, setCropSrc] = useState<string | null>(null);
@@ -128,6 +131,7 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
                       </div>
                     </Field>
                   </div>
+                  <DefaultsHint t={t} onManage={goToPricingDefaults} label={t('The default session length and daily window are set in Settings.')} />
                 </div>
               )}
               {priceTab === 'weekend' && (
@@ -141,6 +145,7 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
                           return <button key={day} type="button" onClick={() => toggleDay(day)} className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${on ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]' : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)] hover:bg-[var(--surface-subtle)]'}`}>{t(day)}</button>;
                         })}
                       </div>
+                      <DefaultsHint t={t} onManage={goToPricingDefaults} label={t('Pre-filled from your hotel’s default weekend days.')} />
                     </Field>
                     <Field label={t('Weekend uplift')}>
                       <div className="space-y-3">
@@ -326,6 +331,19 @@ function Money({ value, onChange, wide }: { value: number; onChange: (v: number)
         placeholder="0"
         className="w-full pl-14 pr-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] transition-colors tabular-nums placeholder:text-[var(--text-secondary)]"
       />
+    </div>
+  );
+}
+
+/** Inline note linking to the hotel-wide defaults in Settings. */
+function DefaultsHint({ t, onManage, label }: { t: (k: string) => string; onManage: () => void; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] mt-2">
+      <SettingsIcon className="w-3.5 h-3.5 shrink-0" />
+      <span>{label}</span>
+      <button type="button" onClick={onManage} className="font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] underline underline-offset-2 transition-colors cursor-pointer">
+        {t('Manage in Settings')}
+      </button>
     </div>
   );
 }
