@@ -172,7 +172,7 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
       <div className="flex-1 flex min-h-0">
         {/* The form */}
         <div className="flex-1 min-w-0 overflow-y-auto">
-          <div className="w-full max-w-2xl px-6 md:px-12 lg:px-16 py-10 md:py-12">
+          <div className="w-full max-w-2xl px-6 md:px-12 lg:px-16 pt-4 md:pt-5 pb-10 md:pb-12">
             <button
               type="button"
               onClick={step === 0 ? onClose : goBack}
