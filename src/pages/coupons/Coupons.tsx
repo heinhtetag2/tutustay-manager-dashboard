@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, addDays, addMonths } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
 import {
   TicketPercent,
   BadgePercent,
@@ -13,9 +14,12 @@ import {
   Search,
   ListFilter,
   Calendar as CalendarIcon,
+  Check,
+  X,
   Trash2,
 } from 'lucide-react';
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { Portal } from '@/shared/ui/portal';
 import { formatAmount } from '@/pages/reservations/reservations-data';
 import {
@@ -41,9 +45,18 @@ export default function Coupons() {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [isDateOpen, setIsDateOpen] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState('Custom date range');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  const dateLabel = dateRange?.from
+    ? dateRange.to
+      ? `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d, yyyy')}`
+      : format(dateRange.from, 'MMM d, yyyy')
+    : t('Validity date');
 
   const withStatus = useMemo(
     () => coupons.map((c) => ({ coupon: c, status: couponStatus(c, NOW) })),
@@ -70,8 +83,23 @@ export default function Coupons() {
   const filtered = withStatus.filter(({ coupon, status }) => {
     if (statusFilter !== 'All' && status !== statusFilter) return false;
     if (query && !`${coupon.code} ${coupon.description}`.toLowerCase().includes(query)) return false;
+    // Date filter: keep coupons whose validity window overlaps the selected range.
+    if (dateRange?.from) {
+      const to = dateRange.to ?? dateRange.from;
+      const starts = new Date(coupon.startsAt);
+      const expires = new Date(coupon.expiresAt);
+      if (!(starts <= to && expires >= dateRange.from)) return false;
+    }
     return true;
   });
+
+  const hasActiveFilters = query !== '' || statusFilter !== 'All' || !!dateRange?.from;
+  const clearFilters = () => {
+    setSearch('');
+    setStatusFilter('All');
+    setDateRange(undefined);
+    setSelectedPreset('Custom date range');
+  };
 
   // Bulk selection (matches the Rooms table pattern).
   const visibleIds = filtered.map((x) => x.coupon.id);
@@ -139,6 +167,48 @@ export default function Coupons() {
           className="sm:w-auto"
           options={[{ value: 'All', label: t('All statuses') }, ...COUPON_STATUSES.map((s) => ({ value: s, label: t(s) }))]}
         />
+
+        {/* Validity date-range filter */}
+        <div className="relative">
+          <button onClick={() => setIsDateOpen((v) => !v)} className={`flex items-center gap-2 px-4 py-2 border rounded-md text-sm font-medium transition-colors shadow-none cursor-pointer ${dateRange?.from ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]' : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white hover:bg-[var(--surface-subtle)]'}`}>
+            <CalendarIcon className="w-4 h-4" />
+            {dateLabel}
+          </button>
+          {isDateOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setIsDateOpen(false)} />
+              <div className="absolute top-full right-0 mt-2 bg-white border border-[var(--border-default)] rounded-md z-20 flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
+                <div className="w-52 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
+                  {['Next 30 days', 'Next 90 days', 'This year', 'Custom date range'].map((preset) => (
+                    <button key={preset} onClick={() => {
+                        setSelectedPreset(preset);
+                        if (preset === 'Next 30 days') setDateRange({ from: NOW, to: addDays(NOW, 30) });
+                        else if (preset === 'Next 90 days') setDateRange({ from: NOW, to: addMonths(NOW, 3) });
+                        else if (preset === 'This year') setDateRange({ from: new Date(NOW.getFullYear(), 0, 1), to: new Date(NOW.getFullYear(), 11, 31) });
+                      }}
+                      className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors shadow-none cursor-pointer ${selectedPreset === preset ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium' : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}>
+                      {t(preset)}
+                      {selectedPreset === preset && <Check className="w-4 h-4 text-[var(--brand-primary)]" />}
+                    </button>
+                  ))}
+                </div>
+                <div className="p-4" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as CSSProperties}>
+                  <CalendarUI mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }} numberOfMonths={2} className="border-0 shadow-none p-0" />
+                  <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-[var(--surface-subtle)]">
+                    <button onClick={() => { setDateRange(undefined); setSelectedPreset('Custom date range'); setIsDateOpen(false); }} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors shadow-none cursor-pointer">{t('Clear')}</button>
+                    <button onClick={() => setIsDateOpen(false)} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors shadow-none cursor-pointer"><Check className="w-4 h-4" />{t('Apply')}</button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {hasActiveFilters && (
+          <button onClick={clearFilters} className="flex items-center justify-center w-9 h-9 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-full transition-colors border border-transparent hover:border-[var(--border-default)] shadow-none cursor-pointer flex-shrink-0" title={t('Clear filters')}>
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Bulk selection bar */}

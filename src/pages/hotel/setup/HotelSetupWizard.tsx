@@ -29,6 +29,7 @@ import {
 
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { ImageCropper } from '@/pages/agents/ImageCropper';
+import setupIllustration from '@/assets/illustrations/treasure-chest.svg';
 import { useHotel } from '../use-hotel';
 import {
   AMENITIES,
@@ -212,6 +213,10 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
+        {/* Right: illustration only (desktop only) */}
+        <div className="hidden lg:flex flex-1 items-end justify-end px-20 py-12 pointer-events-none">
+          <img src={setupIllustration} alt="" className="w-[60%] max-w-[400px] h-auto" />
+        </div>
       </div>
     </div>
   );
@@ -239,7 +244,7 @@ function BasicInfoStep({ draft, set, t, showErrors, errors }: StepProps) {
       <div>
         <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Hotel photo')}</label>
         <div className="flex items-center gap-5">
-          <div className="w-20 h-20 rounded-md bg-[var(--surface-subtle)] border border-[var(--border-default)] overflow-hidden flex items-center justify-center shrink-0 text-[var(--text-secondary)]">
+          <div className="w-20 h-20 rounded-md bg-white border border-[var(--border-default)] overflow-hidden flex items-center justify-center shrink-0 text-[var(--text-secondary)]">
             {draft.photoUrl ? <img src={draft.photoUrl} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-6 h-6" strokeWidth={1.5} />}
           </div>
           <div className="space-y-2">
