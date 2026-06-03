@@ -5,6 +5,13 @@ import {
   X,
   ArrowLeft,
   Building2,
+  Hotel,
+  ConciergeBell,
+  Umbrella,
+  Sofa,
+  Car,
+  Landmark,
+  Check,
   MapPin,
   ScrollText,
   Briefcase,
@@ -30,6 +37,8 @@ import {
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { ImageCropper } from '@/pages/agents/ImageCropper';
 import setupIllustration from '@/assets/illustrations/treasure-chest.svg';
+import kbzpayLogo from '@/assets/logos/banks/kbzpay.webp';
+import uabLogo from '@/assets/logos/banks/uab.webp';
 import { useHotel } from '../use-hotel';
 import {
   AMENITIES,
@@ -54,12 +63,33 @@ interface StepProps {
 }
 
 const STEPS = [
-  { key: 'basic', title: 'Tell us about your property', lead: 'The essentials guests see first — your name, accommodation type, and rating.', Icon: Building2 },
+  { key: 'basic', title: 'Tell us about your property', lead: 'The essentials guests see first — your name, photo, and rating.', Icon: Building2 },
+  { key: 'type', title: 'What type of property is it?', lead: 'Pick the category that best describes your place — it shapes how guests find and filter you.', Icon: Hotel },
   { key: 'address', title: 'Confirm your address', lead: "Enter your property's detailed address. If it isn't clear and accurate on the map, guests will struggle to find you.", Icon: MapPin },
   { key: 'policies', title: 'Policies & amenities', lead: 'Set guest expectations for arrival and stay.', Icon: ScrollText },
   { key: 'owner', title: 'Owner & contract', lead: 'Who operates this property and the terms of your agreement.', Icon: Briefcase },
+  { key: 'banking', title: 'Where should we send your payouts?', lead: 'Choose the bank that receives your booking settlements. You can set this up later if you prefer.', Icon: Landmark },
   { key: 'review', title: 'Review your details', lead: 'Check everything looks right, then finish setup.', Icon: ClipboardCheck },
 ] as const;
+
+/**
+ * Settlement banks the property can be paid out to.
+ * Drop logo files into src/assets/logos/banks/ (e.g. kbz.svg), import them at
+ * the top of this file, and set `logo` below. Until then the Landmark icon shows.
+ */
+const BANK_OPTIONS: { name: string; subtitle: string; logo?: string }[] = [
+  { name: 'KBZPay', subtitle: 'KBZ mobile wallet', logo: kbzpayLogo },
+  { name: 'UAB Bank', subtitle: 'uab pay · online banking', logo: uabLogo },
+  { name: 'Other bank', subtitle: 'Add any local bank account' },
+];
+
+/** Per-accommodation-type card metadata: icon + a one-line description. */
+const TYPE_META: Record<string, { Icon: LucideIcon; headline: string; desc: string; tint: string; fg: string }> = {
+  'Hotel': { Icon: ConciergeBell, headline: 'Full-service hotel', desc: 'Reception, daily housekeeping, and on-site staff looking after every guest.', tint: '#f1ebfe', fg: '#7c3aed' },
+  'Resort': { Icon: Umbrella, headline: 'Leisure resort', desc: 'A destination in itself — on-site dining, pools, and things to do all day.', tint: '#fff0e1', fg: '#ea580c' },
+  'Guesthouse': { Icon: Sofa, headline: 'Cosy guesthouse', desc: 'Smaller and more personal, with a warm, host-led feel for your guests.', tint: 'var(--color-data-green-10)', fg: 'var(--color-data-green-60)' },
+  'Motel': { Icon: Car, headline: 'Roadside motel', desc: 'Simple rooms with easy parking — ideal for short stops and road trips.', tint: '#fdeaea', fg: '#dc2626' },
+};
 
 const AMENITY_ICONS: Record<string, LucideIcon> = {
   'WiFi': Wifi,
@@ -79,19 +109,20 @@ function validate(step: number, d: Property, t: TFn): Record<string, string> {
   const e: Record<string, string> = {};
   if (step === 0) {
     if (!d.name.trim()) e.name = req;
-    if (!d.accommodationType) e.accommodationType = req;
     if (d.starRating < 1) e.starRating = t('Select a star rating');
   } else if (step === 1) {
+    if (!d.accommodationType) e.accommodationType = t('Choose a property type');
+  } else if (step === 2) {
     if (!d.country.trim()) e.country = req;
     if (!d.state.trim()) e.state = req;
     if (!d.district.trim()) e.district = req;
     if (!d.township.trim()) e.township = req;
     if (!d.address.trim()) e.address = req;
     if (d.latitude == null || d.longitude == null) e.map = t('Drop a pin on the map');
-  } else if (step === 2) {
+  } else if (step === 3) {
     if (!d.checkInTime.trim()) e.checkInTime = req;
     if (!d.checkOutTime.trim()) e.checkOutTime = req;
-  } else if (step === 3) {
+  } else if (step === 4) {
     if (!d.representativeName.trim()) e.representativeName = req;
     if (!d.companyName.trim()) e.companyName = req;
   }
@@ -128,6 +159,12 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
     setShowErrors(false);
     setStep((s) => Math.max(0, s - 1));
   };
+  // Advance past an optional step without making a selection (e.g. banking).
+  const goSkip = () => {
+    setShowErrors(false);
+    setStep((s) => Math.min(STEPS.length - 1, s + 1));
+  };
+  const isSkippable = STEPS[step].key === 'banking';
   const jumpTo = (i: number) => {
     setShowErrors(false);
     setStep(i);
@@ -169,11 +206,18 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
         </div>
       </header>
 
-      {/* Body: form (left) + setup guide (right) */}
-      <div className="flex-1 flex min-h-0">
+      {/* Body: form with the illustration peeking bottom-right behind it */}
+      <div className="flex-1 relative min-h-0">
+        {/* Illustration overlay — desktop only, behind the form content */}
+        <img
+          src={setupIllustration}
+          alt=""
+          aria-hidden
+          className="hidden lg:block pointer-events-none select-none absolute bottom-0 right-0 z-0 w-[32%] max-w-[360px] xl:max-w-[420px] h-auto"
+        />
         {/* The form */}
-        <div className="flex-1 min-w-0 overflow-y-auto">
-          <div className="w-full max-w-2xl px-6 md:px-12 lg:px-16 pt-4 md:pt-5 pb-10 md:pb-12">
+        <div className="h-full overflow-y-auto relative z-10">
+          <div className={`w-full ${STEPS[step].key === 'type' ? 'max-w-none px-6 md:px-10 lg:px-14' : STEPS[step].key === 'banking' ? 'max-w-4xl px-6 md:px-10 lg:px-14' : 'max-w-2xl px-6 md:px-12 lg:px-16'} pt-4 md:pt-5 pb-10 md:pb-12`}>
             <button
               type="button"
               onClick={step === 0 ? onClose : goBack}
@@ -194,14 +238,16 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
               className="mt-8 space-y-5"
             >
               {step === 0 && <BasicInfoStep {...stepProps} />}
-              {step === 1 && <AddressStep {...stepProps} />}
-              {step === 2 && <PoliciesStep {...stepProps} />}
-              {step === 3 && <OwnerStep {...stepProps} />}
-              {step === 4 && <ReviewStep draft={draft} t={t} onEdit={jumpTo} />}
+              {step === 1 && <AccommodationTypeStep {...stepProps} />}
+              {step === 2 && <AddressStep {...stepProps} />}
+              {step === 3 && <PoliciesStep {...stepProps} />}
+              {step === 4 && <OwnerStep {...stepProps} />}
+              {step === 5 && <BankingStep {...stepProps} />}
+              {step === 6 && <ReviewStep draft={draft} t={t} onEdit={jumpTo} />}
             </motion.div>
 
             {/* Action */}
-            <div className="mt-10">
+            <div className="mt-10 flex items-center gap-3">
               <button
                 type="button"
                 onClick={goNext}
@@ -209,13 +255,17 @@ export function HotelSetupWizard({ onClose }: { onClose: () => void }) {
               >
                 {isLast ? t('Finish setup') : t('Continue')}
               </button>
+              {isSkippable && (
+                <button
+                  type="button"
+                  onClick={goSkip}
+                  className="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                >
+                  {t('Skip for now')}
+                </button>
+              )}
             </div>
           </div>
-        </div>
-
-        {/* Right: illustration only (desktop only) */}
-        <div className="hidden lg:flex flex-1 items-end justify-end px-10 xl:px-20 py-12 pointer-events-none">
-          <img src={setupIllustration} alt="" className="w-[85%] max-w-[340px] xl:w-[60%] xl:max-w-[400px] h-auto" />
         </div>
       </div>
     </div>
@@ -281,28 +331,130 @@ function BasicInfoStep({ draft, set, t, showErrors, errors }: StepProps) {
         />
       </SetupField>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
-        <SetupField label={t('Accommodation type')} hint={t('How is your property classified?')} required error={err('accommodationType')}>
-          <BrandSelect
-            value={draft.accommodationType}
-            onValueChange={(v) => set({ accommodationType: v })}
-            options={ACCOMMODATION_TYPES.map((a) => ({ value: a, label: t(a) }))}
-          />
-        </SetupField>
-
-        <SetupField label={t('Star rating')} hint={t('Official or self-assessed star class.')} required error={err('starRating')}>
-          <div className="flex items-center gap-1 h-[42px]">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} type="button" onClick={() => set({ starRating: n })} className="p-0.5 cursor-pointer" aria-label={`${n} ${t('stars')}`}>
-                <Star className={`w-6 h-6 transition-colors ${n <= draft.starRating ? 'text-[var(--color-data-yellow-40)] fill-[var(--color-data-yellow-40)]' : 'text-[var(--border-strong)]'}`} />
-              </button>
-            ))}
-          </div>
-        </SetupField>
-      </div>
+      <SetupField label={t('Star rating')} hint={t('Official or self-assessed star class.')} required error={err('starRating')}>
+        <div className="flex items-center gap-1 h-[42px]">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button key={n} type="button" onClick={() => set({ starRating: n })} className="p-0.5 cursor-pointer" aria-label={`${n} ${t('stars')}`}>
+              <Star className={`w-6 h-6 transition-colors ${n <= draft.starRating ? 'text-[var(--color-data-yellow-40)] fill-[var(--color-data-yellow-40)]' : 'text-[var(--border-strong)]'}`} />
+            </button>
+          ))}
+        </div>
+      </SetupField>
 
       {cropSrc && <ImageCropper src={cropSrc} onCancel={() => setCropSrc(null)} onSave={(url) => { set({ photoUrl: url }); setCropSrc(null); }} />}
     </>
+  );
+}
+
+function AccommodationTypeStep({ draft, set, t, showErrors, errors }: StepProps) {
+  const error = showErrors ? errors.accommodationType : undefined;
+  return (
+    <div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {ACCOMMODATION_TYPES.map((type) => {
+          const meta = TYPE_META[type];
+          const Icon = meta?.Icon ?? Building2;
+          const selected = draft.accommodationType === type;
+          return (
+            <div
+              key={type}
+              className="flex flex-col rounded-md border border-[var(--border-default)] bg-white p-5 min-h-[280px]"
+            >
+              <div className="flex items-center gap-2.5 mb-3">
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${selected ? '' : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]'}`}
+                  style={selected ? { backgroundColor: meta?.tint, color: meta?.fg } : undefined}
+                >
+                  <Icon className="w-4 h-4" />
+                </div>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-tertiary)] truncate">{t(type)}</span>
+              </div>
+              <h4 className="text-base font-semibold text-[var(--text-primary)] leading-snug">{t(meta?.headline ?? '')}</h4>
+              <p className="text-[13px] text-[var(--text-secondary)] mt-1.5 leading-relaxed flex-1">{t(meta?.desc ?? '')}</p>
+              <button
+                type="button"
+                onClick={() => set({ accommodationType: type })}
+                aria-pressed={selected}
+                className={`mt-5 w-full py-2 rounded-md text-sm font-medium border transition-colors cursor-pointer ${
+                  selected
+                    ? 'bg-[var(--success-tint)] text-[var(--success)] border-[var(--success)]'
+                    : 'bg-white text-[var(--text-primary)] border-[var(--border-default)] hover:bg-[var(--surface-subtle)]'
+                }`}
+              >
+                {selected ? t('Selected') : t('Select')}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      {error && <p className="text-xs text-[var(--danger)] mt-3">{error}</p>}
+    </div>
+  );
+}
+
+function BankingStep({ draft, set, t }: StepProps) {
+  const [agreed, setAgreed] = useState(true);
+  return (
+    <div>
+      <div className="text-sm font-medium text-[var(--text-primary)] mb-3">{t('Choose your settlement bank')}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {BANK_OPTIONS.map((bank) => {
+          const selected = draft.settlementBank === bank.name;
+          return (
+            <button
+              key={bank.name}
+              type="button"
+              onClick={() => set({ settlementBank: selected ? '' : bank.name })}
+              aria-pressed={selected}
+              className={`flex items-center gap-3 text-left rounded-md border bg-white p-4 transition-colors cursor-pointer ${
+                selected
+                  ? 'border-[var(--brand-primary)]'
+                  : 'border-[var(--border-default)] hover:border-[var(--border-strong)]'
+              }`}
+            >
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden transition-colors ${bank.logo ? '' : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]'}`}>
+                {bank.logo ? <img src={bank.logo} alt="" className="w-9 h-9 object-contain" /> : <Landmark className="w-5 h-5" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-[var(--text-primary)] truncate">{bank.name}</div>
+                <div className="text-xs text-[var(--text-secondary)] truncate">{bank.subtitle}</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Consent */}
+      <label className="flex items-start gap-2.5 mt-20 cursor-pointer select-none">
+        <span className="relative mt-0.5 shrink-0">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="peer sr-only"
+          />
+          <span
+            className={`w-5 h-5 rounded-[5px] flex items-center justify-center border transition-colors ${
+              agreed
+                ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white'
+                : 'bg-white border-[var(--border-strong)]'
+            }`}
+          >
+            {agreed && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+          </span>
+        </span>
+        <span className="text-xs text-[var(--text-secondary)] leading-relaxed max-w-2xl">
+          {t('I confirm this account belongs to the property owner and authorise TutuStay to send all booking settlements to it. Payouts follow the agreed commission and settlement schedule, and you can change these details anytime in Settings.')}{' '}
+          <a
+            href="#"
+            onClick={(e) => e.preventDefault()}
+            className="font-medium text-[var(--text-primary)] underline underline-offset-2 hover:text-[var(--brand-primary)] transition-colors"
+          >
+            {t('Learn more about payout terms')}
+          </a>
+        </span>
+      </label>
+    </div>
   );
 }
 
@@ -459,12 +611,18 @@ function ReviewStep({ draft, t, onEdit }: { draft: Property; t: TFn; onEdit: (i:
       title: t('Basic information'),
       rows: [
         [t('Name'), draft.name || dash],
-        [t('Type'), t(draft.accommodationType) || dash],
         [t('Star rating'), draft.starRating ? `${draft.starRating} ★` : dash],
       ],
     },
     {
       step: 1,
+      title: t('Property type'),
+      rows: [
+        [t('Type'), t(draft.accommodationType) || dash],
+      ],
+    },
+    {
+      step: 2,
       title: t('Address'),
       rows: [
         [t('Country'), draft.country || dash],
@@ -476,7 +634,7 @@ function ReviewStep({ draft, t, onEdit }: { draft: Property; t: TFn; onEdit: (i:
       ],
     },
     {
-      step: 2,
+      step: 3,
       title: t('Policies & amenities'),
       rows: [
         [t('Check-in'), draft.checkInTime || dash],
@@ -486,7 +644,7 @@ function ReviewStep({ draft, t, onEdit }: { draft: Property; t: TFn; onEdit: (i:
       ],
     },
     {
-      step: 3,
+      step: 4,
       title: t('Owner & contract'),
       rows: [
         [t('Representative'), draft.representativeName || dash],
@@ -494,6 +652,13 @@ function ReviewStep({ draft, t, onEdit }: { draft: Property; t: TFn; onEdit: (i:
         [t('Reg. number'), draft.businessRegNumber || dash],
         [t('Contract status'), t(draft.contractStatus)],
         [t('Contract term'), draft.contractStart ? `${draft.contractStart} → ${draft.contractEnd || dash}` : dash],
+      ],
+    },
+    {
+      step: 5,
+      title: t('Settlement'),
+      rows: [
+        [t('Payout bank'), draft.settlementBank || t('Not set up yet')],
       ],
     },
   ];

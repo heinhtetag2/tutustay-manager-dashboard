@@ -17,8 +17,6 @@ export const ACCOMMODATION_TYPES = [
   'Hotel',
   'Resort',
   'Guesthouse',
-  'Hostel',
-  'Serviced Apartment',
   'Motel',
 ] as const;
 
@@ -48,6 +46,8 @@ export interface Property {
   companyName: string;
   managerContact: string;
   photoUrl?: string;
+  // Settlement / payouts
+  settlementBank: string;
 }
 
 /** A blank property used to start a fresh hotel setup. */
@@ -75,6 +75,7 @@ export function emptyProperty(): Property {
     contractEnd: '',
     companyName: '',
     managerContact: '',
+    settlementBank: '',
   };
 }
 
@@ -190,6 +191,7 @@ export const DEMO_PROPERTY: Property = {
   contractEnd: '2026-12-31',
   companyName: 'Aurora Hospitality Group',
   managerContact: 'manager@aurorahotel.com',
+  settlementBank: '',
 };
 
 export const DEMO_ROOM_TYPES: RoomType[] = [
