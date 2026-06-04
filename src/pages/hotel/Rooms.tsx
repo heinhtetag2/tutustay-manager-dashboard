@@ -12,11 +12,9 @@ import {
   Layers,
   Users,
   Building,
-  Building2,
   Trash2,
   AlertCircle,
   X,
-  Sparkles,
 } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
 import { Portal } from '@/shared/ui/portal';
@@ -240,14 +238,6 @@ export default function Rooms() {
           <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Set up your room types, nightly rates, and every individual room.')}</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={tour.start} title={t('How rooms work')} className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-[var(--brand-primary)] hover:bg-[var(--brand-tint)] transition-colors cursor-pointer">
-            <Sparkles className="w-4 h-4" />
-            {t('Tour')}
-          </button>
-          <button onClick={() => navigate('/hotel/setup')} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-[var(--text-primary)] border border-[var(--border-default)] bg-white hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
-            <Building2 className="w-4 h-4 text-[var(--text-secondary)]" />
-            {t('Hotel setup')}
-          </button>
           <button data-tour="rooms-add" onClick={() => (view === 'rooms' ? setRoomEditor(emptyRoom()) : setTypeEditor(newRoomType()))} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
             <Plus className="w-4 h-4" />
             {view === 'rooms' ? t('Add Room') : t('Add Room Type')}

@@ -465,9 +465,8 @@ export default function SetupHub() {
             {initialEditable && allRequiredDone && (
               <button
                 onClick={submitForReview}
-                className="mt-4 w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
+                className="mt-4 w-full inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
               >
-                <Send className="w-4 h-4" />
                 {rejected ? t('Resubmit for review') : t('Submit for review')}
               </button>
             )}

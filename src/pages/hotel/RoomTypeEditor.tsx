@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import * as Popover from '@radix-ui/react-popover';
-import { X, Plus, Trash2, Clock, Info, ChevronDown, TriangleAlert, Settings as SettingsIcon, Lock } from 'lucide-react';
+import { X, Plus, Trash2, Clock, Info, ChevronDown, Settings as SettingsIcon, Lock } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { BrandSelect } from '@/shared/ui/brand-select';
-import { ImageCropper } from '@/pages/agents/ImageCropper';
+import { PhotoGallery } from './setup/PhotoGallery';
 import { useHotel } from './use-hotel';
 import { AmenityToggles, fieldInput } from './room-editors';
 import { BED_TYPES, WEEKEND_DAYS, formatPrice, computeWeekendPrice, type RoomType, type BedType, type SizeUnit, type WeekendMode } from './hotel-data';
@@ -19,14 +19,11 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
   const goToPricingDefaults = () => { onClose(); navigate('/settings?section=Booking defaults'); };
   const [d, setD] = useState<RoomType>(initial);
   const [priceTab, setPriceTab] = useState<PriceTab>('regular');
-  const [showPriceHelp, setShowPriceHelp] = useState(true);
 
   // Let a guided tour drive which price tab is shown.
   useEffect(() => {
     if (forcePriceTab) setPriceTab(forcePriceTab);
   }, [forcePriceTab]);
-  const [cropSrc, setCropSrc] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const set = (p: Partial<RoomType>) => setD((s) => ({ ...s, ...p }));
   const isEdit = Boolean(initial.id);
 
@@ -45,19 +42,7 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d.regularPrice, weekendMode, weekendSurcharge]);
 
-  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file || file.size > 5 * 1024 * 1024) return;
-    const reader = new FileReader();
-    reader.onload = () => { if (typeof reader.result === 'string') setCropSrc(reader.result); };
-    reader.readAsDataURL(file);
-  };
-
   const updateBed = (i: number, patch: Partial<{ type: BedType; count: number }>) => set({ beds: d.beds.map((b, idx) => (idx === i ? { ...b, ...patch } : b)) });
-  const toggleDay = (day: string) => set({ weekendDays: d.weekendDays.includes(day) ? d.weekendDays.filter((x) => x !== day) : [...d.weekendDays, day] });
-  // Move a photo to the front so it becomes the cover.
-  const setCover = (i: number) => set({ photos: [d.photos[i], ...d.photos.filter((_, idx) => idx !== i)] });
 
   const save = () => { if (d.name.trim()) onSave({ ...d, name: d.name.trim(), id: d.id || `rt-${Date.now()}` }); };
 
@@ -73,35 +58,8 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
             {/* Photos (top) */}
             <div>
               <span className="text-xs font-medium text-[var(--text-secondary)] block mb-1">{t('Room Photos')}<span className="text-[var(--danger)] ml-0.5">*</span></span>
-              <p className="text-xs text-[var(--text-secondary)] mb-3">{t('Add at least one photo. The first is used as the cover. JPG/PNG up to 5 MB.')}</p>
-              <div className="space-y-3">
-                <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={onFile} />
-                {d.photos.length > 0 ? (
-                  <div className="flex flex-wrap gap-3">
-                    {d.photos.map((p, i) => (
-                      <div key={i} className={`relative w-24 h-24 rounded-md overflow-hidden border group ${i === 0 ? 'border-[var(--brand-primary)] ring-1 ring-[var(--brand-primary)]' : 'border-[var(--border-default)]'}`}>
-                        <img src={p} alt="" className="w-full h-full object-cover" />
-                        <button onClick={() => set({ photos: d.photos.filter((_, idx) => idx !== i) })} title={t('Remove')} className="absolute top-1 right-1 p-1 rounded-full bg-[var(--text-primary)]/60 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"><X className="w-3 h-3" /></button>
-                        {i === 0 ? (
-                          <span className="absolute bottom-1 left-1 px-1.5 py-0.5 text-[10px] font-medium rounded bg-[var(--brand-primary)] text-white">{t('Cover')}</span>
-                        ) : (
-                          <button onClick={() => setCover(i)} className="absolute inset-x-1 bottom-1 px-1.5 py-0.5 text-[10px] font-medium rounded bg-white/90 text-[var(--text-primary)] opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-white">{t('Set as cover')}</button>
-                        )}
-                      </div>
-                    ))}
-                    {/* Add-more tile — matches the photo size and sits after them */}
-                    <button onClick={() => fileRef.current?.click()} className="w-24 h-24 rounded-md border-2 border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] flex flex-col items-center justify-center gap-1 text-[var(--text-secondary)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition-colors cursor-pointer shrink-0">
-                      <Plus className="w-5 h-5" />
-                      <span className="text-[11px] font-medium">{t('Upload')}</span>
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => fileRef.current?.click()} className="w-full h-32 rounded-md border-2 border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] flex flex-col items-center justify-center gap-1.5 text-[var(--text-secondary)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] transition-colors cursor-pointer">
-                    <Plus className="w-6 h-6" />
-                    <span className="text-sm font-medium">{t('Upload')}</span>
-                  </button>
-                )}
-              </div>
+              <p className="text-xs text-[var(--text-secondary)] mb-3">{t('Add at least one photo. The first is used as the cover.')}</p>
+              <PhotoGallery value={d.photos} onChange={(next) => set({ photos: next })} t={t} />
             </div>
 
             <Divider label={t('Room Details')} />
@@ -118,21 +76,8 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
                 <h3 className="text-sm font-medium text-[var(--text-primary)]">{t('Price')}</h3>
                 <InfoTip text={t('Regular = standard nightly rate. Session = sell short hourly blocks. Weekend = an uplift applied to both the nightly and session rate on the days you choose.')} />
               </div>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{t('Set how this room type is priced — a regular nightly rate, optional hourly sessions, and a weekend uplift that applies to both on selected days.')}</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{t('Set how this room type is priced. Only the nightly rate is required.')}</p>
             </div>
-            {showPriceHelp && !isEdit && (
-              <div className="bg-white border border-[var(--border-default)] rounded-lg p-3 text-xs">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-[var(--text-primary)]">{t('Three ways to price this room')}</span>
-                  <button type="button" onClick={() => setShowPriceHelp(false)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer">{t('Got it')}</button>
-                </div>
-                <ul className="space-y-1.5 text-[var(--text-secondary)] leading-relaxed">
-                  <li><span className="font-medium text-[var(--text-primary)]">{t('Regular')}</span> — {t('your standard rate per night. This is the only required price.')}</li>
-                  <li><span className="font-medium text-[var(--text-primary)]">{t('Session')}</span> — {t('optional. Sell the room for a few hours (day-use) instead of overnight.')}</li>
-                  <li><span className="font-medium text-[var(--text-primary)]">{t('Weekend')}</span> — {t('optional. Add an uplift on top of the night and session rates on the days you pick.')}</li>
-                </ul>
-              </div>
-            )}
             <div className="flex w-full p-1 bg-white border border-[var(--border-default)] rounded-lg">
               {([['regular', t('Regular'), t('Night')], ['session', t('Session'), t('Day')], ['weekend', t('Weekend'), t('Uplift')]] as const).map(([key, label, badge]) => {
                 const on = priceTab === key;
@@ -144,7 +89,12 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
                 );
               })}
             </div>
-            <div>
+            <div className="space-y-3">
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                {priceTab === 'regular' && t('Your standard rate per night — the only required price.')}
+                {priceTab === 'session' && t('Optional — sell the room by the hour for day-use guests, instead of overnight.')}
+                {priceTab === 'weekend' && t('Optional — add an uplift on top of the night and session rates on the days you pick.')}
+              </p>
               {priceTab === 'regular' && <Field label={t('Base Price (per night)')} required><Money value={d.regularPrice} onChange={(v) => set({ regularPrice: v })} /></Field>}
               {priceTab === 'session' && (
                 <div className="space-y-4">
@@ -167,13 +117,17 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
                   <Toggle checked={d.weekendEnabled} onChange={(v) => set({ weekendEnabled: v })} label={t('Enable weekend pricing')} hint={t('Apply an uplift to the night and session rate on selected days')} />
                   <div className={d.weekendEnabled ? 'space-y-4' : 'opacity-50 pointer-events-none space-y-4'}>
                     <Field label={t('Weekend days')}>
+                      {/* Read-only — weekend days are set from the hotel-wide defaults in Settings. */}
                       <div className="flex flex-wrap gap-2">
                         {WEEKEND_DAYS.map((day) => {
                           const on = d.weekendDays.includes(day);
-                          return <button key={day} type="button" onClick={() => toggleDay(day)} className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${on ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]' : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)] hover:bg-[var(--surface-subtle)]'}`}>{t(day)}</button>;
+                          return <span key={day} className={`px-3 py-1.5 text-xs font-medium rounded-full border select-none ${on ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]' : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)]'}`}>{t(day)}</span>;
                         })}
                       </div>
-                      <DefaultsHint onManage={goToPricingDefaults} label={t('Manage weekend defaults in Settings')} />
+                      <p className="inline-flex items-center gap-1.5 mt-2.5 text-[11px] font-medium text-[var(--text-tertiary)]">
+                        <SettingsIcon className="w-3 h-3 shrink-0" />
+                        {t('Weekend days are configured in Settings')}
+                      </p>
                     </Field>
                     <Field label={t('Weekend uplift')}>
                       <div className="space-y-3">
@@ -209,24 +163,6 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
                         ) : (
                           <Money value={weekendSurcharge} onChange={(v) => set({ weekendSurcharge: v })} wide />
                         )}
-
-                        {/* Edge case: the uplift builds on the base rates — warn if a base is unset */}
-                        {(() => {
-                          const needsRegular = d.regularPrice <= 0;
-                          const needsSession = d.sessionEnabled && d.sessionPrice <= 0;
-                          if (!needsRegular && !needsSession) return null;
-                          const msg = needsRegular && needsSession
-                            ? t('Set the Regular and Session rates first — the weekend uplift is added on top of them.')
-                            : needsRegular
-                              ? t('Set the Regular night rate first — the weekend uplift is added on top of it.')
-                              : t('Set the Session rate first — the weekend uplift is added on top of it.');
-                          return (
-                            <div className="flex items-start gap-2 rounded-md bg-[var(--warning-tint)] border border-[var(--warning-tint)] px-3 py-2 text-xs text-[var(--warning-strong)]">
-                              <TriangleAlert className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                              <span>{msg}</span>
-                            </div>
-                          );
-                        })()}
 
                         {/* Live preview — the uplift applies to both rates on selected days */}
                         <div className="rounded-md bg-white border border-[var(--border-default)] divide-y divide-[var(--surface-subtle)]">
@@ -306,7 +242,6 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
           </div>
       </SideSheet>
 
-      {cropSrc && <ImageCropper src={cropSrc} onCancel={() => setCropSrc(null)} onSave={(url) => { set({ photos: [...d.photos, url] }); setCropSrc(null); }} />}
     </>
   );
 }

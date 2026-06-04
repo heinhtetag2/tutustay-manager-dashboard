@@ -174,6 +174,40 @@ export function Sidebar({
     return () => mql.removeEventListener('change', handler);
   }, []);
 
+  // Resizable expanded width (desktop). Drag the right edge; persisted across sessions.
+  const SIDEBAR_MIN = 208;
+  const SIDEBAR_MAX = 360;
+  const SIDEBAR_DEFAULT = 240;
+  const [expandedWidth, setExpandedWidth] = React.useState(() => {
+    if (typeof window === 'undefined') return SIDEBAR_DEFAULT;
+    const saved = Number(window.localStorage.getItem('sidebarWidth'));
+    return saved >= SIDEBAR_MIN && saved <= SIDEBAR_MAX ? saved : SIDEBAR_DEFAULT;
+  });
+  const [isResizing, setIsResizing] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isResizing) return;
+    // The aside's left edge sits at viewport x=0, so width tracks the cursor's clientX.
+    const onMove = (e: PointerEvent) => setExpandedWidth(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, e.clientX)));
+    const stop = () => setIsResizing(false);
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', stop);
+    const prevCursor = document.body.style.cursor;
+    const prevSelect = document.body.style.userSelect;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    return () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', stop);
+      document.body.style.cursor = prevCursor;
+      document.body.style.userSelect = prevSelect;
+    };
+  }, [isResizing]);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') window.localStorage.setItem('sidebarWidth', String(expandedWidth));
+  }, [expandedWidth]);
+
   // Desktop notif panel state vs mobile (mobile is controlled by parent via props)
   const notifOpen = isMobileNotifOpen || isNotificationsOpen;
   const closeNotif = () => {
@@ -182,8 +216,8 @@ export function Sidebar({
   };
 
   // On mobile, sidebar is a fixed 280px overlay and ignores the collapse toggle.
-  // On desktop, width animates between 68 (collapsed) and 240 (expanded).
-  const asideWidth = isDesktop ? (isCollapsed ? 68 : 240) : 280;
+  // On desktop, width is 68 (collapsed) or the user-resizable expanded width.
+  const asideWidth = isDesktop ? (isCollapsed ? 68 : expandedWidth) : 280;
   // On mobile, "collapsed" visual state makes no sense (it's an overlay), so we
   // always render the full labels when not on desktop.
   const effectiveCollapsed = isDesktop ? isCollapsed : false;
@@ -224,7 +258,7 @@ export function Sidebar({
       <motion.aside
         initial={false}
         animate={{ width: asideWidth }}
-        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        transition={isResizing ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
           'h-full bg-white border-r border-[var(--border-default)] flex flex-col flex-shrink-0 overflow-hidden',
           // Desktop: inline in the flex row
@@ -234,6 +268,25 @@ export function Sidebar({
           isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
       >
+      {/* Drag-to-resize handle (desktop, expanded). Double-click resets to default. */}
+      {isDesktop && !isCollapsed && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={t('Resize sidebar')}
+          title={t('Drag to resize · double-click to reset')}
+          onPointerDown={(e) => { e.preventDefault(); setIsResizing(true); }}
+          onDoubleClick={() => setExpandedWidth(SIDEBAR_DEFAULT)}
+          className="group/resize hidden md:block absolute top-0 right-0 z-30 h-full w-1.5 cursor-col-resize"
+        >
+          <span
+            className={cn(
+              'absolute right-0 top-0 h-full w-0.5 transition-colors',
+              isResizing ? 'bg-[var(--brand-primary)]' : 'bg-transparent group-hover/resize:bg-[var(--border-strong)]',
+            )}
+          />
+        </div>
+      )}
       {/* Logo Area */}
       <div className="h-16 flex items-center px-4 shrink-0">
         <motion.div
@@ -647,9 +700,9 @@ function NavItem({ icon: Icon, label, path, isCollapsed, badge, dot }: { icon: R
               <Icon strokeWidth={1.75} className={cn("w-[17px] h-[17px] transition-colors", isActive ? "text-[var(--brand-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-tertiary)]")} />
               {isCollapsed && dot && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[var(--brand-primary)] border border-white" />}
             </span>
-            {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
+            {!isCollapsed && <span title={label} className="min-w-0 flex-1 truncate text-left">{label}</span>}
             {!isCollapsed && badge && (
-              <span className="ml-auto text-[11px] font-medium tabular-nums px-1.5 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-primary)]">{badge}</span>
+              <span className="shrink-0 text-[11px] font-medium tabular-nums px-1.5 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-primary)]">{badge}</span>
             )}
           </>
         )}
@@ -691,9 +744,9 @@ function SetupNavItem({ pct, completed, total, allDone, isCollapsed, label }: { 
         )}
       >
         {ring}
-        {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
+        {!isCollapsed && <span title={label} className="min-w-0 flex-1 truncate text-left">{label}</span>}
         {!isCollapsed && (
-          <span className="ml-auto text-[11px] font-medium tabular-nums text-[var(--brand-primary)]">{completed}/{total}</span>
+          <span className="shrink-0 text-[11px] font-medium tabular-nums text-[var(--brand-primary)]">{completed}/{total}</span>
         )}
       </NavLink>
       {tip.node}
@@ -719,7 +772,7 @@ function NavButton({ icon: Icon, label, isActive, onClick, isCollapsed }: { icon
         )}
       >
         <Icon strokeWidth={1.75} className={cn("w-[17px] h-[17px] shrink-0 transition-colors", isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-tertiary)]")} />
-        {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
+        {!isCollapsed && <span title={label} className="min-w-0 flex-1 truncate text-left">{label}</span>}
       </button>
       {tip.node}
     </>
