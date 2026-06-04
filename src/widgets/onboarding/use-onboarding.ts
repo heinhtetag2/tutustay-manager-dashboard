@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
-/** Named coach-mark tours. */
-export type TourId = 'dashboard' | 'rooms';
+/** Named coach-mark tours (global, app-shell level). The Rooms flow is local. */
+export type TourId = 'dashboard';
 
 /**
  * First-run onboarding state.

@@ -12,7 +12,7 @@ import { BED_TYPES, WEEKEND_DAYS, formatPrice, computeWeekendPrice, type RoomTyp
 
 type PriceTab = 'regular' | 'session' | 'weekend';
 
-export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType; onClose: () => void; onSave: (rt: RoomType) => void }) {
+export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab }: { initial: RoomType; onClose: () => void; onSave: (rt: RoomType) => void; forcePriceTab?: PriceTab | null }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const sessionHoursDefault = useHotel((s) => s.property.defaultSessionHours);
@@ -20,6 +20,11 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
   const [d, setD] = useState<RoomType>(initial);
   const [priceTab, setPriceTab] = useState<PriceTab>('regular');
   const [showPriceHelp, setShowPriceHelp] = useState(true);
+
+  // Let a guided tour drive which price tab is shown.
+  useEffect(() => {
+    if (forcePriceTab) setPriceTab(forcePriceTab);
+  }, [forcePriceTab]);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const set = (p: Partial<RoomType>) => setD((s) => ({ ...s, ...p }));
@@ -107,7 +112,7 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
               <Field label={t('Amenity')} required className="sm:col-span-2"><AmenityToggles value={d.amenities} onChange={(v) => set({ amenities: v })} /></Field>
             </div>
 
-            <div className="bg-[var(--surface-subtle)] rounded-lg p-4 space-y-4">
+            <div data-tour="rt-price" className="bg-[var(--surface-subtle)] rounded-lg p-4 space-y-4">
             <div>
               <div className="flex items-center gap-1.5">
                 <h3 className="text-sm font-medium text-[var(--text-primary)]">{t('Price')}</h3>
@@ -297,7 +302,7 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
 
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--surface-subtle)] shrink-0">
             <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">{t('Cancel')}</button>
-            <button onClick={save} disabled={!d.name.trim()} className="px-4 py-2 text-sm font-medium text-white rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">{isEdit ? t('Save changes') : t('Add Room Type')}</button>
+            <button data-tour="rt-save" onClick={save} disabled={!d.name.trim()} className="px-4 py-2 text-sm font-medium text-white rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">{isEdit ? t('Save changes') : t('Add Room Type')}</button>
           </div>
       </SideSheet>
 

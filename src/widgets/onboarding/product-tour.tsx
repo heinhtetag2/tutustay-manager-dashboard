@@ -51,30 +51,6 @@ const TOURS: Record<TourId, TourConfig> = {
     ],
     finish: { label: 'Go to setup', href: '/setup' },
   },
-  rooms: {
-    route: '/hotel/rooms',
-    steps: [
-      {
-        target: 'rooms-tabs',
-        title: 'Two tabs to know',
-        body: 'Room Types are reusable pricing templates. Rooms are the physical rooms guests actually book — each one belongs to a type.',
-        place: 'bottom',
-      },
-      {
-        target: 'rooms-add',
-        title: 'Everything starts with a Room Type',
-        body: 'Create a Room Type to set three prices — Regular (per night), Session (per few hours), and Weekend (an uplift) — plus beds and amenities.',
-        place: 'bottom',
-      },
-      {
-        target: 'rooms-guide',
-        title: 'Then connect rooms',
-        body: 'Once a type exists, add rooms of that type. Follow these two steps and your rooms become bookable.',
-        place: 'bottom',
-      },
-    ],
-    finish: { label: 'Got it' },
-  },
 };
 
 const PAD = 6;

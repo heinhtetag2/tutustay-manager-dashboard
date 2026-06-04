@@ -15,16 +15,17 @@ export function RoomsGuide({
   roomCount,
   onCreateType,
   onAddRoom,
+  onStartTour,
 }: {
   roomTypeCount: number;
   roomCount: number;
   onCreateType: () => void;
   onAddRoom: () => void;
+  onStartTour: () => void;
 }) {
   const { t } = useTranslation();
   const dismissed = useOnboarding((s) => s.roomsGuideDismissed);
   const dismiss = useOnboarding((s) => s.dismissRoomsGuide);
-  const startTour = useOnboarding((s) => s.startTour);
 
   const hasType = roomTypeCount > 0;
   const hasRoom = roomCount > 0;
@@ -57,7 +58,7 @@ export function RoomsGuide({
         </div>
         <button
           type="button"
-          onClick={() => startTour('rooms')}
+          onClick={onStartTour}
           className="hidden sm:inline-flex items-center gap-1.5 shrink-0 text-xs font-medium text-[var(--brand-primary)] hover:underline px-1"
         >
           <BookOpen className="w-3.5 h-3.5" />

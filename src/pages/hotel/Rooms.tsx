@@ -27,6 +27,7 @@ import { AMENITIES, formatPrice, totalBeds, emptyRoomType, type Room, type RoomT
 import { RoomEditor, AmenityIcon } from './room-editors';
 import { RoomTypeEditor } from './RoomTypeEditor';
 import { RoomsGuide } from '@/widgets/onboarding';
+import { useRoomsTour, type PriceTab } from '@/widgets/onboarding/rooms-tour';
 
 type View = 'rooms' | 'types';
 
@@ -113,6 +114,7 @@ export default function Rooms() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [roomEditor, setRoomEditor] = useState<Room | null>(null);
   const [typeEditor, setTypeEditor] = useState<RoomType | null>(null);
+  const [forcePriceTab, setForcePriceTab] = useState<PriceTab | null>(null);
 
   const switchView = (v: View) => { setView(v); setSelected(new Set()); };
 
@@ -177,6 +179,17 @@ export default function Rooms() {
 
   const emptyRoom = (): Room => ({ id: '', floor: 1, number: '', typeName: roomTypes[0]?.name ?? '', beds: 1, occupancy: 2, amenities: [], price: roomTypes[0]?.regularPrice ?? 0, status: 'Active' });
 
+  // Guided "create a room type → add a room" flow (drives the editors below).
+  const tour = useRoomsTour({
+    openTypeEditor: () => setTypeEditor((p) => p ?? newRoomType()),
+    closeTypeEditor: () => setTypeEditor(null),
+    openRoomEditor: () => setRoomEditor((p) => p ?? emptyRoom()),
+    closeRoomEditor: () => setRoomEditor(null),
+    showRoomsTab: () => switchView('rooms'),
+    showTypesTab: () => switchView('types'),
+    setPriceTab: setForcePriceTab,
+  });
+
   const typePhoto = (name: string) => roomTypes.find((rt) => rt.name === name)?.photos[0];
   const ROOM_LABELS: Record<string, string> = { select: '', room: t('Room'), capacity: t('Capacity'), amenity: t('Amenity'), price: t('Price'), status: t('Status') };
   const TYPE_LABELS: Record<string, string> = { select: '', roomType: t('Room Type'), pricing: t('Pricing'), amenity: t('Amenity') };
@@ -229,6 +242,7 @@ export default function Rooms() {
         roomCount={rooms.length}
         onCreateType={() => { switchView('types'); setTypeEditor(newRoomType()); }}
         onAddRoom={() => { switchView('rooms'); setRoomEditor(emptyRoom()); }}
+        onStartTour={tour.start}
       />
 
       {/* Primary view tabs */}
@@ -393,7 +407,7 @@ export default function Rooms() {
       {/* Editors */}
       <AnimatePresence>
         {roomEditor && <RoomEditor initial={roomEditor} roomTypes={roomTypes} onClose={() => setRoomEditor(null)} onSave={(r) => { upsertRoom(r.id ? r : { ...r, id: `rm-${Date.now()}` }); setRoomEditor(null); }} />}
-        {typeEditor && <RoomTypeEditor initial={typeEditor} onClose={() => setTypeEditor(null)} onSave={(rt) => { upsertRoomType(rt); setTypeEditor(null); }} />}
+        {typeEditor && <RoomTypeEditor initial={typeEditor} forcePriceTab={forcePriceTab} onClose={() => setTypeEditor(null)} onSave={(rt) => { upsertRoomType(rt); setTypeEditor(null); }} />}
       </AnimatePresence>
 
       <AnimatePresence>
@@ -419,6 +433,9 @@ export default function Rooms() {
           )}
         </AnimatePresence>
       </Portal>
+
+      {/* Guided rooms onboarding flow */}
+      {tour.node}
     </motion.div>
   );
 }

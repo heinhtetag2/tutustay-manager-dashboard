@@ -88,7 +88,7 @@ export function RoomEditor({ initial, roomTypes, onClose, onSave }: { initial: R
     <ModalShell title={initial.id ? t('Edit Room') : t('Add Room')} onClose={onClose} onSave={() => d.number.trim() && onSave({ ...d, number: d.number.trim() })} saveLabel={initial.id ? t('Save changes') : t('Add Room')}>
       <F label={t('Floor')}><input type="number" className={fieldInput} value={d.floor} onChange={(e) => set({ floor: Number(e.target.value) })} /></F>
       <F label={t('Number')}><input className={fieldInput} value={d.number} onChange={(e) => set({ number: e.target.value })} placeholder="e.g. 201" /></F>
-      <label className="flex flex-col gap-1.5">
+      <label data-tour="room-type-field" className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[var(--text-secondary)]">{t('Type')}</span>
         <BrandSelect value={d.typeName} onValueChange={onTypeChange} options={roomTypes.map((rt) => ({ value: rt.name, label: rt.name }))} />
         <span className="flex items-start gap-1.5 pl-1 text-[11px] text-[var(--text-tertiary)] leading-relaxed">
