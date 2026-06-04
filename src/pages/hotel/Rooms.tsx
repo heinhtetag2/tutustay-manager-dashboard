@@ -26,6 +26,7 @@ import { useHotel } from './use-hotel';
 import { AMENITIES, formatPrice, totalBeds, emptyRoomType, type Room, type RoomType, type RoomStatus } from './hotel-data';
 import { RoomEditor, AmenityIcon } from './room-editors';
 import { RoomTypeEditor } from './RoomTypeEditor';
+import { RoomsGuide } from '@/widgets/onboarding';
 
 type View = 'rooms' | 'types';
 
@@ -215,15 +216,23 @@ export default function Rooms() {
             <Building2 className="w-4 h-4 text-[var(--text-secondary)]" />
             {t('Hotel setup')}
           </button>
-          <button onClick={() => (view === 'rooms' ? setRoomEditor(emptyRoom()) : setTypeEditor(newRoomType()))} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
+          <button data-tour="rooms-add" onClick={() => (view === 'rooms' ? setRoomEditor(emptyRoom()) : setTypeEditor(newRoomType()))} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
             <Plus className="w-4 h-4" />
             {view === 'rooms' ? t('Add Room') : t('Add Room Type')}
           </button>
         </div>
       </div>
 
+      {/* First-run guided setup */}
+      <RoomsGuide
+        roomTypeCount={roomTypes.length}
+        roomCount={rooms.length}
+        onCreateType={() => { switchView('types'); setTypeEditor(newRoomType()); }}
+        onAddRoom={() => { switchView('rooms'); setRoomEditor(emptyRoom()); }}
+      />
+
       {/* Primary view tabs */}
-      <div className="border-b border-[var(--border-default)] mb-5">
+      <div data-tour="rooms-tabs" className="border-b border-[var(--border-default)] mb-5">
         <nav className="flex gap-8" aria-label={t('Rooms views')}>
           {(['rooms', 'types'] as const).map((v) => {
             const Icon = v === 'rooms' ? KeyRound : Layers;
@@ -316,7 +325,7 @@ export default function Rooms() {
               <thead>{renderHeader(ROOM_COLS, ROOM_LABELS, roomCols.onResizeStart)}</thead>
               <tbody className="divide-y divide-[var(--surface-subtle)]">
                 {visibleRooms.length === 0 ? (
-                  <tr><td colSpan={ROOM_COLS.length} className="px-6 py-12 text-center text-[var(--text-secondary)]">{t('No rooms match these filters.')}</td></tr>
+                  <tr><td colSpan={ROOM_COLS.length} className="px-6 py-12 text-center text-[var(--text-secondary)]">{rooms.length === 0 ? (roomTypes.length === 0 ? t('No rooms yet. Create a room type first, then add rooms of that type.') : t('No rooms yet. Use “Add Room” to add bookable rooms of a type.')) : t('No rooms match these filters.')}</td></tr>
                 ) : visibleRooms.map((r, i) => (
                   <motion.tr key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: i * 0.02 }} onClick={() => navigate(`/hotel/rooms/${r.id}`)} className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer">
                     <SelectCell id={r.id} />
@@ -347,7 +356,7 @@ export default function Rooms() {
               <thead>{renderHeader(TYPE_COLS, TYPE_LABELS, typeCols.onResizeStart)}</thead>
               <tbody className="divide-y divide-[var(--surface-subtle)]">
                 {visibleTypes.length === 0 ? (
-                  <tr><td colSpan={TYPE_COLS.length} className="px-6 py-12 text-center text-[var(--text-secondary)]">{t('No room types found.')}</td></tr>
+                  <tr><td colSpan={TYPE_COLS.length} className="px-6 py-12 text-center text-[var(--text-secondary)]">{roomTypes.length === 0 ? t('No room types yet. Create your first room type to start pricing rooms.') : t('No room types found.')}</td></tr>
                 ) : visibleTypes.map((rt, i) => (
                   <motion.tr key={rt.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: i * 0.02 }} onClick={() => navigate(`/hotel/room-types/${rt.id}`)} className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer">
                     <SelectCell id={rt.id} />

@@ -188,7 +188,7 @@ export function WelcomeModal() {
                   {isLast ? (
                     <button
                       type="button"
-                      onClick={startTour}
+                      onClick={() => startTour('dashboard')}
                       className="h-10 px-5 inline-flex items-center justify-center gap-2 rounded-md bg-[var(--brand-primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
                     >
                       {t('Show me around')}

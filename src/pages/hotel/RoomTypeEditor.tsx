@@ -19,6 +19,7 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
   const goToPricingDefaults = () => { onClose(); navigate('/settings?section=Booking defaults'); };
   const [d, setD] = useState<RoomType>(initial);
   const [priceTab, setPriceTab] = useState<PriceTab>('regular');
+  const [showPriceHelp, setShowPriceHelp] = useState(true);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const set = (p: Partial<RoomType>) => setD((s) => ({ ...s, ...p }));
@@ -114,6 +115,19 @@ export function RoomTypeEditor({ initial, onClose, onSave }: { initial: RoomType
               </div>
               <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{t('Set how this room type is priced — a regular nightly rate, optional hourly sessions, and a weekend uplift that applies to both on selected days.')}</p>
             </div>
+            {showPriceHelp && !isEdit && (
+              <div className="bg-white border border-[var(--border-default)] rounded-lg p-3 text-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-[var(--text-primary)]">{t('Three ways to price this room')}</span>
+                  <button type="button" onClick={() => setShowPriceHelp(false)} className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer">{t('Got it')}</button>
+                </div>
+                <ul className="space-y-1.5 text-[var(--text-secondary)] leading-relaxed">
+                  <li><span className="font-medium text-[var(--text-primary)]">{t('Regular')}</span> — {t('your standard rate per night. This is the only required price.')}</li>
+                  <li><span className="font-medium text-[var(--text-primary)]">{t('Session')}</span> — {t('optional. Sell the room for a few hours (day-use) instead of overnight.')}</li>
+                  <li><span className="font-medium text-[var(--text-primary)]">{t('Weekend')}</span> — {t('optional. Add an uplift on top of the night and session rates on the days you pick.')}</li>
+                </ul>
+              </div>
+            )}
             <div className="flex w-full p-1 bg-white border border-[var(--border-default)] rounded-lg">
               {([['regular', t('Regular'), t('Night')], ['session', t('Session'), t('Day')], ['weekend', t('Weekend'), t('Uplift')]] as const).map(([key, label, badge]) => {
                 const on = priceTab === key;

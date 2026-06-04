@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 
+/** Named coach-mark tours. */
+export type TourId = 'dashboard' | 'rooms';
+
 /**
  * First-run onboarding state.
  *
@@ -13,10 +16,10 @@ interface OnboardingState {
   openWelcome: () => void;
   closeWelcome: () => void;
 
-  /** Coach-mark product tour. */
-  tourActive: boolean;
+  /** Active coach-mark tour (null when none is running). */
+  tourId: TourId | null;
   tourStep: number;
-  startTour: () => void;
+  startTour: (id: TourId) => void;
   endTour: () => void;
   setTourStep: (step: number) => void;
 
@@ -27,6 +30,10 @@ interface OnboardingState {
   /** Sample-data ribbon. */
   ribbonDismissed: boolean;
   dismissRibbon: () => void;
+
+  /** Rooms-page guided card (re-shows each refresh). */
+  roomsGuideDismissed: boolean;
+  dismissRoomsGuide: () => void;
 }
 
 export const useOnboarding = create<OnboardingState>((set) => ({
@@ -34,10 +41,10 @@ export const useOnboarding = create<OnboardingState>((set) => ({
   openWelcome: () => set({ welcomeOpen: true }),
   closeWelcome: () => set({ welcomeOpen: false }),
 
-  tourActive: false,
+  tourId: null,
   tourStep: 0,
-  startTour: () => set({ tourActive: true, tourStep: 0, welcomeOpen: false }),
-  endTour: () => set({ tourActive: false, tourStep: 0 }),
+  startTour: (id) => set({ tourId: id, tourStep: 0, welcomeOpen: false }),
+  endTour: () => set({ tourId: null, tourStep: 0 }),
   setTourStep: (step) => set({ tourStep: step }),
 
   checklistCollapsed: false,
@@ -45,4 +52,7 @@ export const useOnboarding = create<OnboardingState>((set) => ({
 
   ribbonDismissed: false,
   dismissRibbon: () => set({ ribbonDismissed: true }),
+
+  roomsGuideDismissed: false,
+  dismissRoomsGuide: () => set({ roomsGuideDismissed: true }),
 }));

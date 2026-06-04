@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 import { Portal } from '@/shared/ui/portal';
-import { useOnboarding } from './use-onboarding';
+import { useOnboarding, type TourId } from './use-onboarding';
 
 interface TourStep {
   target: string; // data-tour attribute value
@@ -12,32 +12,70 @@ interface TourStep {
   place: 'bottom' | 'top' | 'right';
 }
 
-const STEPS: TourStep[] = [
-  {
-    target: 'dashboard-kpis',
-    title: 'Your day’s headline numbers',
-    body: 'Revenue, arrivals, departures, and requests waiting on you. Hover any (i) to learn what a metric means.',
-    place: 'bottom',
+interface TourConfig {
+  /** Route the tour spotlights — the tour navigates here on start. */
+  route: string;
+  steps: TourStep[];
+  /** Final-step CTA: label, and an optional route to navigate to on finish. */
+  finish: { label: string; href?: string };
+}
+
+const TOURS: Record<TourId, TourConfig> = {
+  dashboard: {
+    route: '/',
+    steps: [
+      {
+        target: 'dashboard-kpis',
+        title: 'Your day’s headline numbers',
+        body: 'Revenue, arrivals, departures, and requests waiting on you. Hover any (i) to learn what a metric means.',
+        place: 'bottom',
+      },
+      {
+        target: 'dashboard-performance',
+        title: 'Hotel performance, explained',
+        body: 'ADR, RevPAR and Occupancy are standard hotel metrics — each has an (i) that defines it in plain language.',
+        place: 'bottom',
+      },
+      {
+        target: 'sidebar-nav',
+        title: 'Everything’s grouped here',
+        body: 'Overview, your Team, Hotel operations, Marketing and Finance — all from the sidebar.',
+        place: 'right',
+      },
+      {
+        target: 'setup-ring',
+        title: 'Start here',
+        body: 'Finish setting up your property to go live. This ring tracks your progress as you go.',
+        place: 'right',
+      },
+    ],
+    finish: { label: 'Go to setup', href: '/setup' },
   },
-  {
-    target: 'dashboard-performance',
-    title: 'Hotel performance, explained',
-    body: 'ADR, RevPAR and Occupancy are standard hotel metrics — each has an (i) that defines it in plain language.',
-    place: 'bottom',
+  rooms: {
+    route: '/hotel/rooms',
+    steps: [
+      {
+        target: 'rooms-tabs',
+        title: 'Two tabs to know',
+        body: 'Room Types are reusable pricing templates. Rooms are the physical rooms guests actually book — each one belongs to a type.',
+        place: 'bottom',
+      },
+      {
+        target: 'rooms-add',
+        title: 'Everything starts with a Room Type',
+        body: 'Create a Room Type to set three prices — Regular (per night), Session (per few hours), and Weekend (an uplift) — plus beds and amenities.',
+        place: 'bottom',
+      },
+      {
+        target: 'rooms-guide',
+        title: 'Then connect rooms',
+        body: 'Once a type exists, add rooms of that type. Follow these two steps and your rooms become bookable.',
+        place: 'bottom',
+      },
+    ],
+    finish: { label: 'Got it' },
   },
-  {
-    target: 'sidebar-nav',
-    title: 'Everything’s grouped here',
-    body: 'Overview, your Team, Hotel operations, Marketing and Finance — all from the sidebar.',
-    place: 'right',
-  },
-  {
-    target: 'setup-ring',
-    title: 'Start here',
-    body: 'Finish setting up your property to go live. This ring tracks your progress as you go.',
-    place: 'right',
-  },
-];
+};
 
 const PAD = 6;
 const CARD_W = 300;
@@ -86,40 +124,44 @@ function useTargetRect(target: string, active: boolean, step: number) {
   return rect;
 }
 
-/** Spotlight coach-mark tour over the dashboard + sidebar. */
+/** Spotlight coach-mark tour engine — drives whichever named tour is active. */
 export function ProductTour() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const active = useOnboarding((s) => s.tourActive);
+  const tourId = useOnboarding((s) => s.tourId);
   const step = useOnboarding((s) => s.tourStep);
   const setTourStep = useOnboarding((s) => s.setTourStep);
   const endTour = useOnboarding((s) => s.endTour);
 
-  // The tour spotlights dashboard elements — make sure we're on the dashboard.
+  const config = tourId ? TOURS[tourId] : null;
+  const active = !!config;
+  const steps = config?.steps ?? [];
+
+  // Each tour spotlights a specific route — make sure we're on it.
   React.useEffect(() => {
-    if (active && location.pathname !== '/' && location.pathname !== '/dashboard') {
-      navigate('/');
+    if (config && location.pathname !== config.route) {
+      navigate(config.route);
     }
-  }, [active, location.pathname, navigate]);
+  }, [config, location.pathname, navigate]);
 
   React.useEffect(() => {
     if (!active) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') endTour();
-      if (e.key === 'ArrowRight' && step < STEPS.length - 1) setTourStep(step + 1);
+      if (e.key === 'ArrowRight' && step < steps.length - 1) setTourStep(step + 1);
       if (e.key === 'ArrowLeft' && step > 0) setTourStep(step - 1);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [active, step, setTourStep, endTour]);
+  }, [active, step, steps.length, setTourStep, endTour]);
 
-  const current = STEPS[step];
+  const current = steps[step];
   const rect = useTargetRect(current?.target ?? '', active, step);
 
-  if (!active || !current) return null;
+  if (!config || !current) return null;
 
-  const isLast = step === STEPS.length - 1;
+  const isLast = step === steps.length - 1;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
@@ -176,7 +218,7 @@ export function ProductTour() {
         style={{ ...cardStyle, width: CARD_W }}
       >
         <div className="flex items-center gap-1.5 mb-2.5">
-          {STEPS.map((_, i) => (
+          {steps.map((_, i) => (
             <span
               key={i}
               className={
@@ -212,11 +254,11 @@ export function ProductTour() {
                 type="button"
                 onClick={() => {
                   endTour();
-                  navigate('/setup');
+                  if (config.finish.href) navigate(config.finish.href);
                 }}
                 className="h-8 px-3.5 rounded-md bg-[var(--brand-primary)] text-white text-xs font-medium hover:opacity-90 transition-opacity"
               >
-                {t('Go to setup')}
+                {t(config.finish.label)}
               </button>
             ) : (
               <button
