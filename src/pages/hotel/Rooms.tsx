@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
@@ -16,6 +16,7 @@ import {
   Trash2,
   AlertCircle,
   X,
+  Sparkles,
 } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
 import { Portal } from '@/shared/ui/portal';
@@ -26,7 +27,7 @@ import { useHotel } from './use-hotel';
 import { AMENITIES, formatPrice, totalBeds, emptyRoomType, type Room, type RoomType, type RoomStatus } from './hotel-data';
 import { RoomEditor, AmenityIcon } from './room-editors';
 import { RoomTypeEditor } from './RoomTypeEditor';
-import { RoomsGuide } from '@/widgets/onboarding';
+import { useOnboarding } from '@/widgets/onboarding';
 import { useRoomsTour, type PriceTab } from '@/widgets/onboarding/rooms-tour';
 
 type View = 'rooms' | 'types';
@@ -190,6 +191,20 @@ export default function Rooms() {
     setPriceTab: setForcePriceTab,
   });
 
+  // Auto-run the guided flow on arrival (once per session, after any welcome
+  // modal / global tour is out of the way). Demo: resets on refresh.
+  const welcomeOpen = useOnboarding((s) => s.welcomeOpen);
+  const globalTour = useOnboarding((s) => s.tourId);
+  const roomsTourSeen = useOnboarding((s) => s.roomsTourSeen);
+  const markRoomsTourSeen = useOnboarding((s) => s.markRoomsTourSeen);
+  const startRef = useRef(tour.start);
+  startRef.current = tour.start;
+  useEffect(() => {
+    if (roomsTourSeen || welcomeOpen || globalTour) return;
+    const id = window.setTimeout(() => { markRoomsTourSeen(); startRef.current(); }, 500);
+    return () => window.clearTimeout(id);
+  }, [welcomeOpen, globalTour, roomsTourSeen, markRoomsTourSeen]);
+
   const typePhoto = (name: string) => roomTypes.find((rt) => rt.name === name)?.photos[0];
   const ROOM_LABELS: Record<string, string> = { select: '', room: t('Room'), capacity: t('Capacity'), amenity: t('Amenity'), price: t('Price'), status: t('Status') };
   const TYPE_LABELS: Record<string, string> = { select: '', roomType: t('Room Type'), pricing: t('Pricing'), amenity: t('Amenity') };
@@ -225,6 +240,10 @@ export default function Rooms() {
           <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Set up your room types, nightly rates, and every individual room.')}</p>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={tour.start} title={t('How rooms work')} className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-[var(--brand-primary)] hover:bg-[var(--brand-tint)] transition-colors cursor-pointer">
+            <Sparkles className="w-4 h-4" />
+            {t('Tour')}
+          </button>
           <button onClick={() => navigate('/hotel/setup')} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-[var(--text-primary)] border border-[var(--border-default)] bg-white hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
             <Building2 className="w-4 h-4 text-[var(--text-secondary)]" />
             {t('Hotel setup')}
@@ -235,15 +254,6 @@ export default function Rooms() {
           </button>
         </div>
       </div>
-
-      {/* First-run guided setup */}
-      <RoomsGuide
-        roomTypeCount={roomTypes.length}
-        roomCount={rooms.length}
-        onCreateType={() => { switchView('types'); setTypeEditor(newRoomType()); }}
-        onAddRoom={() => { switchView('rooms'); setRoomEditor(emptyRoom()); }}
-        onStartTour={tour.start}
-      />
 
       {/* Primary view tabs */}
       <div data-tour="rooms-tabs" className="border-b border-[var(--border-default)] mb-5">

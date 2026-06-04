@@ -31,9 +31,9 @@ interface OnboardingState {
   ribbonDismissed: boolean;
   dismissRibbon: () => void;
 
-  /** Rooms-page guided card (re-shows each refresh). */
-  roomsGuideDismissed: boolean;
-  dismissRoomsGuide: () => void;
+  /** Whether the Rooms guided flow has auto-run this session (resets each refresh). */
+  roomsTourSeen: boolean;
+  markRoomsTourSeen: () => void;
 }
 
 export const useOnboarding = create<OnboardingState>((set) => ({
@@ -53,6 +53,6 @@ export const useOnboarding = create<OnboardingState>((set) => ({
   ribbonDismissed: false,
   dismissRibbon: () => set({ ribbonDismissed: true }),
 
-  roomsGuideDismissed: false,
-  dismissRoomsGuide: () => set({ roomsGuideDismissed: true }),
+  roomsTourSeen: false,
+  markRoomsTourSeen: () => set({ roomsTourSeen: true }),
 }));

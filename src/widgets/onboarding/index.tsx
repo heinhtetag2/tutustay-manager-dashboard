@@ -5,7 +5,6 @@ export { WelcomeModal } from './welcome-modal';
 export { ProductTour } from './product-tour';
 export { DemoDataRibbon } from './demo-ribbon';
 export { QuickStartChecklist } from './quick-start-checklist';
-export { RoomsGuide } from './rooms-guide';
 export { useOnboarding } from './use-onboarding';
 
 /** App-level onboarding overlays (welcome modal + coach-mark tour). */
