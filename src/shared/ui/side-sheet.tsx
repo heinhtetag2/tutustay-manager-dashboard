@@ -10,10 +10,13 @@ export function SideSheet({
   onClose,
   children,
   widthClass = 'max-w-lg',
+  hideBackdrop = false,
 }: {
   onClose: () => void;
   children: React.ReactNode;
   widthClass?: string;
+  /** Skip the dimmed backdrop — e.g. when an onboarding spotlight already dims the screen. */
+  hideBackdrop?: boolean;
 }) {
   return (
     <Portal>
@@ -22,7 +25,7 @@ export function SideSheet({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 bg-[var(--text-primary)]/30 z-50"
+        className={`fixed inset-0 z-50 ${hideBackdrop ? '' : 'bg-[var(--text-primary)]/30'}`}
         onClick={onClose}
       />
       <motion.aside

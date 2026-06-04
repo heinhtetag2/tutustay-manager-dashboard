@@ -12,7 +12,7 @@ import { BED_TYPES, WEEKEND_DAYS, formatPrice, computeWeekendPrice, type RoomTyp
 
 type PriceTab = 'regular' | 'session' | 'weekend';
 
-export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab }: { initial: RoomType; onClose: () => void; onSave: (rt: RoomType) => void; forcePriceTab?: PriceTab | null }) {
+export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBackdrop }: { initial: RoomType; onClose: () => void; onSave: (rt: RoomType) => void; forcePriceTab?: PriceTab | null; hideBackdrop?: boolean }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const sessionHoursDefault = useHotel((s) => s.property.defaultSessionHours);
@@ -63,7 +63,7 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab }: { in
 
   return (
     <>
-      <SideSheet onClose={onClose} widthClass="max-w-md">
+      <SideSheet onClose={onClose} widthClass="max-w-md" hideBackdrop={hideBackdrop}>
           <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)] shrink-0">
             <h2 className="text-lg font-medium text-[var(--text-primary)]">{isEdit ? t('Edit Room Type') : t('Add Room Type')}</h2>
             <button onClick={onClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors p-1 cursor-pointer"><X className="w-5 h-5" /></button>

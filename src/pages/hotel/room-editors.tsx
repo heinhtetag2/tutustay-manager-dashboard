@@ -56,10 +56,10 @@ export function F({ label, children, className }: { label: string; children: Rea
   );
 }
 
-function ModalShell({ title, onClose, onSave, saveLabel, children }: { title: string; onClose: () => void; onSave: () => void; saveLabel: string; children: React.ReactNode }) {
+function ModalShell({ title, onClose, onSave, saveLabel, children, hideBackdrop }: { title: string; onClose: () => void; onSave: () => void; saveLabel: string; children: React.ReactNode; hideBackdrop?: boolean }) {
   const { t } = useTranslation();
   return (
-    <SideSheet onClose={onClose} widthClass="max-w-md">
+    <SideSheet onClose={onClose} widthClass="max-w-md" hideBackdrop={hideBackdrop}>
       <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)] shrink-0">
         <h2 className="text-lg font-medium text-[var(--text-primary)]">{title}</h2>
         <button onClick={onClose} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors p-1 cursor-pointer"><X className="w-5 h-5" /></button>
@@ -73,7 +73,7 @@ function ModalShell({ title, onClose, onSave, saveLabel, children }: { title: st
   );
 }
 
-export function RoomEditor({ initial, roomTypes, onClose, onSave }: { initial: Room; roomTypes: RoomType[]; onClose: () => void; onSave: (r: Room) => void }) {
+export function RoomEditor({ initial, roomTypes, onClose, onSave, hideBackdrop }: { initial: Room; roomTypes: RoomType[]; onClose: () => void; onSave: (r: Room) => void; hideBackdrop?: boolean }) {
   const { t } = useTranslation();
   const fromType = (name: string) => {
     const rt = roomTypes.find((r) => r.name === name);
@@ -85,7 +85,7 @@ export function RoomEditor({ initial, roomTypes, onClose, onSave }: { initial: R
   const set = (p: Partial<Room>) => setD((s) => ({ ...s, ...p }));
   const onTypeChange = (name: string) => { set({ typeName: name, ...fromType(name) }); setPriceTab('regular'); };
   return (
-    <ModalShell title={initial.id ? t('Edit Room') : t('Add Room')} onClose={onClose} onSave={() => d.number.trim() && onSave({ ...d, number: d.number.trim() })} saveLabel={initial.id ? t('Save changes') : t('Add Room')}>
+    <ModalShell title={initial.id ? t('Edit Room') : t('Add Room')} onClose={onClose} onSave={() => d.number.trim() && onSave({ ...d, number: d.number.trim() })} saveLabel={initial.id ? t('Save changes') : t('Add Room')} hideBackdrop={hideBackdrop}>
       <F label={t('Floor')}><input type="number" className={fieldInput} value={d.floor} onChange={(e) => set({ floor: Number(e.target.value) })} /></F>
       <F label={t('Number')}><input className={fieldInput} value={d.number} onChange={(e) => set({ number: e.target.value })} placeholder="e.g. 201" /></F>
       <label data-tour="room-type-field" className="flex flex-col gap-1.5">

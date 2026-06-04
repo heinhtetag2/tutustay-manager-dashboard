@@ -416,8 +416,8 @@ export default function Rooms() {
 
       {/* Editors */}
       <AnimatePresence>
-        {roomEditor && <RoomEditor initial={roomEditor} roomTypes={roomTypes} onClose={() => setRoomEditor(null)} onSave={(r) => { upsertRoom(r.id ? r : { ...r, id: `rm-${Date.now()}` }); setRoomEditor(null); }} />}
-        {typeEditor && <RoomTypeEditor initial={typeEditor} forcePriceTab={forcePriceTab} onClose={() => setTypeEditor(null)} onSave={(rt) => { upsertRoomType(rt); setTypeEditor(null); }} />}
+        {roomEditor && <RoomEditor initial={roomEditor} roomTypes={roomTypes} hideBackdrop={tour.active} onClose={() => setRoomEditor(null)} onSave={(r) => { upsertRoom(r.id ? r : { ...r, id: `rm-${Date.now()}` }); setRoomEditor(null); }} />}
+        {typeEditor && <RoomTypeEditor initial={typeEditor} forcePriceTab={forcePriceTab} hideBackdrop={tour.active} onClose={() => setTypeEditor(null)} onSave={(rt) => { upsertRoomType(rt); setTypeEditor(null); }} />}
       </AnimatePresence>
 
       <AnimatePresence>

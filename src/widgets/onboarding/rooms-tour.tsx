@@ -115,7 +115,6 @@ export function useRoomsTour(actions: RoomsTourActions) {
   const current = step == null ? null : STEPS[step];
   const node = current && step != null ? (
     <Spotlight
-      key={step}
       target={current.target}
       title={current.title}
       body={current.body}
