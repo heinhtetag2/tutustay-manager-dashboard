@@ -91,7 +91,7 @@ export function CouponFormSheet({ coupon, onClose }: { coupon: Coupon | null; on
   };
 
   return (
-    <SideSheet onClose={onClose}>
+    <SideSheet onClose={onClose} widthClass="max-w-md">
       <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)] shrink-0">
         <div>
           <h2 className="text-base font-medium text-[var(--text-primary)]">{coupon ? t('Edit coupon') : t('New coupon')}</h2>

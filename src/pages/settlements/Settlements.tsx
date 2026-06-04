@@ -30,6 +30,8 @@ import {
   type SettlementStatus,
 } from './settlements-data';
 import { useSettlements } from './use-settlements';
+import { InfoTooltip } from '@/shared/ui/info-tooltip';
+import { GLOSSARY } from '@/widgets/onboarding/glossary';
 
 const NOW = new Date('2026-06-02T10:00:00');
 
@@ -175,7 +177,10 @@ export default function Settlements() {
         {stats.map((card, i) => (
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+              <span className="flex items-center gap-1 text-sm font-medium text-[var(--text-secondary)]">
+                {t(card.title)}
+                {GLOSSARY[card.title] && <InfoTooltip label={GLOSSARY[card.title]} />}
+              </span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>

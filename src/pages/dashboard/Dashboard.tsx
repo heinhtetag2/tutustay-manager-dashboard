@@ -56,6 +56,9 @@ import {
 import { useBookingRequests } from '@/pages/booking-requests/use-booking-requests';
 import type { RequestStatus } from '@/pages/booking-requests/booking-requests-data';
 import { useHotel } from '@/pages/hotel/use-hotel';
+import { QuickStartChecklist } from '@/widgets/onboarding';
+import { InfoTooltip } from '@/shared/ui/info-tooltip';
+import { GLOSSARY } from '@/widgets/onboarding/glossary';
 
 type RangeKey = '7d' | '30d' | 'this_month' | 'last_month';
 
@@ -361,8 +364,11 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {/* First-run quick-start launchpad */}
+      <QuickStartChecklist />
+
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div data-tour="dashboard-kpis" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((card, i) => (
           <motion.button
             key={card.title}
@@ -394,6 +400,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
+        data-tour="dashboard-performance"
         className="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[var(--surface-subtle)] bg-white border border-[var(--border-default)] rounded-md shadow-none mb-8 overflow-hidden"
       >
         {performance.map((m) => (
@@ -402,7 +409,10 @@ export default function Dashboard() {
               <m.Icon className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-medium text-[var(--text-secondary)]">{t(m.title)}</div>
+              <div className="flex items-center gap-1 text-xs font-medium text-[var(--text-secondary)]">
+                {t(m.title)}
+                {GLOSSARY[m.title] && <InfoTooltip label={GLOSSARY[m.title]} />}
+              </div>
               <div className="text-lg font-medium text-[var(--text-primary)] tabular-nums leading-tight">{m.value}</div>
               <div className="text-[11px] text-[var(--text-tertiary)] mt-0.5 tabular-nums truncate">{m.subtitle}</div>
             </div>

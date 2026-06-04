@@ -87,7 +87,7 @@ export default function SetupHub() {
     >
       {/* Header */}
       <div className="mb-8 max-w-2xl">
-        <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Setup hub')}</h1>
+        <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Set up your property')}</h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1 leading-relaxed">
           {approved
             ? t('Your property is approved and taking bookings.')

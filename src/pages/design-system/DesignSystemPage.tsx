@@ -211,9 +211,9 @@ function Badge({ tone, children }: { tone: 'success' | 'danger' | 'warning' | 'b
 
 export default function DesignSystemPage() {
   return (
-    <div className="min-h-full bg-[var(--color-base-sand-10)] text-[var(--text-primary)] flex flex-col">
+    <div className="min-h-screen bg-[var(--surface-muted)] text-[var(--text-primary)]">
       {/* sticky section nav */}
-      <header className="sticky top-0 z-10 bg-[var(--color-base-sand-10)] border-b border-[var(--border-default)]">
+      <header className="sticky top-0 z-10 bg-[var(--surface)]/90 backdrop-blur border-b border-[var(--border-default)]">
         <div className="max-w-6xl mx-auto px-6 md:px-8 xl:px-12 py-4 flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="text-lg font-medium">TutuStay · Design System</div>

@@ -263,7 +263,7 @@ export function Sidebar({
       </div>
 
       {/* Navigation Links */}
-      <div className={cn("flex-1 overflow-y-auto px-3 overflow-x-hidden", effectiveCollapsed ? "py-1.5 space-y-1.5" : "py-4 space-y-6")}>
+      <div data-tour="sidebar-nav" className={cn("flex-1 overflow-y-auto px-3 overflow-x-hidden", effectiveCollapsed ? "py-1.5 space-y-1.5" : "py-4 space-y-6")}>
 
         {/* Overview */}
         <div>
@@ -361,7 +361,9 @@ export function Sidebar({
 
       {/* Bottom Actions */}
       <div className={cn("border-t border-[var(--border-default)] shrink-0", effectiveCollapsed ? "p-2 space-y-1" : "p-3 space-y-0.5")}>
-        <SetupNavItem pct={setup.pct} completed={setup.completed} total={setup.total} allDone={setup.allDone} isCollapsed={effectiveCollapsed} label={t("Setup hub")} />
+        <div data-tour="setup-ring">
+          <SetupNavItem pct={setup.pct} completed={setup.completed} total={setup.total} allDone={setup.allDone} isCollapsed={effectiveCollapsed} label={t("Property setup")} />
+        </div>
         <NavItem icon={Code2} label={t("Dev Handoff")} path="/design-system" isCollapsed={effectiveCollapsed} />
         <NavItem icon={HelpCircle} label={t("Help")} path="/help" isCollapsed={effectiveCollapsed} />
         <NavButton

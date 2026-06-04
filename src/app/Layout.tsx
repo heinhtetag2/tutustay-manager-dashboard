@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Menu, Bell } from 'lucide-react';
 import { Sidebar } from '@/widgets/sidebar';
 import { BookingToastHost, useBookingSimulator } from '@/shared/ui/booking-toasts';
+import { OnboardingHost, DemoDataRibbon } from '@/widgets/onboarding';
 
 export default function Layout() {
   useBookingSimulator();
@@ -71,6 +72,9 @@ export default function Layout() {
           </button>
         </div>
 
+        {/* Sample-data ribbon (demo) */}
+        <DemoDataRibbon />
+
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -85,6 +89,7 @@ export default function Layout() {
         </AnimatePresence>
       </main>
       <BookingToastHost />
+      <OnboardingHost />
     </div>
   );
 }
