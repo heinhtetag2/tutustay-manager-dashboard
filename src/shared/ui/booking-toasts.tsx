@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
-import { CalendarPlus, X, ArrowRight } from 'lucide-react';
+import { CalendarPlus, X } from 'lucide-react';
 import { useBookingRequests } from '@/pages/booking-requests/use-booking-requests';
 
 export interface BookingToast {
@@ -26,14 +26,19 @@ interface ToastState {
   dismiss: (id: number) => void;
 }
 
+const AUTO_DISMISS_MS = 9000;
+
 let seq = 1;
 export const useBookingToasts = create<ToastState>((set) => ({
   toasts: [],
-  push: (b) => set((s) => ({ toasts: [{ ...b, id: seq++ }, ...s.toasts].slice(0, 3) })),
+  push: (b) => {
+    const id = seq++;
+    set((s) => ({ toasts: [{ ...b, id }, ...s.toasts].slice(0, 3) }));
+    // Auto-dismiss after a while — no visible loading bar on the toast.
+    setTimeout(() => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })), AUTO_DISMISS_MS);
+  },
   dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }));
-
-const AUTO_DISMISS_MS = 9000;
 
 export function BookingToastHost() {
   const { t } = useTranslation();
@@ -86,10 +91,10 @@ export function BookingToastHost() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed bottom-0 right-0 z-[79] w-[520px] h-[520px] max-w-[100vw] pointer-events-none"
+            className="fixed top-0 right-0 z-[79] w-[520px] h-[520px] max-w-[100vw] pointer-events-none"
             style={{
               background:
-                'radial-gradient(ellipse 70% 70% at 100% 100%, rgba(44,38,39,0.13), rgba(44,38,39,0.05) 42%, transparent 72%)',
+                'radial-gradient(ellipse 70% 70% at 100% 0%, rgba(44,38,39,0.13), rgba(44,38,39,0.05) 42%, transparent 72%)',
             }}
           />
         )}
@@ -99,7 +104,7 @@ export function BookingToastHost() {
         onMouseEnter={() => setExpanded(true)}
         onMouseLeave={() => setExpanded(false)}
         style={{ height: toasts.length === 0 ? 0 : stackHeight }}
-        className="fixed bottom-5 right-5 z-[80] w-[360px] max-w-[calc(100vw-2.5rem)]"
+        className="fixed top-5 right-5 z-[80] w-[360px] max-w-[calc(100vw-2.5rem)]"
       >
       <AnimatePresence>
         {toasts.map((toast, i) => (
@@ -110,14 +115,15 @@ export function BookingToastHost() {
             animate={{
               opacity: 1,
               x: 0,
-              y: -offsetFor(i),
+              y: offsetFor(i),
               // Cards behind shrink slightly when collapsed; full size when fanned.
               scale: expanded ? 1 : 1 - i * 0.04,
             }}
             exit={{ opacity: 0, x: 40, scale: 0.96 }}
             transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
             style={{ zIndex: toasts.length - i }}
-            className="pointer-events-auto absolute bottom-0 right-0 left-0 origin-bottom bg-white border border-[var(--border-default)] rounded-2xl shadow-[0_8px_28px_rgba(44,38,39,0.14)] overflow-hidden"
+            onClick={() => { dismiss(toast.id); navigate(`/booking-requests/${toast.requestId}`); }}
+            className="pointer-events-auto absolute top-0 right-0 left-0 origin-top bg-white border border-[var(--border-default)] rounded-2xl shadow-[0_8px_28px_rgba(44,38,39,0.14)] overflow-hidden cursor-pointer"
           >
             <div className="p-4">
               <div className="flex items-start gap-3">
@@ -127,7 +133,7 @@ export function BookingToastHost() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium text-[var(--text-primary)]">{t('New booking')}</span>
-                    <button onClick={() => dismiss(toast.id)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer -mr-1 -mt-0.5 p-0.5">
+                    <button onClick={(e) => { e.stopPropagation(); dismiss(toast.id); }} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer -mr-1 -mt-0.5 p-0.5">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
@@ -137,33 +143,9 @@ export function BookingToastHost() {
                   <p className="text-xs text-[var(--text-secondary)] mt-1 tabular-nums">
                     {toast.checkIn} · {toast.nights} {toast.nights === 1 ? t('night') : t('nights')} · {toast.guests} {t('guests')} · {toast.amount}
                   </p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <button
-                      onClick={() => { dismiss(toast.id); navigate(`/booking-requests/${toast.requestId}`); }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
-                    >
-                      {t('View booking')}
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => dismiss(toast.id)}
-                      className="px-3 py-1.5 text-xs font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer"
-                    >
-                      {t('Dismiss')}
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
-            {/* auto-dismiss progress */}
-            <motion.div
-              initial={{ scaleX: 1 }}
-              animate={{ scaleX: 0 }}
-              transition={{ duration: AUTO_DISMISS_MS / 1000, ease: 'linear' }}
-              onAnimationComplete={() => dismiss(toast.id)}
-              style={{ transformOrigin: 'left' }}
-              className="h-0.5 bg-[var(--brand-primary)]"
-            />
           </motion.div>
         ))}
       </AnimatePresence>

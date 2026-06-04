@@ -246,7 +246,7 @@ export default function Rooms() {
       </div>
 
       {/* Primary view tabs */}
-      <div data-tour="rooms-tabs" className="border-b border-[var(--border-default)] mb-5">
+      <div data-tour="rooms-tabs" className="border-b border-[var(--border-default)] mb-2">
         <nav className="flex gap-8" aria-label={t('Rooms views')}>
           {(['rooms', 'types'] as const).map((v) => {
             const Icon = v === 'rooms' ? KeyRound : Layers;

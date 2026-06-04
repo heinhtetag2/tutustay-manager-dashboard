@@ -5,9 +5,16 @@ import { Menu, Bell } from 'lucide-react';
 import { Sidebar } from '@/widgets/sidebar';
 import { BookingToastHost, useBookingSimulator } from '@/shared/ui/booking-toasts';
 import { OnboardingHost, DemoDataRibbon } from '@/widgets/onboarding';
+import { useHotel } from '@/pages/hotel/use-hotel';
 
 export default function Layout() {
   useBookingSimulator();
+  const propertyName = useHotel((s) => s.property.name);
+
+  // Tell the browser tab who/what this is: "Aurora Hotel · Manager Dashboard".
+  useEffect(() => {
+    document.title = `${propertyName?.trim() || 'TutuStay'} · Manager Dashboard`;
+  }, [propertyName]);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileNotifOpen, setIsMobileNotifOpen] = useState(false);

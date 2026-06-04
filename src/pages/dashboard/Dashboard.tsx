@@ -105,6 +105,7 @@ export default function Dashboard() {
   const reservations = useReservations((s) => s.reservations);
   const requests = useBookingRequests((s) => s.requests);
   const rooms = useHotel((s) => s.rooms);
+  const propertyName = useHotel((s) => s.property.name);
 
   const [range, setRange] = useState<RangeKey>('this_month');
 
@@ -360,7 +361,7 @@ export default function Dashboard() {
           {t('Welcome back,')} {USER_FIRST_NAME}
         </h1>
         <p className="text-sm text-[var(--text-secondary)] mt-1">
-          {t("Your day at a glance — arrivals, revenue, and requests waiting on you.")}
+          {propertyName?.trim() ? <>{t("Here's")} <span className="font-medium text-[var(--text-primary)]">{propertyName}</span> {t("today — arrivals, revenue, and requests waiting on you.")}</> : t("Your day at a glance — arrivals, revenue, and requests waiting on you.")}
         </p>
       </div>
 

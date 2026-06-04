@@ -69,6 +69,7 @@ function useNavTooltip(label: string, enabled: boolean) {
  *  close delay lets the pointer travel from the chip into the menu. */
 function ProfileMenu({ collapsed }: { collapsed: boolean }) {
   const navigate = useNavigate();
+  const propertyName = useHotel((s) => s.property.name);
   const ref = React.useRef<HTMLDivElement>(null);
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [open, setOpen] = React.useState(false);
@@ -103,7 +104,7 @@ function ProfileMenu({ collapsed }: { collapsed: boolean }) {
         {!collapsed && (
           <div className="flex flex-col min-w-0 flex-1">
             <span className="text-sm font-medium text-[var(--text-primary)] truncate text-left">Hein Htet</span>
-            <span className="text-xs text-[var(--text-secondary)] truncate text-left">heincise@gmail.com</span>
+            <span className="text-xs text-[var(--text-secondary)] truncate text-left">Manager · {propertyName}</span>
           </div>
         )}
       </div>
@@ -295,11 +296,16 @@ export function Sidebar({
           transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           className={cn("flex items-center overflow-hidden", effectiveCollapsed ? "" : "flex-1 mr-2")}
         >
-          <div
-            aria-label="Logo placeholder"
-            className="h-9 w-full border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] rounded-md flex items-center justify-center text-[10px] font-medium tracking-wide text-[var(--text-secondary)] select-none"
-          >
-            LOGO
+          <div className="flex items-center gap-2.5 min-w-0 w-full">
+            <span className="w-9 h-9 rounded-md bg-[var(--brand-primary)] text-white flex items-center justify-center shrink-0 text-sm font-semibold overflow-hidden">
+              {property.photoUrl
+                ? <img src={property.photoUrl} alt="" className="w-full h-full object-cover" />
+                : (property.name?.trim()?.[0]?.toUpperCase() || 'H')}
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-[var(--text-primary)] truncate leading-tight">{property.name?.trim() || t('Your property')}</div>
+              <div className="text-[11px] text-[var(--text-secondary)] truncate leading-tight">{t('Manager dashboard')}</div>
+            </div>
           </div>
         </motion.div>
         {/* Mobile close button */}
