@@ -1,24 +1,25 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import {
   X,
-  ArrowLeft,
+  ChevronLeft,
   Building2,
   Hotel,
-  ConciergeBell,
-  Umbrella,
+  Palmtree,
   Sofa,
-  Car,
+  BedDouble,
   Landmark,
   Check,
   MapPin,
   ScrollText,
   Briefcase,
+  ShieldCheck,
   Star,
   Upload,
+  Plus,
+  FileText,
   Trash2,
-  Image as ImageIcon,
   Pencil,
   ChevronDown,
   Wifi,
@@ -34,7 +35,6 @@ import {
 } from 'lucide-react';
 
 import { BrandSelect } from '@/shared/ui/brand-select';
-import { ImageCropper } from '@/pages/agents/ImageCropper';
 import setupIllustration from '@/assets/illustrations/treasure-chest.svg';
 import kbzpayLogo from '@/assets/logos/banks/kbzpay.webp';
 import uabLogo from '@/assets/logos/banks/uab.webp';
@@ -45,7 +45,7 @@ import {
   type ContractStatus,
   type Property,
 } from '../hotel-data';
-import { SetupField, AdditionalInputs, StepHeader, setupInput } from './setup-fields';
+import { SetupField, StepHeader, setupInput } from './setup-fields';
 import { MapPicker } from './MapPicker';
 import { TimePicker } from './TimePicker';
 import { DatePicker } from './DatePicker';
@@ -62,12 +62,14 @@ interface StepProps {
 }
 
 const STEPS = [
-  { key: 'basic', title: 'Tell us about your property', lead: 'The essentials guests see first — your name, photo, and rating.', Icon: Building2 },
-  { key: 'type', title: 'What type of property is it?', lead: 'Pick the category that best describes your place — it shapes how guests find and filter you.', Icon: Hotel },
-  { key: 'address', title: 'Confirm your address', lead: "Enter your property's detailed address. If it isn't clear and accurate on the map, guests will struggle to find you.", Icon: MapPin },
-  { key: 'policies', title: 'Policies & amenities', lead: 'Set guest expectations for arrival and stay.', Icon: ScrollText },
-  { key: 'owner', title: 'Owner, business & contract', lead: 'The legal entity behind the property, your verification document, and the contract terms.', Icon: Briefcase },
-  { key: 'banking', title: 'Set up your settlement', lead: 'Tell us how bookings are settled and which bank account to use. You can set this up later if you prefer.', Icon: Landmark },
+  { key: 'basic', short: 'Basics', title: 'Tell us about your property', lead: 'The essentials guests see first — your name, photo, and rating.', Icon: Building2 },
+  { key: 'type', short: 'Type', title: 'What type of property is it?', lead: 'Pick the category that best describes your place — it shapes how guests find and filter you.', Icon: Hotel },
+  { key: 'address', short: 'Address', title: 'Confirm your address', lead: "Enter your property's detailed address. If it isn't clear and accurate on the map, guests will struggle to find you.", Icon: MapPin },
+  { key: 'policies', short: 'Policies', title: 'Policies & amenities', lead: 'Set guest expectations for arrival and stay.', Icon: ScrollText },
+  { key: 'owner', short: 'Owner', title: 'Owner & business', lead: 'The legal entity behind the property and the document we verify it with.', Icon: Briefcase },
+  { key: 'contract', short: 'Contract', title: 'Contract', lead: 'Your contract terms and who we contact about them.', Icon: FileText },
+  { key: 'banking', short: 'Settlement', title: 'Set up your settlement', lead: 'Tell us how bookings are settled and which bank account to use. You can set this up later if you prefer.', Icon: Landmark },
+  { key: 'agreement', short: 'Agree', title: 'Review & agree', lead: 'Confirm you agree to the terms below to finish and submit your property for review.', Icon: ShieldCheck },
 ] as const;
 
 /**
@@ -90,11 +92,11 @@ const SETTLE_METHODS = [
 ] as const;
 
 /** Per-accommodation-type card metadata: icon + a one-line description. */
-const TYPE_META: Record<string, { Icon: LucideIcon; headline: string; desc: string; tint: string; fg: string }> = {
-  'Hotel': { Icon: ConciergeBell, headline: 'Full-service hotel', desc: 'Reception, daily housekeeping, and on-site staff looking after every guest.', tint: '#f1ebfe', fg: '#7c3aed' },
-  'Resort': { Icon: Umbrella, headline: 'Leisure resort', desc: 'A destination in itself — on-site dining, pools, and things to do all day.', tint: '#fff0e1', fg: '#ea580c' },
-  'Guesthouse': { Icon: Sofa, headline: 'Cosy guesthouse', desc: 'Smaller and more personal, with a warm, host-led feel for your guests.', tint: 'var(--color-data-green-10)', fg: 'var(--color-data-green-60)' },
-  'Motel': { Icon: Car, headline: 'Roadside motel', desc: 'Simple rooms with easy parking — ideal for short stops and road trips.', tint: '#fdeaea', fg: '#dc2626' },
+const TYPE_META: Record<string, { Icon: LucideIcon; headline: string; blurb: string; desc: string; tint: string; fg: string }> = {
+  'Hotel': { Icon: Hotel, headline: 'Full-service hotel', blurb: 'Reception & on-site staff', desc: 'Reception, daily housekeeping, and on-site staff looking after every guest.', tint: '#f1ebfe', fg: '#7c3aed' },
+  'Resort': { Icon: Palmtree, headline: 'Leisure resort', blurb: 'Dining, pools & things to do', desc: 'A destination in itself — on-site dining, pools, and things to do all day.', tint: '#fff0e1', fg: '#ea580c' },
+  'Guesthouse': { Icon: Sofa, headline: 'Cosy guesthouse', blurb: 'Small, personal, host-led', desc: 'Smaller and more personal, with a warm, host-led feel for your guests.', tint: 'var(--color-data-green-10)', fg: 'var(--color-data-green-60)' },
+  'Motel': { Icon: BedDouble, headline: 'Roadside motel', blurb: 'Simple rooms, easy parking', desc: 'Simple rooms with easy parking — ideal for short stops and road trips.', tint: '#fdeaea', fg: '#dc2626' },
 };
 
 const AMENITY_ICONS: Record<string, LucideIcon> = {
@@ -131,6 +133,16 @@ function validate(step: number, d: Property, t: TFn): Record<string, string> {
   } else if (step === 4) {
     if (!d.representativeName.trim()) e.representativeName = req;
     if (!d.companyName.trim()) e.companyName = req;
+    if (!d.provideDocLater) {
+      if (!d.businessRegNumber.trim()) e.businessRegNumber = req;
+      if (!d.businessLocation.trim()) e.businessLocation = req;
+      if (!d.natureOfBusiness.trim()) e.natureOfBusiness = req;
+      if (!d.documentNoExpiry && !d.documentDate.trim()) e.documentDate = t('Add an expiry date');
+    }
+    if (!d.agreedCompliance) e.agreedCompliance = t('Please accept the compliance terms');
+    if (!d.confirmedAccuracy) e.confirmedAccuracy = t('Please confirm your information is accurate');
+  } else if (step === 7) {
+    if (!d.agreedTerms) e.agreedTerms = t('Please agree to the terms to finish');
   }
   return e;
 }
@@ -138,7 +150,10 @@ function validate(step: number, d: Property, t: TFn): Record<string, string> {
 export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => void; initialStep?: number }) {
   const { t, i18n } = useTranslation();
   const { property, updateProperty } = useHotel();
-  const [step, setStep] = useState(() => Math.min(Math.max(initialStep, 0), STEPS.length - 1));
+  const startStep = Math.min(Math.max(initialStep, 0), STEPS.length - 1);
+  const [step, setStep] = useState(() => startStep);
+  // Furthest step the user has reached — lets the stepper offer backward/visited jumps.
+  const [maxVisited, setMaxVisited] = useState(() => startStep);
   const [draft, setDraft] = useState<Property>(() => ({ ...property }));
   const [showErrors, setShowErrors] = useState(false);
   const [done, setDone] = useState(false);
@@ -148,6 +163,23 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
   const errors = useMemo(() => validate(step, draft, t), [step, draft, t]);
   const canProceed = Object.keys(errors).length === 0;
   const isLast = step === STEPS.length - 1;
+
+  // The first step whose required fields aren't satisfied — you can reach any step at
+  // or before it (everything in front of it is valid), but not skip past it.
+  const firstInvalid = useMemo(() => {
+    for (let j = 0; j < STEPS.length; j++) {
+      if (Object.keys(validate(j, draft, t)).length > 0) return j;
+    }
+    return STEPS.length - 1;
+  }, [draft, t]);
+  // A step is reachable if it's already been visited, or all steps before it validate.
+  const navMax = Math.max(maxVisited, firstInvalid);
+  const goToStep = (i: number) => {
+    if (i === step || i < 0 || i > navMax) return;
+    setShowErrors(false);
+    setStep(i);
+    setMaxVisited((m) => Math.max(m, i));
+  };
 
   const goNext = () => {
     if (!canProceed) {
@@ -160,7 +192,11 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
       return;
     }
     setShowErrors(false);
-    setStep((s) => Math.min(STEPS.length - 1, s + 1));
+    setStep((s) => {
+      const next = Math.min(STEPS.length - 1, s + 1);
+      setMaxVisited((m) => Math.max(m, next));
+      return next;
+    });
   };
   const goBack = () => {
     setShowErrors(false);
@@ -174,7 +210,11 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
       setDone(true);
       return;
     }
-    setStep((s) => Math.min(STEPS.length - 1, s + 1));
+    setStep((s) => {
+      const next = Math.min(STEPS.length - 1, s + 1);
+      setMaxVisited((m) => Math.max(m, next));
+      return next;
+    });
   };
   const isSkippable = STEPS[step].key === 'banking';
 
@@ -227,15 +267,61 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
         />
         {/* The form */}
         <div className="h-full overflow-y-auto relative z-10">
-          <div className={`w-full ${STEPS[step].key === 'type' ? 'max-w-none px-6 md:px-10 lg:px-14' : STEPS[step].key === 'banking' ? 'max-w-4xl px-6 md:px-10 lg:px-14' : 'max-w-2xl px-6 md:px-12 lg:px-16'} pt-4 md:pt-5 pb-10 md:pb-12`}>
-            <button
-              type="button"
-              onClick={step === 0 ? onClose : goBack}
-              className="-ml-2 mb-6 inline-flex items-center justify-center w-9 h-9 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
-              aria-label={t('Back')}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
+          {/* Step navigator — spans the full form width on every step, so the nodes
+              stay evenly spread instead of bunching up inside a narrow step column. */}
+          <div className="w-full px-6 md:px-12 lg:px-16 pt-4 md:pt-5">
+            <nav aria-label={t('Setup steps')} className="mb-8 pt-2">
+              <ol className="flex items-center">
+                {STEPS.map((s, i) => {
+                  const isCurrent = i === step;
+                  const isDone = i < step;
+                  const isLocked = i > navMax;
+                  const isLast = i === STEPS.length - 1;
+                  return (
+                    <li key={s.key} className={`flex items-center ${isLast ? '' : 'flex-1'}`}>
+                      <button
+                        type="button"
+                        onClick={() => goToStep(i)}
+                        disabled={isLocked}
+                        aria-current={isCurrent ? 'step' : undefined}
+                        title={t(s.title)}
+                        className={`group flex items-center gap-2 shrink-0 ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      >
+                        <span
+                          className={`flex items-center justify-center w-6 h-6 rounded-full text-[11px] tabular-nums transition-all ${
+                            isCurrent
+                              ? 'bg-[var(--text-primary)] text-white font-medium'
+                              : isDone
+                                ? 'bg-[var(--text-primary)]/8 text-[var(--text-primary)] font-medium group-hover:bg-[var(--text-primary)]/14'
+                                : isLocked
+                                  ? 'text-[var(--text-tertiary)]/50 ring-1 ring-inset ring-[var(--border-default)]'
+                                  : 'text-[var(--text-secondary)] ring-1 ring-inset ring-[var(--border-strong)] group-hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {i + 1}
+                        </span>
+                        <span
+                          className={`hidden md:block text-[13px] tracking-tight whitespace-nowrap transition-colors ${
+                            isCurrent
+                              ? 'text-[var(--text-primary)] font-medium'
+                              : isLocked
+                                ? 'text-[var(--text-tertiary)]/55'
+                                : 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {t(s.short)}
+                        </span>
+                      </button>
+                      {!isLast && (
+                        <span className={`flex-1 h-px mx-3 transition-colors ${i < step ? 'bg-[var(--text-primary)]/20' : 'bg-[var(--border-default)]'}`} />
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </nav>
+          </div>
+          <div className={`w-full ${STEPS[step].key === 'type' ? 'max-w-none px-6 md:px-10 lg:px-14' : STEPS[step].key === 'banking' ? 'max-w-4xl px-6 md:px-10 lg:px-14' : 'max-w-2xl px-6 md:px-12 lg:px-16'} pb-10 md:pb-12`}>
             <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)] mb-3">{t('Step')} {step + 1} {t('of')} {STEPS.length}</div>
             <h1 className="text-2xl md:text-3xl font-serif text-[var(--text-primary)] leading-snug">{t(STEPS[step].title)}</h1>
             <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">{t(STEPS[step].lead)}</p>
@@ -252,11 +338,23 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
               {step === 2 && <AddressStep {...stepProps} />}
               {step === 3 && <PoliciesStep {...stepProps} />}
               {step === 4 && <OwnerStep {...stepProps} />}
-              {step === 5 && <BankingStep {...stepProps} />}
+              {step === 5 && <ContractStep {...stepProps} />}
+              {step === 6 && <BankingStep {...stepProps} />}
+              {step === 7 && <AgreementStep {...stepProps} />}
             </motion.div>
 
             {/* Action */}
             <div className="mt-10 flex items-center gap-3">
+              {step > 0 && (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  className="inline-flex items-center justify-center gap-1.5 px-6 py-3 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  {t('Previous')}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={goNext}
@@ -283,48 +381,88 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
 
 /* ----------------------------- Steps ----------------------------- */
 
-function BasicInfoStep({ draft, set, t, showErrors, errors }: StepProps) {
-  const [cropSrc, setCropSrc] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const err = (k: string) => (showErrors ? errors[k] : undefined);
-
-  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+/** Standard multi-image gallery — uniform tiles with an inline "Add" tile; first is the cover. */
+function PhotoGallery({ value, onChange, t }: { value?: string[]; onChange: (next: string[]) => void; t: TFn }) {
+  const photos = value ?? [];
+  const onFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []).filter((f) => f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024);
     e.target.value = '';
-    if (!file || file.size > 5 * 1024 * 1024) return;
-    const reader = new FileReader();
-    reader.onload = () => { if (typeof reader.result === 'string') setCropSrc(reader.result); };
-    reader.readAsDataURL(file);
+    if (!files.length) return;
+    Promise.all(
+      files.map(
+        (f) =>
+          new Promise<string>((res) => {
+            const r = new FileReader();
+            r.onload = () => res(typeof r.result === 'string' ? r.result : '');
+            r.readAsDataURL(f);
+          }),
+      ),
+    ).then((urls) => onChange([...photos, ...urls.filter(Boolean)]));
   };
+
+  // Empty state — a wide dropzone, matching the document upload.
+  if (photos.length === 0) {
+    return (
+      <label className="flex flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)]/30 px-4 py-7 text-center cursor-pointer hover:border-[var(--brand-primary)] hover:bg-[var(--surface-subtle)]/60 transition-colors">
+        <input type="file" accept="image/png,image/jpeg" multiple className="sr-only" onChange={onFiles} />
+        <span className="w-9 h-9 rounded-full bg-white border border-[var(--border-default)] flex items-center justify-center text-[var(--text-secondary)]">
+          <Upload className="w-4 h-4" />
+        </span>
+        <span className="text-sm font-medium text-[var(--text-primary)]">{t('Upload a photo')}</span>
+        <span className="text-xs text-[var(--text-tertiary)]">{t('JPG or PNG up to 5MB each.')}</span>
+      </label>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-3">
+        {photos.map((src, i) => (
+          <div key={i} className="group relative w-28 h-28 rounded-md overflow-hidden border border-[var(--border-default)] bg-white">
+            <img src={src} alt="" className="w-full h-full object-cover" />
+            {i === 0 ? (
+              <span className="absolute bottom-1 left-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/65 text-white">
+                <Star className="w-2.5 h-2.5 fill-current" />
+                {t('Cover')}
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onChange([photos[i], ...photos.filter((_, idx) => idx !== i)])}
+                className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/65 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-black/85 transition-all cursor-pointer"
+              >
+                {t('Set as cover')}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => onChange(photos.filter((_, idx) => idx !== i))}
+              aria-label={t('Remove')}
+              className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/55 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer"
+            >
+              <X className="w-3 h-3" strokeWidth={2.5} />
+            </button>
+          </div>
+        ))}
+        <label className="w-28 h-28 rounded-md border border-dashed border-[var(--border-strong)] flex flex-col items-center justify-center gap-1 text-[var(--text-tertiary)] hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] hover:bg-[var(--surface-subtle)]/50 transition-colors cursor-pointer">
+          <input type="file" accept="image/png,image/jpeg" multiple className="sr-only" onChange={onFiles} />
+          <Plus className="w-5 h-5" />
+          <span className="text-xs font-medium">{t('Add photo')}</span>
+        </label>
+      </div>
+      <p className="text-xs text-[var(--text-tertiary)] mt-2.5">{t('JPG or PNG up to 5MB each.')}</p>
+    </div>
+  );
+}
+
+function BasicInfoStep({ draft, set, t, showErrors, errors }: StepProps) {
+  const err = (k: string) => (showErrors ? errors[k] : undefined);
+  // The hotel gallery: the first image is the cover (photoUrl), the rest are gallery photos.
+  const gallery = draft.photoUrl ? [draft.photoUrl, ...draft.photos] : draft.photos;
+  const setGallery = (next: string[]) => set({ photoUrl: next[0], photos: next.slice(1) });
 
   return (
     <>
-      {/* Photo */}
-      <div>
-        <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">{t('Hotel photo')}</label>
-        <div className="flex items-center gap-5">
-          <div className="w-20 h-20 rounded-md bg-white border border-[var(--border-default)] overflow-hidden flex items-center justify-center shrink-0 text-[var(--text-secondary)]">
-            {draft.photoUrl ? <img src={draft.photoUrl} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-6 h-6" strokeWidth={1.5} />}
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs text-[var(--text-secondary)]">{t('Upload a JPG or PNG up to 5MB.')}</p>
-            <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={onFile} />
-            <div className="flex items-center gap-3">
-              <button type="button" onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-2 px-3 py-1.5 border border-[var(--border-default)] rounded-md text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
-                <Upload className="w-4 h-4 text-[var(--text-secondary)]" strokeWidth={1.75} />
-                {t('Upload image')}
-              </button>
-              {draft.photoUrl && (
-                <button type="button" onClick={() => set({ photoUrl: undefined })} className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--danger)] hover:underline cursor-pointer">
-                  <Trash2 className="w-4 h-4" />
-                  {t('Remove')}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
       <SetupField
         label={t('Hotel or property name')}
         hint={t('The official name guests will recognise.')}
@@ -381,7 +519,12 @@ function BasicInfoStep({ draft, set, t, showErrors, errors }: StepProps) {
         </SetupField>
       </div>
 
-      {cropSrc && <ImageCropper src={cropSrc} onCancel={() => setCropSrc(null)} onSave={(url) => { set({ photoUrl: url }); setCropSrc(null); }} />}
+      {/* Photos — multiple; the first is the cover guests see. Last input on the step. */}
+      <div>
+        <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">{t('Hotel photos')}</label>
+        <p className="text-xs text-[var(--text-secondary)] mb-2">{t('Your first photo is the cover guests see on your listing.')}</p>
+        <PhotoGallery value={gallery} onChange={setGallery} t={t} />
+      </div>
     </>
   );
 }
@@ -390,40 +533,37 @@ function AccommodationTypeStep({ draft, set, t, showErrors, errors }: StepProps)
   const error = showErrors ? errors.accommodationType : undefined;
   return (
     <div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
         {ACCOMMODATION_TYPES.map((type) => {
           const meta = TYPE_META[type];
           const Icon = meta?.Icon ?? Building2;
           const selected = draft.accommodationType === type;
           return (
-            <div
+            <button
               key={type}
-              className="flex flex-col rounded-md border border-[var(--border-default)] bg-white p-5 min-h-[280px]"
+              type="button"
+              onClick={() => set({ accommodationType: type })}
+              aria-pressed={selected}
+              title={t(meta?.desc ?? '')}
+              className={`group relative flex items-center gap-3 text-left rounded-md border bg-white px-3.5 py-3 transition-all cursor-pointer ${
+                selected
+                  ? 'border-[var(--text-primary)] ring-1 ring-[var(--text-primary)] shadow-[0_1px_2px_rgba(44,38,39,0.06)]'
+                  : 'border-[var(--border-default)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-subtle)]/40'
+              }`}
             >
-              <div className="flex items-center gap-2.5 mb-3">
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${selected ? '' : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]'}`}
-                  style={selected ? { backgroundColor: meta?.tint, color: meta?.fg } : undefined}
-                >
-                  <Icon className="w-4 h-4" />
-                </div>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-tertiary)] truncate">{t(type)}</span>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-[var(--surface-subtle)] text-[var(--text-primary)]">
+                <Icon className="w-[18px] h-[18px]" />
               </div>
-              <h4 className="text-base font-semibold text-[var(--text-primary)] leading-snug">{t(meta?.headline ?? '')}</h4>
-              <p className="text-[13px] text-[var(--text-secondary)] mt-1.5 leading-relaxed flex-1">{t(meta?.desc ?? '')}</p>
-              <button
-                type="button"
-                onClick={() => set({ accommodationType: type })}
-                aria-pressed={selected}
-                className={`mt-5 w-full py-2 rounded-md text-sm font-medium border transition-colors cursor-pointer ${
-                  selected
-                    ? 'bg-[var(--success-tint)] text-[var(--success)] border-[var(--success)]'
-                    : 'bg-white text-[var(--text-primary)] border-[var(--border-default)] hover:bg-[var(--surface-subtle)]'
-                }`}
-              >
-                {selected ? t('Selected') : t('Select')}
-              </button>
-            </div>
+              <div className="min-w-0 flex-1">
+                <span className="block text-sm font-medium text-[var(--text-primary)] leading-snug truncate">{t(type)}</span>
+                <span className="block text-xs text-[var(--text-secondary)] leading-snug truncate mt-0.5">{t(meta?.blurb ?? '')}</span>
+              </div>
+              {selected && (
+                <span className="w-4 h-4 rounded-full bg-[var(--text-primary)] text-white flex items-center justify-center shrink-0">
+                  <Check className="w-2.5 h-2.5" strokeWidth={3} />
+                </span>
+              )}
+            </button>
           );
         })}
       </div>
@@ -646,15 +786,126 @@ function PoliciesStep({ draft, set, t, showErrors, errors }: StepProps) {
         </div>
       </div>
 
-      <AdditionalInputs showLabel={t('Show front-desk contact')} hideLabel={t('Hide front-desk contact')}>
-        <SetupField label={t('Front desk number')} hint={t('Reachable by guests for arrival questions.')}>
-          <input className={setupInput} value={draft.frontDeskNumber} onChange={(e) => set({ frontDeskNumber: e.target.value })} placeholder="097 ..." />
-        </SetupField>
-        <SetupField label={t('Front desk email')}>
-          <input className={setupInput} value={draft.frontDeskEmail} onChange={(e) => set({ frontDeskEmail: e.target.value })} placeholder="frontdesk@hotel.com" />
-        </SetupField>
-      </AdditionalInputs>
     </>
+  );
+}
+
+/** Radio-style choice card — mirrors the settlement-method selector. */
+function ChoiceCard({ selected, onClick, title, desc }: { selected: boolean; onClick: () => void; title: string; desc?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`flex items-start gap-3 text-left rounded-md border bg-white p-4 transition-colors cursor-pointer ${
+        selected ? 'border-[var(--brand-primary)]' : 'border-[var(--border-default)] hover:border-[var(--border-strong)]'
+      }`}
+    >
+      <span className={`mt-0.5 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selected ? 'border-[var(--brand-primary)]' : 'border-[var(--border-strong)]'}`}>
+        {selected && <span className="w-2.5 h-2.5 rounded-full bg-[var(--brand-primary)]" />}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold text-[var(--text-primary)]">{title}</span>
+        {desc && <span className="block text-xs text-[var(--text-secondary)] mt-1 leading-snug">{desc}</span>}
+      </span>
+    </button>
+  );
+}
+
+/** Consent checkbox row with optional inline error — mirrors the banking consent. */
+function ConsentRow({ checked, onChange, error, children }: { checked: boolean; onChange: (v: boolean) => void; error?: string; children: ReactNode }) {
+  return (
+    <div>
+      <label className="flex items-start gap-2.5 cursor-pointer select-none">
+        <span className="relative mt-0.5 shrink-0">
+          <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
+          <span
+            className={`w-5 h-5 rounded-[5px] flex items-center justify-center border transition-colors ${
+              checked
+                ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white'
+                : error
+                  ? 'bg-white border-[var(--danger)]'
+                  : 'bg-white border-[var(--border-strong)]'
+            }`}
+          >
+            {checked && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+          </span>
+        </span>
+        <span className="text-xs text-[var(--text-secondary)] leading-relaxed max-w-xl">{children}</span>
+      </label>
+      {error && <p className="text-xs text-[var(--danger)] mt-1.5 ml-[30px]">{error}</p>}
+    </div>
+  );
+}
+
+/** Verification document upload — dropzone that lists added files as openable links. */
+function DocUpload({ value, onChange, t }: { value?: { name: string; url: string }[]; onChange: (next: { name: string; url: string }[]) => void; t: TFn }) {
+  const docs = value ?? [];
+
+  const onFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []).filter(
+      (f) => (f.type.startsWith('image/') || f.type === 'application/pdf') && f.size <= 10 * 1024 * 1024,
+    );
+    e.target.value = '';
+    if (!files.length) return;
+    Promise.all(
+      files.map(
+        (f) =>
+          new Promise<{ name: string; url: string }>((res) => {
+            const r = new FileReader();
+            r.onload = () => res({ name: f.name, url: typeof r.result === 'string' ? r.result : '' });
+            r.readAsDataURL(f);
+          }),
+      ),
+    ).then((added) => onChange([...docs, ...added.filter((d) => d.url)]));
+  };
+
+  return (
+    <div className="space-y-3">
+      {docs.length > 0 && (
+        <ul className="space-y-2">
+          {docs.map((doc, i) => (
+            <li key={i} className="flex items-center gap-3 rounded-md border border-[var(--border-default)] bg-white p-2.5">
+              <span className="w-9 h-9 rounded-md bg-[var(--surface-subtle)] text-[var(--text-tertiary)] flex items-center justify-center shrink-0">
+                <FileText className="w-4 h-4" />
+              </span>
+              <a
+                href={doc.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-0 flex-1 text-sm font-medium text-[var(--text-primary)] hover:text-[var(--brand-primary)] hover:underline truncate"
+              >
+                {doc.name}
+              </a>
+              <button
+                type="button"
+                onClick={() => onChange(docs.filter((_, idx) => idx !== i))}
+                aria-label={t('Remove')}
+                className="w-8 h-8 rounded-md flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--danger)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer shrink-0"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {docs.length === 0 ? (
+        <label className="flex flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)]/30 px-4 py-7 text-center cursor-pointer hover:border-[var(--brand-primary)] hover:bg-[var(--surface-subtle)]/60 transition-colors">
+          <input type="file" accept="image/png,image/jpeg,application/pdf" multiple className="sr-only" onChange={onFiles} />
+          <span className="w-9 h-9 rounded-full bg-white border border-[var(--border-default)] flex items-center justify-center text-[var(--text-secondary)]">
+            <Upload className="w-4 h-4" />
+          </span>
+          <span className="text-sm font-medium text-[var(--text-primary)]">{t('Upload a document')}</span>
+          <span className="text-xs text-[var(--text-tertiary)]">{t('PDF, JPG or PNG up to 10MB each.')}</span>
+        </label>
+      ) : (
+        <label className="flex items-center justify-center gap-2 rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)]/30 px-4 py-3 text-sm font-medium text-[var(--text-secondary)] cursor-pointer hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] hover:bg-[var(--surface-subtle)]/60 transition-colors">
+          <input type="file" accept="image/png,image/jpeg,application/pdf" multiple className="sr-only" onChange={onFiles} />
+          <Plus className="w-4 h-4" />
+          {t('Add another document')}
+        </label>
+      )}
+    </div>
   );
 }
 
@@ -662,9 +913,9 @@ function OwnerStep({ draft, set, t, showErrors, errors }: StepProps) {
   const err = (k: string) => (showErrors ? errors[k] : undefined);
   return (
     <div className="space-y-8">
-      {/* Business & verification */}
+      {/* Business details */}
       <div className="space-y-5">
-        <StepHeader title={t('Business & verification')} subtitle={t('The legal entity behind the property and the document we verify it with.')} />
+        <StepHeader title={t('Business details')} subtitle={t('The legal entity behind the property.')} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
           <SetupField label={t('Legal representative / business operator')} required error={err('representativeName')}>
             <input className={setupInput} value={draft.representativeName} onChange={(e) => set({ representativeName: e.target.value })} />
@@ -672,71 +923,140 @@ function OwnerStep({ draft, set, t, showErrors, errors }: StepProps) {
           <SetupField label={t('Company name')} required error={err('companyName')}>
             <input className={setupInput} value={draft.companyName} onChange={(e) => set({ companyName: e.target.value })} />
           </SetupField>
-          <SetupField label={t('Document type')}>
-            <BrandSelect
-              value={draft.documentType}
-              onValueChange={(v) => set({ documentType: v })}
-              options={DOCUMENT_TYPES.map((d) => ({ value: d, label: t(d) }))}
-            />
-          </SetupField>
-          <SetupField label={t('Business registration number')}>
-            <input className={setupInput} value={draft.businessRegNumber} onChange={(e) => set({ businessRegNumber: e.target.value })} />
-          </SetupField>
-          <SetupField label={t('Business location')}>
-            <input className={setupInput} value={draft.businessLocation} onChange={(e) => set({ businessLocation: e.target.value })} placeholder={t('e.g. Insein, Yangon')} />
-          </SetupField>
-          <SetupField label={t('Nature of business')}>
-            <input className={setupInput} value={draft.natureOfBusiness} onChange={(e) => set({ natureOfBusiness: e.target.value })} placeholder={t('e.g. Hotel & hospitality')} />
-          </SetupField>
         </div>
-        <SetupField label={t('Document issue date')}>
-          <DatePicker value={draft.documentDate} onChange={(v) => set({ documentDate: v })} ariaLabel={t('Document issue date')} placeholder={t('Select date')} />
+      </div>
+
+      {/* Document for verification */}
+      <div className="space-y-5">
+        <StepHeader title={t('Document for verification')} subtitle={t('Add the document we verify your business with — or provide it later.')} />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+          <ChoiceCard
+            selected={!draft.provideDocLater}
+            onClick={() => set({ provideDocLater: false })}
+            title={t('Provide now')}
+            desc={t('Upload your verification document today.')}
+          />
+          <ChoiceCard
+            selected={!!draft.provideDocLater}
+            onClick={() => set({ provideDocLater: true })}
+            title={t('Provide later')}
+            desc={t('Skip for now and add it before going live.')}
+          />
+        </div>
+
+        {!draft.provideDocLater && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22 }}
+            className="space-y-5"
+          >
+            <SetupField label={t('Document type')}>
+              <BrandSelect
+                value={draft.documentType}
+                onValueChange={(v) => set({ documentType: v })}
+                options={DOCUMENT_TYPES.map((d) => ({ value: d, label: t(d) }))}
+              />
+            </SetupField>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+              <SetupField label={t('License number')} required error={err('businessRegNumber')}>
+                <input className={setupInput} value={draft.businessRegNumber} onChange={(e) => set({ businessRegNumber: e.target.value })} placeholder={t('e.g. BRN-2024-000000')} />
+              </SetupField>
+              <SetupField label={t('Business location')} required error={err('businessLocation')}>
+                <input className={setupInput} value={draft.businessLocation} onChange={(e) => set({ businessLocation: e.target.value })} placeholder={t('e.g. Insein, Yangon')} />
+              </SetupField>
+              <SetupField label={t('Nature of business')} required error={err('natureOfBusiness')}>
+                <input className={setupInput} value={draft.natureOfBusiness} onChange={(e) => set({ natureOfBusiness: e.target.value })} placeholder={t('e.g. Hotel & hospitality')} />
+              </SetupField>
+            </div>
+
+            <SetupField label={t('Expiration')}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+                <ChoiceCard selected={!!draft.documentNoExpiry} onClick={() => set({ documentNoExpiry: true })} title={t('Valid indefinitely')} />
+                <ChoiceCard selected={!draft.documentNoExpiry} onClick={() => set({ documentNoExpiry: false })} title={t('Has an expiry date')} />
+              </div>
+            </SetupField>
+            {!draft.documentNoExpiry && (
+              <SetupField label={t('Expiry date')} required error={err('documentDate')}>
+                <DatePicker value={draft.documentDate} onChange={(v) => set({ documentDate: v })} ariaLabel={t('Expiry date')} placeholder={t('Select date')} />
+              </SetupField>
+            )}
+
+            <SetupField label={t('Photo of document')}>
+              <DocUpload value={draft.documentPhotos} onChange={(next) => set({ documentPhotos: next })} t={t} />
+            </SetupField>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Confirm & accept */}
+      <div className="space-y-3.5 border-t border-[var(--border-default)] pt-6">
+        <ConsentRow checked={!!draft.agreedCompliance} onChange={(v) => set({ agreedCompliance: v })} error={err('agreedCompliance')}>
+          {t('I will only offer products and services that comply with all applicable laws, rules, and regulations.')}{' '}
+          <a href="#" onClick={(e) => e.preventDefault()} className="font-medium text-[var(--text-primary)] underline underline-offset-2 hover:text-[var(--brand-primary)] transition-colors">{t('Learn more')}</a>
+        </ConsentRow>
+        <ConsentRow checked={!!draft.confirmedAccuracy} onChange={(v) => set({ confirmedAccuracy: v })} error={err('confirmedAccuracy')}>
+          {t('I confirm that the information I have provided is true and accurate.')}
+        </ConsentRow>
+      </div>
+    </div>
+  );
+}
+
+function ContractStep({ draft, set, t }: StepProps) {
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+        <SetupField label={t('Contact person / host name')}>
+          <input className={setupInput} value={draft.contactPersonName} onChange={(e) => set({ contactPersonName: e.target.value })} />
+        </SetupField>
+        <SetupField label={t('Contact person / host email')}>
+          <input type="email" className={setupInput} value={draft.contactPersonEmail} onChange={(e) => set({ contactPersonEmail: e.target.value })} placeholder="host@hotel.com" />
+        </SetupField>
+        <SetupField label={t('Contact person phone')}>
+          <input className={setupInput} value={draft.contactPersonPhone} onChange={(e) => set({ contactPersonPhone: e.target.value })} placeholder="09 ..." />
+        </SetupField>
+        <SetupField label={t('Property contracting people')}>
+          <input className={setupInput} value={draft.contractingPeople} onChange={(e) => set({ contractingPeople: e.target.value })} />
         </SetupField>
       </div>
 
-      {/* Contract */}
-      <div className="space-y-5">
-        <StepHeader title={t('Contract')} subtitle={t('Your commission, the contract term, and who we contact about it.')} />
+      <SetupField label={t('Contract status')}>
+        <BrandSelect
+          value={draft.contractStatus}
+          onValueChange={(v) => set({ contractStatus: v as ContractStatus })}
+          options={(['Pending', 'Approved', 'Rejected'] as ContractStatus[]).map((s) => ({ value: s, label: t(s) }))}
+        />
+      </SetupField>
 
-        <SetupField label={t('Commission rate')} hint={t('Standard commission rate in your region.')}>
-          <input
-            readOnly
-            value={`${draft.commissionRate}%`}
-            className={`${setupInput} bg-[var(--surface-subtle)] text-[var(--text-secondary)] cursor-not-allowed`}
-          />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
+        <SetupField label={t('Contract start')}>
+          <DatePicker value={draft.contractStart} onChange={(v) => set({ contractStart: v })} ariaLabel={t('Contract start')} placeholder={t('Select date')} />
         </SetupField>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
-          <SetupField label={t('Contact person / host name')}>
-            <input className={setupInput} value={draft.contactPersonName} onChange={(e) => set({ contactPersonName: e.target.value })} />
-          </SetupField>
-          <SetupField label={t('Contact person / host email')}>
-            <input type="email" className={setupInput} value={draft.contactPersonEmail} onChange={(e) => set({ contactPersonEmail: e.target.value })} placeholder="host@hotel.com" />
-          </SetupField>
-          <SetupField label={t('Contact person phone')}>
-            <input className={setupInput} value={draft.contactPersonPhone} onChange={(e) => set({ contactPersonPhone: e.target.value })} placeholder="09 ..." />
-          </SetupField>
-          <SetupField label={t('Property contracting people')}>
-            <input className={setupInput} value={draft.contractingPeople} onChange={(e) => set({ contractingPeople: e.target.value })} />
-          </SetupField>
-        </div>
-
-        <SetupField label={t('Contract status')}>
-          <BrandSelect
-            value={draft.contractStatus}
-            onValueChange={(v) => set({ contractStatus: v as ContractStatus })}
-            options={(['Pending', 'Approved', 'Rejected'] as ContractStatus[]).map((s) => ({ value: s, label: t(s) }))}
-          />
+        <SetupField label={t('Contract end date')}>
+          <DatePicker value={draft.contractEnd} onChange={(v) => set({ contractEnd: v })} ariaLabel={t('Contract end date')} placeholder={t('Select date')} />
         </SetupField>
+      </div>
+    </div>
+  );
+}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
-          <SetupField label={t('Contract start')}>
-            <DatePicker value={draft.contractStart} onChange={(v) => set({ contractStart: v })} ariaLabel={t('Contract start')} placeholder={t('Select date')} />
-          </SetupField>
-          <SetupField label={t('Contract end date')}>
-            <DatePicker value={draft.contractEnd} onChange={(v) => set({ contractEnd: v })} ariaLabel={t('Contract end date')} placeholder={t('Select date')} />
-          </SetupField>
-        </div>
+function AgreementStep({ draft, set, t, showErrors, errors }: StepProps) {
+  const err = (k: string) => (showErrors ? errors[k] : undefined);
+  return (
+    <div className="space-y-5 max-w-2xl">
+      {/* Professional intro */}
+      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+        {t('By submitting your property to TutuStay, you enter into our Partner Agreement. These terms set out how you list your property, handle bookings, and receive settlements. Please review and accept the terms below to complete your setup.')}
+      </p>
+
+      {/* Partner terms agreement */}
+      <div className="rounded-md border border-[var(--border-default)] bg-white p-4">
+        <ConsentRow checked={!!draft.agreedTerms} onChange={(v) => set({ agreedTerms: v })} error={err('agreedTerms')}>
+          {t('I have read and agree to the TutuStay Partner Terms of Service and Privacy Policy.')}{' '}
+          <a href="#" onClick={(e) => e.preventDefault()} className="font-medium text-[var(--text-primary)] underline underline-offset-2 hover:text-[var(--brand-primary)] transition-colors">{t('Read terms')}</a>
+        </ConsentRow>
       </div>
     </div>
   );

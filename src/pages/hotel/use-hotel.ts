@@ -24,7 +24,15 @@ export const useHotel = create<HotelState>((set) => ({
   property: DEMO_PROPERTY,
   roomTypes: DEMO_ROOM_TYPES,
   rooms: DEMO_ROOMS,
-  updateProperty: (patch) => set((s) => ({ property: { ...s.property, ...patch } })),
+  updateProperty: (patch) =>
+    set((s) => {
+      // While editing a live listing, any real data change (not a review/control flag)
+      // marks the property dirty so "Resubmit for review" can appear.
+      const controlKeys = ['reviewStatus', 'submittedAt', 'reviewNote', 'live', 'editing', 'pendingEdits'] as const;
+      const isDataChange = Object.keys(patch).some((k) => !controlKeys.includes(k as (typeof controlKeys)[number]));
+      const markDirty = s.property.editing && isDataChange;
+      return { property: { ...s.property, ...patch, ...(markDirty ? { pendingEdits: true } : {}) } };
+    }),
   upsertRoomType: (rt) =>
     set((s) => ({
       roomTypes: s.roomTypes.some((x) => x.id === rt.id)

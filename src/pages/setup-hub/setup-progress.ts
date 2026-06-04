@@ -45,12 +45,12 @@ export const SETUP_STEPS: SetupStepDef[] = [
   {
     step: 4,
     key: 'owner',
-    title: 'Owner, business & contract',
+    title: 'Owner & business',
     desc: 'Legal entity, verification document, and contract terms.',
     done: (p) => !!p.representativeName.trim() && !!p.companyName.trim(),
   },
   {
-    step: 5,
+    step: 6,
     key: 'banking',
     title: 'Settlement',
     desc: 'How bookings are settled and your payout bank.',
@@ -64,11 +64,17 @@ export function setupProgress(p: Property) {
   const steps = SETUP_STEPS.map((s) => ({ ...s, complete: s.done(p) }));
   const completed = steps.filter((s) => s.complete).length;
   const total = steps.length;
+  const required = steps.filter((s) => !s.optional);
+  const requiredDone = required.filter((s) => s.complete).length;
   return {
     steps,
     completed,
     total,
     pct: Math.round((completed / total) * 100),
     allDone: completed === total,
+    /** Every non-optional step is complete — the gate for submitting for review. */
+    allRequiredDone: requiredDone === required.length,
+    /** How many required steps still need filling in. */
+    requiredRemaining: required.length - requiredDone,
   };
 }

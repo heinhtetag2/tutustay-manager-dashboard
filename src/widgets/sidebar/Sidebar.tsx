@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -68,10 +68,17 @@ function useNavTooltip(label: string, enabled: boolean) {
  *  position) so it isn't clipped by the sidebar's overflow-hidden; a short
  *  close delay lets the pointer travel from the chip into the menu. */
 function ProfileMenu({ collapsed }: { collapsed: boolean }) {
+  const navigate = useNavigate();
   const ref = React.useRef<HTMLDivElement>(null);
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [open, setOpen] = React.useState(false);
   const [pos, setPos] = React.useState({ left: 0, bottom: 0 });
+
+  // Profile menu now owns Settings + Support (moved out of the sidebar rail).
+  const go = (path: string) => {
+    setOpen(false);
+    navigate(path);
+  };
 
   const show = () => {
     if (timer.current) clearTimeout(timer.current);
@@ -114,11 +121,11 @@ function ProfileMenu({ collapsed }: { collapsed: boolean }) {
               <span className="block text-xs text-[var(--text-secondary)] truncate">heincise@gmail.com</span>
             </div>
             <div className="h-px bg-[var(--border-default)] mx-1 mb-1" />
-            <button className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
+            <button onClick={() => go('/settings')} className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
               <Settings className="w-4 h-4 text-[var(--text-secondary)]" />
               Account Settings
             </button>
-            <button className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
+            <button onClick={() => go('/help')} className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
               <HelpCircle className="w-4 h-4 text-[var(--text-secondary)]" />
               Support
             </button>
@@ -343,20 +350,6 @@ export function Sidebar({
           </div>
         </div>
 
-        {effectiveCollapsed && <div className="border-t border-[var(--border-default)] mx-2" />}
-
-        {/* Account */}
-        <div>
-          <div className={cn(
-            "mb-2 text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            effectiveCollapsed ? "opacity-0 h-0 overflow-hidden text-center" : "px-3 opacity-100 h-auto"
-          )}>
-            {t("ACCOUNT")}
-          </div>
-          <div className="space-y-0.5">
-            <NavItem icon={Settings} label={t("Settings")} path="/settings" isCollapsed={effectiveCollapsed} />
-          </div>
-        </div>
       </div>
 
       {/* Bottom Actions */}
@@ -365,7 +358,6 @@ export function Sidebar({
           <SetupNavItem pct={setup.pct} completed={setup.completed} total={setup.total} allDone={setup.allDone} isCollapsed={effectiveCollapsed} label={t("Property setup")} />
         </div>
         <NavItem icon={Code2} label={t("Dev Handoff")} path="/design-system" isCollapsed={effectiveCollapsed} />
-        <NavItem icon={HelpCircle} label={t("Help")} path="/help" isCollapsed={effectiveCollapsed} />
         <NavButton
           icon={({ className }) => (
             <div className="relative inline-flex">

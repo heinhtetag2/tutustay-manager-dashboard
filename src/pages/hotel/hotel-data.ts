@@ -54,6 +54,19 @@ export interface Property {
   businessLocation: string;
   natureOfBusiness: string;
   documentDate: string;
+  // Verification document flow
+  /** Manager opted to upload the verification document later. */
+  provideDocLater?: boolean;
+  /** Document never expires (vs. having an expiry date in documentDate). */
+  documentNoExpiry?: boolean;
+  /** Uploaded verification documents (file name + data URL). Supports multiple files/pages. */
+  documentPhotos?: { name: string; url: string }[];
+  /** Accepted the platform compliance terms. */
+  agreedCompliance?: boolean;
+  /** Confirmed the submitted information is accurate. */
+  confirmedAccuracy?: boolean;
+  /** Agreed to the partner terms of service & privacy policy. */
+  agreedTerms?: boolean;
   contractStatus: ContractStatus;
   contractStart: string;
   contractEnd: string;
@@ -79,6 +92,13 @@ export interface Property {
   reviewStatus: ReviewStatus;
   submittedAt?: string;
   reviewNote?: string;
+  /** True once the listing has been approved and is visible to guests. Stays true
+   *  while an already-live property edits and resubmits (changes apply after re-approval). */
+  live?: boolean;
+  /** Manager has unlocked edit mode on an approved, live listing. */
+  editing?: boolean;
+  /** Real changes were made since entering edit mode — gates "Resubmit for review". */
+  pendingEdits?: boolean;
 }
 
 /** A blank property used to start a fresh hotel setup. */
@@ -112,6 +132,12 @@ export function emptyProperty(): Property {
     businessLocation: '',
     natureOfBusiness: '',
     documentDate: '',
+    provideDocLater: false,
+    documentNoExpiry: true,
+    documentPhotos: [],
+    agreedCompliance: false,
+    confirmedAccuracy: false,
+    agreedTerms: false,
     contractStatus: 'Pending',
     contractStart: '',
     contractEnd: '',
@@ -249,7 +275,13 @@ export const DEMO_PROPERTY: Property = {
   documentType: 'Business license',
   businessLocation: 'Marina Bay, Singapore',
   natureOfBusiness: 'Hotel & hospitality',
-  documentDate: '2025-05-29',
+  documentDate: '2027-05-29',
+  provideDocLater: false,
+  documentNoExpiry: false,
+  documentPhotos: [],
+  agreedCompliance: true,
+  confirmedAccuracy: true,
+  agreedTerms: true,
   contractStatus: 'Approved',
   contractStart: '2025-01-01',
   contractEnd: '2026-12-31',
