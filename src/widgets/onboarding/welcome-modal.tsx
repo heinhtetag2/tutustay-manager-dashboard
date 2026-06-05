@@ -142,7 +142,7 @@ export function WelcomeModal() {
                         'h-1.5 rounded-full transition-all ' +
                         (i === step - 1
                           ? 'w-5 bg-[var(--brand-primary)]'
-                          : 'w-1.5 bg-[var(--surface-subtle)]')
+                          : 'w-1.5 bg-[var(--border-strong)]')
                       }
                     />
                   ))}
