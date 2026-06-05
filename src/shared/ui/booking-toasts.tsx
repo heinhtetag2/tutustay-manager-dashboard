@@ -24,6 +24,7 @@ interface ToastState {
   toasts: BookingToast[];
   push: (b: Omit<BookingToast, 'id'>) => void;
   dismiss: (id: number) => void;
+  dismissAll: () => void;
 }
 
 const AUTO_DISMISS_MS = 9000;
@@ -38,6 +39,7 @@ export const useBookingToasts = create<ToastState>((set) => ({
     setTimeout(() => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })), AUTO_DISMISS_MS);
   },
   dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+  dismissAll: () => set({ toasts: [] }),
 }));
 
 export function BookingToastHost() {
@@ -45,6 +47,7 @@ export function BookingToastHost() {
   const navigate = useNavigate();
   const toasts = useBookingToasts((s) => s.toasts);
   const dismiss = useBookingToasts((s) => s.dismiss);
+  const dismissAll = useBookingToasts((s) => s.dismissAll);
 
   // Collapsed = a deck: newest in front, older ones peek behind it. Hovering the
   // stack fans them out into a readable column. Heights are measured per toast
@@ -148,6 +151,25 @@ export function BookingToastHost() {
             </div>
           </motion.div>
         ))}
+      </AnimatePresence>
+
+      {/* One-click clear for the whole stack. */}
+      <AnimatePresence>
+        {toasts.length >= 2 && (
+          <motion.button
+            key="clear-all"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => dismissAll()}
+            style={{ top: stackHeight + 8 }}
+            className="pointer-events-auto absolute right-0 inline-flex items-center gap-1.5 rounded-full bg-white border border-[var(--border-default)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] shadow-[0_4px_16px_rgba(44,38,39,0.10)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+            {t('Clear all')} · {toasts.length}
+          </motion.button>
+        )}
       </AnimatePresence>
       </div>
     </>
