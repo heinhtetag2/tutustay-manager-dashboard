@@ -9,7 +9,7 @@ import { Portal } from '@/shared/ui/portal';
 export function SideSheet({
   onClose,
   children,
-  widthClass = 'max-w-lg',
+  widthClass = 'max-w-md',
   hideBackdrop = false,
 }: {
   onClose: () => void;

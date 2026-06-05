@@ -75,7 +75,7 @@ export function EmployeeEditor({ mode, initial, onClose, onSave }: EmployeeEdito
 
   return (
     <>
-      <SideSheet onClose={onClose} widthClass="max-w-lg">
+      <SideSheet onClose={onClose} widthClass="max-w-md">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)] shrink-0">
               <div>
                 <h2 className="text-lg font-medium text-[var(--text-primary)]">

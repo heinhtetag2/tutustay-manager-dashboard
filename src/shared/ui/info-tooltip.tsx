@@ -75,6 +75,14 @@ export function InfoTooltip({
             className="z-[80] w-[240px] max-w-[78vw] rounded-md bg-[var(--text-primary)] text-white text-xs leading-relaxed px-3 py-2 shadow-[0_8px_28px_rgba(44,38,39,0.22)] pointer-events-none"
           >
             {t(label)}
+            {/* Caret pointing toward the trigger. */}
+            <span
+              aria-hidden="true"
+              className={cn(
+                'absolute left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-[var(--text-primary)]',
+                side === 'top' ? '-bottom-1' : '-top-1',
+              )}
+            />
           </div>
         </Portal>
       )}

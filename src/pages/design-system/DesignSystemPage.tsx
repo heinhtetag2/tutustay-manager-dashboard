@@ -1,5 +1,28 @@
 import React from 'react';
+import { AnimatePresence } from 'motion/react';
+import type { DateRange } from 'react-day-picker';
+import {
+  Building2, Tag, Plus, Trash2, Download, ArrowRight, Bell,
+  LogIn, LogOut, Ban, CheckCircle2,
+} from 'lucide-react';
 import { Button } from '@/shared/ui/button';
+import { BrandSelect } from '@/shared/ui/brand-select';
+import { MultiSelect } from '@/shared/ui/multi-select';
+import { InfoTooltip, Term } from '@/shared/ui/info-tooltip';
+import { Calendar } from '@/shared/ui/calendar';
+import { useBookingToasts } from '@/shared/ui/booking-toasts';
+import { useResizableColumns, ColResizeHandle } from '@/shared/ui/resizable-columns';
+import { Section, ComponentEntry, DemoLabel } from './_doc';
+import { ComposedPatterns } from './composed-patterns';
+import { RoomTypeEditor } from '@/pages/hotel/RoomTypeEditor';
+import { RoomEditor } from '@/pages/hotel/room-editors';
+import { CouponFormSheet } from '@/pages/coupons/CouponFormSheet';
+import { EmployeeEditor } from '@/pages/agents/EmployeeEditor';
+import { emptyRoomType, type Room } from '@/pages/hotel/hotel-data';
+import { useHotel } from '@/pages/hotel/use-hotel';
+import type { Employee } from '@/pages/agents/agents-data';
+import { SalesDayDetailSheet } from '@/pages/sales-calendar/SalesDayDetailSheet';
+import type { Reservation } from '@/pages/reservations/reservations-data';
 
 /* ============================================================================
    LIVE DESIGN SYSTEM REFERENCE  —  route: /design-system
@@ -30,16 +53,6 @@ function useResolved(cssValue: string, prop: 'backgroundColor' | 'color' = 'back
 }
 
 /* ----- primitives for the doc itself -------------------------------------- */
-
-function Section({ id, title, intro, children }: { id: string; title: string; intro?: string; children: React.ReactNode }) {
-  return (
-    <section id={id} className="scroll-mt-20 mb-16">
-      <h2 className="text-2xl font-medium text-[var(--text-primary)] mb-1">{title}</h2>
-      {intro && <p className="text-sm text-[var(--text-secondary)] mb-6 max-w-2xl">{intro}</p>}
-      {children}
-    </section>
-  );
-}
 
 function ColorSwatch({ token, label }: { token: string; label?: string }) {
   const { ref, val } = useResolved(`var(${token})`);
@@ -192,24 +205,55 @@ const NAV = [
   ['spacing', 'Spacing'],
   ['radius', 'Radius'],
   ['elevation', 'Elevation'],
-  ['components', 'Components'],
+  ['buttons', 'Buttons'],
+  ['forms', 'Forms'],
+  ['feedback', 'Feedback'],
+  ['containers', 'Containers'],
+  ['drawers', 'Drawers'],
+  ['layout', 'Layout'],
+  ['cards', 'Cards & Stats'],
+  ['tables', 'Tables & Filters'],
+  ['charts', 'Charts'],
+  ['banners', 'Banners & Overlays'],
 ];
-
-/* ----- status badge preview (the proposed <Badge> primitive) -------------- */
-function Badge({ tone, children }: { tone: 'success' | 'danger' | 'warning' | 'brand' | 'neutral'; children: React.ReactNode }) {
-  const map: Record<string, string> = {
-    success: 'bg-[var(--success-tint)] text-[var(--success)] border-[var(--success-border)]',
-    danger: 'bg-[var(--danger-tint)] text-[var(--danger)] border-[var(--danger-border)]',
-    warning: 'bg-[var(--warning-tint)] text-[var(--warning)] border-[var(--warning-border)]',
-    brand: 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]',
-    neutral: 'bg-[var(--surface-subtle)] text-[var(--text-secondary)] border-[var(--border-default)]',
-  };
-  return <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${map[tone]}`}>{children}</span>;
-}
 
 /* ----- page --------------------------------------------------------------- */
 
 export default function DesignSystemPage() {
+  // Interactive demo state for the live component gallery.
+  const [roomType, setRoomType] = React.useState('deluxe');
+  const [amenities, setAmenities] = React.useState<string[]>(['Wi-Fi', 'Breakfast']);
+  const [day, setDay] = React.useState<Date | undefined>(new Date(2026, 5, 9));
+  const [range, setRange] = React.useState<DateRange | undefined>(undefined);
+  const [productForm, setProductForm] = React.useState<string | null>(null);
+  const pushToast = useBookingToasts((s) => s.push);
+
+  // Real product create/edit forms reuse the live hotel store.
+  const { roomTypes, property } = useHotel();
+  const newRoomType = () => ({ ...emptyRoomType(), weekendDays: [...property.defaultWeekendDays], sessionHours: property.defaultSessionHours });
+  const emptyRoom = (): Room => ({ id: '', floor: 1, number: '', typeName: roomTypes[0]?.name ?? '', beds: 1, occupancy: 2, amenities: [], price: roomTypes[0]?.regularPrice ?? 0, status: 'Active' });
+  const emptyEmployee = (): Employee => ({ id: '', employeeId: '', fullName: '', email: '', phone: '', role: 'Staff', hireDate: '', status: 'Active' });
+  const closeForm = () => setProductForm(null);
+
+  // Sample bookings for the Sales Calendar day-detail demo.
+  const sampleDay = new Date('2026-06-03T00:00:00');
+  const sampleBookings: Reservation[] = [
+    { id: 'demo-1', code: 'RSV-1057', guestName: 'Noah Williams', guestEmail: 'noah.williams@example.com', roomType: 'Standard', roomNo: '112', checkIn: '2026-06-03T10:00:00', checkOut: '2026-06-03T15:00:00', nights: 0, guests: 1, amount: 35000, rateType: 'Session', status: 'Confirmed', createdAt: '2026-05-20T09:00:00' },
+    { id: 'demo-2', code: 'RSV-1058', guestName: 'Yuki Sato', guestEmail: 'yuki.sato@example.com', roomType: 'Deluxe', roomNo: '309', checkIn: '2026-06-03T14:00:00', checkOut: '2026-06-06T12:00:00', nights: 3, guests: 2, amount: 255000, status: 'Confirmed', createdAt: '2026-05-21T11:30:00' },
+  ];
+
+  const fireToast = () =>
+    pushToast({
+      requestId: 'demo',
+      guest: 'Aria Nguyen',
+      initial: 'A',
+      roomType: 'Deluxe',
+      nights: 2,
+      guests: 2,
+      checkIn: 'Jun 11',
+      amount: '160,000',
+    });
+
   return (
     <div className="min-h-screen bg-[var(--surface-muted)] text-[var(--text-primary)]">
       {/* sticky section nav */}
@@ -303,50 +347,254 @@ export default function DesignSystemPage() {
           </div>
         </Section>
 
-        {/* COMPONENTS */}
-        <Section id="components" title="Components" intro="Button is the live primitive (src/shared/ui/button.tsx). Badge, Card and EmptyState below are proposed extractions previewing the recurring inline patterns.">
-          <h3 className="text-base font-medium mb-3">Button — variants</h3>
-          <div className="flex flex-wrap gap-3 mb-6">
-            <Button>Default</Button>
-            <Button variant="secondary">Secondary</Button>
-            <Button variant="outline">Outline</Button>
-            <Button variant="ghost">Ghost</Button>
-            <Button variant="destructive">Destructive</Button>
-            <Button variant="link">Link</Button>
-          </div>
-          <h3 className="text-base font-medium mb-3">Button — sizes</h3>
-          <div className="flex flex-wrap items-center gap-3 mb-8">
-            <Button size="sm">Small</Button>
-            <Button size="default">Default</Button>
-            <Button size="lg">Large</Button>
-          </div>
+        {/* ============================ COMPONENTS ============================ */}
 
-          <h3 className="text-base font-medium mb-3">Badge — status tones</h3>
-          <div className="flex flex-wrap gap-2 mb-8">
-            <Badge tone="success">Confirmed</Badge>
-            <Badge tone="danger">Cancelled</Badge>
-            <Badge tone="warning">Pending</Badge>
-            <Badge tone="brand">New</Badge>
-            <Badge tone="neutral">Draft</Badge>
-          </div>
+        {/* BUTTONS & ACTIONS */}
+        <Section id="buttons" title="Buttons & Actions" intro="Button is the live, theme-bound primitive. Every variant, size and state below renders the real component.">
+          <ComponentEntry name="Button" path="src/shared/ui/button.tsx" desc="6 variants × 4 sizes, with icon and disabled states. asChild renders the styles onto any child element (e.g. a router link).">
+            <DemoLabel>Variants</DemoLabel>
+            <div className="flex flex-wrap gap-3 mb-5">
+              <Button>Default</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="outline">Outline</Button>
+              <Button variant="ghost">Ghost</Button>
+              <Button variant="destructive">Destructive</Button>
+              <Button variant="link">Link</Button>
+            </div>
+            <DemoLabel>Sizes</DemoLabel>
+            <div className="flex flex-wrap items-center gap-3 mb-5">
+              <Button size="sm">Small</Button>
+              <Button size="default">Default</Button>
+              <Button size="lg">Large</Button>
+              <Button size="icon" aria-label="Add"><Plus /></Button>
+            </div>
+            <DemoLabel>With icon · disabled</DemoLabel>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button><Plus /> New room</Button>
+              <Button variant="outline"><Download /> Export</Button>
+              <Button variant="destructive"><Trash2 /> Delete</Button>
+              <Button disabled>Disabled</Button>
+            </div>
+          </ComponentEntry>
 
-          <h3 className="text-base font-medium mb-3">Card &amp; Empty state</h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-[var(--surface)] rounded-md border border-[var(--border-default)] p-5">
-              <div className="text-sm font-medium">Card</div>
-              <p className="text-sm text-[var(--text-secondary)] mt-1">surface + border + rounded-md. The everyday container (~28 inline copies today).</p>
+          <ComponentEntry name="Status action buttons" path="src/pages/reservations/ReservationDetail.tsx" desc="Lifecycle actions on a record header. Color and icon carry the meaning: danger-outline to cancel, green to check in, orange to check out, and a muted label once the stay is closed. These are hand-styled (not the Button primitive) so the semantic colors match the status badges.">
+            <DemoLabel>Reservation lifecycle</DemoLabel>
+            <div className="flex flex-wrap items-center gap-2">
+              <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer">
+                <Ban className="w-4 h-4" /> Cancel
+              </button>
+              <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--success-strong)] rounded-md hover:bg-[var(--success)] transition-colors cursor-pointer">
+                <LogIn className="w-4 h-4" /> Check in
+              </button>
+              <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--color-data-orange-50)] rounded-md hover:bg-[var(--color-data-orange-60)] transition-colors cursor-pointer">
+                <LogOut className="w-4 h-4" /> Check out
+              </button>
+              <span className="inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+                <CheckCircle2 className="w-4 h-4" /> Closed
+              </span>
             </div>
-            <div className="bg-[var(--surface)] rounded-md border border-[var(--border-default)] p-10 text-center">
-              <p className="text-sm text-[var(--text-secondary)]">No results found.</p>
-              <Button variant="outline" size="sm" className="mt-3">Reset filters</Button>
+            <p className="mt-4 text-xs text-[var(--text-muted)]">
+              Check out uses <span className="font-mono">--color-data-orange-50</span> (hover <span className="font-mono">--color-data-orange-60</span>) · Check in uses <span className="font-mono">--success-strong</span> · Cancel uses <span className="font-mono">--danger</span> on <span className="font-mono">--danger-border</span>.
+            </p>
+          </ComponentEntry>
+        </Section>
+
+        {/* FORMS & INPUTS */}
+        <Section id="forms" title="Forms & Inputs" intro="Selection and date primitives. These are fully interactive — pick values and watch the state update.">
+          <ComponentEntry name="BrandSelect" path="src/shared/ui/brand-select.tsx" desc="Single-select dropdown (Radix Select) with optional left icon and brand-tinted active state.">
+            <div className="max-w-xs">
+              <BrandSelect
+                value={roomType}
+                onValueChange={setRoomType}
+                leftIcon={<Building2 />}
+                ariaLabel="Room type"
+                options={[
+                  { value: 'deluxe', label: 'Deluxe' },
+                  { value: 'superior', label: 'Superior' },
+                  { value: 'suite', label: 'Suite' },
+                  { value: 'standard', label: 'Standard' },
+                ]}
+              />
+              <div className="mt-2 text-xs text-[var(--text-muted)] font-mono">value: {roomType}</div>
             </div>
+          </ComponentEntry>
+
+          <ComponentEntry name="MultiSelect" path="src/shared/ui/multi-select.tsx" desc="Searchable multi-select with checkboxes, a selected-count label and a clear-all action.">
+            <div className="max-w-xs">
+              <MultiSelect
+                values={amenities}
+                onChange={setAmenities}
+                leftIcon={<Tag />}
+                placeholder="Amenities"
+                options={['Wi-Fi', 'Breakfast', 'Parking', 'Pool', 'Gym', 'Airport shuttle', 'Pet friendly']}
+              />
+              <div className="mt-2 text-xs text-[var(--text-muted)] font-mono">[{amenities.join(', ')}]</div>
+            </div>
+          </ComponentEntry>
+
+          <ComponentEntry name="Calendar" path="src/shared/ui/calendar.tsx" desc="react-day-picker styled to the design system. Supports single-date and range selection.">
+            <div className="flex flex-wrap gap-8">
+              <div>
+                <DemoLabel>Single</DemoLabel>
+                <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface)] inline-block">
+                  <Calendar mode="single" selected={day} onSelect={setDay} />
+                </div>
+              </div>
+              <div>
+                <DemoLabel>Range</DemoLabel>
+                <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface)] inline-block">
+                  <Calendar mode="range" selected={range} onSelect={setRange} />
+                </div>
+              </div>
+            </div>
+          </ComponentEntry>
+        </Section>
+
+        {/* FEEDBACK */}
+        <Section id="feedback" title="Status & Feedback" intro="Status pills, inline help and the stacked booking-toast notifications.">
+          <ComponentEntry name="InfoTooltip & Term" path="src/shared/ui/info-tooltip.tsx" desc="The (i) affordance reveals a definition on hover, focus or tap. Term looks copy up from the shared glossary.">
+            <div className="flex flex-col gap-3 text-sm text-[var(--text-primary)]">
+              <span className="inline-flex items-center gap-1">
+                Occupancy <InfoTooltip label="The share of your bookable rooms that are filled tonight." />
+              </span>
+              <span>This month's <Term name="ADR">ADR</Term> and <Term name="RevPAR">RevPAR</Term> are trending up.</span>
+            </div>
+          </ComponentEntry>
+
+          <ComponentEntry name="Booking Toasts" path="src/shared/ui/booking-toasts.tsx" desc="A zustand store + host that stacks incoming-booking notifications top-right (newest in front; hover to fan out). Click to fire one.">
+            <Button onClick={fireToast}><Bell /> Push a booking toast</Button>
+          </ComponentEntry>
+        </Section>
+
+        {/* CONTAINERS & LAYOUT */}
+        <Section id="containers" title="Containers & Layout" intro="The everyday container, the empty state, and resizable table columns.">
+          <ComponentEntry name="Card & Empty state" path="(inline pattern · surface + border)" status="proposed" desc="surface + border + rounded-md — the everyday container (~28 inline copies). Empty state pairs a message with a reset action.">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-[var(--surface)] rounded-md border border-[var(--border-default)] p-5">
+                <div className="text-sm font-medium">Card</div>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">The everyday container for grouped content.</p>
+              </div>
+              <div className="bg-[var(--surface)] rounded-md border border-[var(--border-default)] p-10 text-center">
+                <p className="text-sm text-[var(--text-secondary)]">No results found.</p>
+                <Button variant="outline" size="sm" className="mt-3">Reset filters</Button>
+              </div>
+            </div>
+          </ComponentEntry>
+
+          <ComponentEntry name="Resizable columns" path="src/shared/ui/resizable-columns.tsx" desc="Hook + handle for design-system table column resizing. Hover a header edge and drag to resize.">
+            <ResizableTableDemo />
+          </ComponentEntry>
+        </Section>
+
+        {/* FEATURE DRAWERS */}
+        <Section id="drawers" title="Feature Drawers" intro="Self-contained, stateful slide-in flows. The product create/edit forms below are the real editors from the app — opening one launches the exact same side sheet a manager uses.">
+          <h3 className="text-base font-medium text-[var(--text-primary)] mb-1">Product forms — create &amp; edit</h3>
+          <p className="text-sm text-[var(--text-secondary)] mb-4 max-w-2xl">The live create/edit side sheets a hotel manager actually uses. Each opens the real component with an empty draft.</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+            {[
+              ['room-type', 'Add Room Type', 'hotel/RoomTypeEditor.tsx', 'Amenities, pricing tabs, beds & occupancy'],
+              ['room', 'Add Room', 'hotel/room-editors.tsx', 'Room number, type, beds & status'],
+              ['coupon', 'Add Coupon', 'coupons/CouponFormSheet.tsx', 'Discount, validity & room scope'],
+              ['employee', 'Add Employee', 'agents/EmployeeEditor.tsx', 'Two-step staff profile + credentials'],
+            ].map(([key, name, file, blurb]) => (
+              <button
+                key={key}
+                onClick={() => setProductForm(key)}
+                className="text-left rounded-md border border-[var(--border-default)] bg-[var(--surface)] p-4 hover:border-[var(--brand-border)] hover:bg-[var(--brand-tint)]/40 transition-colors group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-[var(--text-primary)]">{name}</span>
+                  <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--brand-primary)] transition-colors" />
+                </div>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">{blurb}</p>
+                <div className="text-[11px] font-mono text-[var(--text-muted)] mt-2">{file}</div>
+              </button>
+            ))}
+            <button
+              onClick={() => setProductForm('sales-day')}
+              className="text-left rounded-md border border-[var(--border-default)] bg-[var(--surface)] p-4 hover:border-[var(--brand-border)] hover:bg-[var(--brand-tint)]/40 transition-colors group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-[var(--text-primary)]">Sales Calendar — day detail</span>
+                <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--brand-primary)] transition-colors" />
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Day breakdown side sheet — revenue tiles, status filter, booking list</p>
+              <div className="text-[11px] font-mono text-[var(--text-muted)] mt-2">sales-calendar/SalesDayDetailSheet.tsx</div>
+            </button>
           </div>
         </Section>
+
+        {/* ===================== COMPOSED PAGE PATTERNS ===================== */}
+        <ComposedPatterns />
 
         <footer className="border-t border-[var(--border-default)] pt-6 text-xs text-[var(--text-muted)]">
           Full token tables, component inventory and the consistency roadmap live in <span className="font-mono">/design-system/*.md</span> at the repo root.
         </footer>
       </main>
+
+      {/* ----- live product create/edit forms ----- */}
+      {productForm === 'room-type' && (
+        <RoomTypeEditor initial={newRoomType()} onClose={closeForm} onSave={closeForm} />
+      )}
+      {productForm === 'room' && (
+        <RoomEditor initial={emptyRoom()} roomTypes={roomTypes} onClose={closeForm} onSave={closeForm} />
+      )}
+      {productForm === 'coupon' && (
+        <CouponFormSheet coupon={null} onClose={closeForm} />
+      )}
+      {productForm === 'employee' && (
+        <EmployeeEditor mode="new" initial={emptyEmployee()} onClose={closeForm} onSave={closeForm} />
+      )}
+      <AnimatePresence>
+        {productForm === 'sales-day' && (
+          <SalesDayDetailSheet day={sampleDay} bookings={sampleBookings} onClose={closeForm} />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ----- live demo: resizable table columns --------------------------------- */
+function ResizableTableDemo() {
+  const { widths, onResizeStart } = useResizableColumns([
+    { key: 'guest', w: 160, min: 90 },
+    { key: 'room', w: 120, min: 80 },
+    { key: 'status', w: 120, min: 80, resizable: false },
+  ]);
+  const rows = [
+    ['Marcus Lee', 'Deluxe', 'Confirmed'],
+    ['Grace Park', 'Superior', 'Pending'],
+    ['Sofia Marin', 'Suite', 'Confirmed'],
+  ];
+  return (
+    <div className="overflow-x-auto rounded-md border border-[var(--border-default)]">
+      <table className="table-fixed border-collapse" style={{ width: widths.guest + widths.room + widths.status }}>
+        <colgroup>
+          <col style={{ width: widths.guest }} />
+          <col style={{ width: widths.room }} />
+          <col style={{ width: widths.status }} />
+        </colgroup>
+        <thead>
+          <tr className="group/head bg-[var(--surface-subtle)] text-left">
+            <th className="group/col relative px-3 py-2 text-xs font-medium text-[var(--text-secondary)]">
+              Guest<ColResizeHandle onPointerDown={(e) => onResizeStart('guest', e)} />
+            </th>
+            <th className="group/col relative px-3 py-2 text-xs font-medium text-[var(--text-secondary)]">
+              Room<ColResizeHandle onPointerDown={(e) => onResizeStart('room', e)} />
+            </th>
+            <th className="px-3 py-2 text-xs font-medium text-[var(--text-secondary)]">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r[0]} className="border-t border-[var(--border-default)]">
+              <td className="px-3 py-2 text-sm text-[var(--text-primary)] truncate">{r[0]}</td>
+              <td className="px-3 py-2 text-sm text-[var(--text-secondary)] truncate">{r[1]}</td>
+              <td className="px-3 py-2 text-sm text-[var(--text-secondary)] truncate">{r[2]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

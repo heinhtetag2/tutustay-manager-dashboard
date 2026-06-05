@@ -15,6 +15,8 @@ import {
   Gauge,
   Tag,
   Users,
+  ChevronRight,
+  TriangleAlert,
 } from 'lucide-react';
 import {
   format,
@@ -36,9 +38,6 @@ import {
   Area,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -72,15 +71,15 @@ function moneyShort(value: number): string {
 const USER_FIRST_NAME = 'Hein';
 const NOW = new Date('2026-06-02T10:00:00');
 
-// Reservation status → token color, matching statusStyle() in Reservations.
-const RES_STATUS_ORDER: ReservationStatus[] = ['Confirmed', 'Checked-in', 'Checked-out', 'Cancelled', 'No-show'];
-const RES_STATUS_COLOR: Record<ReservationStatus, string> = {
-  Confirmed: 'var(--brand-primary)',
-  'Checked-in': 'var(--success)',
-  'Checked-out': 'var(--text-tertiary)',
-  Cancelled: 'var(--danger)',
-  'No-show': 'var(--warning-strong)',
-};
+// Brand (ocean) ramp shades for the "Revenue by room type" bars — darkest for
+// the top earner, fading lighter down the list.
+const ROOM_TYPE_BAR_COLORS = [
+  'var(--color-base-ocean-70)',
+  'var(--color-base-ocean-60)',
+  'var(--color-base-ocean-50)',
+  'var(--color-base-ocean-40)',
+  'var(--color-base-ocean-30)',
+];
 
 // Status → pill colors, matching statusStyle() in Reservations and the
 // booking-request status badges so the dashboard reads as part of the product.
@@ -158,6 +157,12 @@ export default function Dashboard() {
   const pendingRequests = useMemo(
     () => requests.filter((r) => r.status === 'Pending').length,
     [requests],
+  );
+
+  // Still checked in past their checkout day → needs resolving.
+  const overdueCount = useMemo(
+    () => reservations.filter((r) => r.status === 'Checked-in' && startOfDay(new Date(r.checkOut)) < today).length,
+    [reservations, today],
   );
 
   // Revenue this month vs the same kind of total last month → MoM % delta.
@@ -252,20 +257,6 @@ export default function Dashboard() {
     },
   ];
 
-  // ── Occupancy forecast, next 7 nights ────────────────────────────────
-  const occupancy7 = useMemo(() => {
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = addDays(today, i);
-      const occupied = reservations.filter((r) => occupiesNight(r, d)).length;
-      return {
-        name: format(d, 'EEE'),
-        date: d,
-        rate: capacity === 0 ? 0 : Math.round((occupied / capacity) * 100),
-        occupied,
-      };
-    });
-  }, [reservations, capacity, today]);
-
   // ── Chart: revenue over time (by check-in date) ──────────────────────
   const { chartData, rangeTotal, rangeTrend, rangeSubtitle, rangeBookings, rangeAvgPerBucket, bucketUnit } =
     useMemo(() => buildRevenueChart(reservations, range, today), [reservations, range, today]);
@@ -285,17 +276,6 @@ export default function Dashboard() {
     }
     return out;
   }, [reservations, today]);
-
-  // ── Reservation status mix (donut) ───────────────────────────────────
-  const statusMix = useMemo(() => {
-    const counts: Record<string, number> = {};
-    reservations.forEach((r) => {
-      counts[r.status] = (counts[r.status] ?? 0) + 1;
-    });
-    return RES_STATUS_ORDER.map((s) => ({ status: s, value: counts[s] ?? 0, color: RES_STATUS_COLOR[s] })).filter(
-      (d) => d.value > 0,
-    );
-  }, [reservations]);
 
   // ── Revenue by room type (this month) ────────────────────────────────
   const roomTypeBreakdown = useMemo(() => {
@@ -577,97 +557,62 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* Three-up: Occupancy forecast + Arrivals & departures + Revenue by room type */}
+      {/* Today (action-first) + Revenue by room type */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-6">
-        {/* Occupancy forecast, next 7 nights */}
+        {/* Today — what needs the manager now */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.28 }}
-          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
+          className="lg:col-span-2 bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden"
         >
           <div className="px-6 py-4 border-b border-[var(--surface-subtle)]">
-            <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Occupancy')}</h2>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Forecast, next 7 nights')}</p>
+            <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Today')}</h2>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">{format(today, 'EEEE, MMM d')} · {t('what needs you')}</p>
           </div>
-          <div className="px-4 sm:px-6 py-5 h-[220px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={occupancy7} margin={{ top: 6, right: 6, left: -24, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorOccupancy" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--success)" stopOpacity={0.22} />
-                    <stop offset="95%" stopColor="var(--success)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--surface-subtle)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={8} />
-                <YAxis axisLine={false} tickLine={false} domain={[0, 100]} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} tickFormatter={(v: number) => `${v}%`} />
-                <Tooltip cursor={{ stroke: 'var(--border-default)', strokeWidth: 1, strokeDasharray: '4 4' }} content={<OccupancyTooltip t={t} />} />
-                <Area type="monotone" dataKey="rate" stroke="var(--success)" strokeWidth={2} fillOpacity={1} fill="url(#colorOccupancy)" isAnimationActive={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
-        {/* Reservation status mix */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-          className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden flex flex-col"
-        >
-          <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Reservation status')}</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('All reservations by status')}</p>
-            </div>
-            <button
-              onClick={() => navigate('/reservations')}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer shrink-0"
-            >
-              {t('View all')}
-              <ArrowUpRight className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="px-6 py-5 flex-1 flex items-center gap-5">
-            <div className="relative w-[128px] h-[128px] shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusMix}
-                    dataKey="value"
-                    nameKey="status"
-                    innerRadius={44}
-                    outerRadius={62}
-                    paddingAngle={2}
-                    stroke="none"
-                    isAnimationActive={false}
+          <ul className="divide-y divide-[var(--surface-subtle)]">
+            {([
+              { key: 'arrivals', count: arrivalsToday, Icon: CalendarCheck, title: t('Arrivals to check in'), done: t('No arrivals today'), href: '/reservations', tone: 'brand' as const },
+              { key: 'departures', count: departuresToday, Icon: LogOut, title: t('Departures to check out'), done: t('No departures today'), href: '/reservations', tone: 'brand' as const },
+              { key: 'requests', count: pendingRequests, Icon: Inbox, title: t('Requests to approve'), done: t('All requests handled'), href: '/booking-requests', tone: 'brand' as const },
+              { key: 'overdue', count: overdueCount, Icon: TriangleAlert, title: t('Overdue check-outs'), done: t('Nothing overdue'), href: '/reservations', tone: 'danger' as const },
+            ]).map((item) => {
+              const active = item.count > 0;
+              const danger = active && item.tone === 'danger';
+              return (
+                <li key={item.key}>
+                  <button
+                    onClick={() => navigate(item.href)}
+                    className="w-full flex items-center gap-3 px-6 py-3 text-left hover:bg-[var(--surface-muted)] transition-colors cursor-pointer group"
                   >
-                    {statusMix.map((d) => (
-                      <Cell key={d.status} fill={d.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-medium text-[var(--brand-primary)] tabular-nums leading-none">
-                  {reservations.length}
-                </span>
-                <span className="text-[11px] text-[var(--text-tertiary)] mt-1">{t('total')}</span>
-              </div>
-            </div>
-            <ul className="flex-1 min-w-0 space-y-2">
-              {statusMix.map((d) => (
-                <li key={d.status} className="flex items-center justify-between gap-3 text-sm">
-                  <span className="flex items-center gap-2 min-w-0">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
-                    <span className="text-[var(--text-secondary)] truncate">{t(d.status)}</span>
-                  </span>
-                  <span className="font-medium text-[var(--text-primary)] tabular-nums">{d.value}</span>
+                    <div
+                      className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                        danger
+                          ? 'bg-[var(--danger-tint)] text-[var(--danger)]'
+                          : active
+                            ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)]'
+                            : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]'
+                      }`}
+                    >
+                      <item.Icon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-[var(--text-primary)]">{item.title}</div>
+                      <div className="text-xs text-[var(--text-secondary)] mt-0.5">{active ? t('Tap to review') : item.done}</div>
+                    </div>
+                    <span
+                      className={`text-lg font-medium tabular-nums ${
+                        danger ? 'text-[var(--danger)]' : active ? 'text-[var(--brand-primary)]' : 'text-[var(--text-muted)]'
+                      }`}
+                    >
+                      {item.count}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors shrink-0" />
+                  </button>
                 </li>
-              ))}
-            </ul>
-          </div>
+              );
+            })}
+          </ul>
         </motion.div>
 
         {/* Revenue by room type */}
@@ -697,12 +642,16 @@ export default function Dashboard() {
             </div>
           ) : (
             <ul className="px-6 py-5 space-y-3.5">
-              {roomTypeBreakdown.rows.map((row) => {
+              {roomTypeBreakdown.rows.map((row, i) => {
                 const pct = roomTypeBreakdown.max === 0 ? 0 : (row.revenue / roomTypeBreakdown.max) * 100;
+                const color = ROOM_TYPE_BAR_COLORS[i % ROOM_TYPE_BAR_COLORS.length];
                 return (
                   <li key={row.roomType}>
                     <div className="flex items-center justify-between mb-1.5 text-xs">
-                      <span className="font-medium text-[var(--text-primary)]">{t(row.roomType)}</span>
+                      <span className="flex items-center gap-2 font-medium text-[var(--text-primary)]">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+                        {t(row.roomType)}
+                      </span>
                       <span className="flex items-center gap-2 text-[var(--text-secondary)] tabular-nums">
                         <span>
                           {row.count} {row.count === 1 ? t('booking') : t('bookings')}
@@ -716,7 +665,8 @@ export default function Dashboard() {
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
                         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                        className="h-full bg-[var(--brand-primary)] rounded-full"
+                        className="h-full rounded-full"
+                        style={{ background: color }}
                       />
                     </div>
                   </li>
@@ -815,26 +765,6 @@ function DeltaChip({ delta, unit }: { delta: number; unit?: 'count' | 'percent' 
       {up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
       {text}
     </span>
-  );
-}
-
-function OccupancyTooltip({
-  active,
-  payload,
-  t,
-}: {
-  active?: boolean;
-  payload?: Array<{ payload: { date: Date; rate: number; occupied: number } }>;
-  t: (key: string) => string;
-}) {
-  if (!active || !payload || payload.length === 0) return null;
-  const p = payload[0].payload;
-  return (
-    <div className="bg-[var(--text-primary)] text-white rounded-md px-3 py-2 text-xs shadow-lg">
-      <div className="text-[var(--text-muted)] mb-1">{format(p.date, 'EEE, MMM d')}</div>
-      <div className="font-medium tabular-nums">{p.rate}% {t('occupied')}</div>
-      <div className="text-[var(--text-muted)] mt-0.5 tabular-nums">{p.occupied} {p.occupied === 1 ? t('room') : t('rooms')}</div>
-    </div>
   );
 }
 

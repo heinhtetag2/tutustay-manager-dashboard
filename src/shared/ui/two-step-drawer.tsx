@@ -50,7 +50,7 @@ export function TwoStepDrawer({
 
   return (
     <Drawer direction="right" open={open} onOpenChange={handleOpenChange}>
-      <DrawerContent className="!max-w-lg data-[vaul-drawer-direction=right]:sm:!max-w-lg bg-white border-l border-[var(--border-default)]">
+      <DrawerContent className="!max-w-md data-[vaul-drawer-direction=right]:sm:!max-w-md bg-white border-l border-[var(--border-default)]">
         <div className="h-14 flex items-center gap-3 px-5 border-b border-[var(--border-default)] shrink-0">
           {step !== 'intro' && step !== 'done' && (
             <button
