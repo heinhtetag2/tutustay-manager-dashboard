@@ -8,7 +8,6 @@ import {
   CalendarPlus,
   Wallet,
   ArrowRight,
-  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import { Portal } from '@/shared/ui/portal';
@@ -118,8 +117,7 @@ export function WelcomeModal() {
                           'Your command center for running the property — bookings, rooms, guests, and payouts, all in one place.',
                         )}
                       </p>
-                      <div className="mt-4 flex items-start gap-2 rounded-md bg-[var(--surface-muted)] border border-[var(--border-default)] px-3 py-2.5">
-                        <Sparkles className="w-4 h-4 text-[var(--brand-primary)] mt-0.5 shrink-0" />
+                      <div className="mt-4 rounded-md bg-[var(--surface-muted)] border border-[var(--border-default)] px-3 py-2.5">
                         <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                           {t(
                             'You’re exploring with sample data, so feel free to click around — nothing here is real yet.',
@@ -163,10 +161,9 @@ export function WelcomeModal() {
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="w-full h-10 inline-flex items-center justify-center gap-2 rounded-md bg-[var(--brand-primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                    className="w-full h-10 inline-flex items-center justify-center rounded-md bg-[var(--brand-primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
                   >
                     {t('Take the 60-second tour')}
-                    <ArrowRight className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
