@@ -263,6 +263,9 @@ export default function Rooms() {
               >
                 <Icon className="w-4 h-4" />
                 {v === 'rooms' ? t('Rooms') : t('Room Types')}
+                <span className="font-normal text-[var(--text-tertiary)] tabular-nums">
+                  ({v === 'rooms' ? rooms.length : roomTypes.length})
+                </span>
               </button>
             );
           })}

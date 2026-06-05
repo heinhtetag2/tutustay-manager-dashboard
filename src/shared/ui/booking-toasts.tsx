@@ -79,9 +79,13 @@ export function BookingToastHost() {
   // Total height of the stack — the front card plus either the peeks (collapsed)
   // or every card + gaps (fanned out). Drives the hover hit-area height.
   const frontH = toasts.length ? h(toasts[0].id) : 0;
-  const stackHeight = expanded
+  // Always-visible "Clear all" row sits above the deck; reserve space for it so
+  // the deck (and the button) never shift when the stack expands on hover.
+  const HEADER_H = toasts.length >= 2 ? 40 : 0;
+  const deckHeight = expanded
     ? toasts.reduce((sum, tt) => sum + h(tt.id), 0) + Math.max(0, toasts.length - 1) * GAP
     : frontH + Math.max(0, toasts.length - 1) * PEEK;
+  const stackHeight = deckHeight + HEADER_H;
 
   return (
     <>
@@ -118,7 +122,7 @@ export function BookingToastHost() {
             animate={{
               opacity: 1,
               x: 0,
-              y: offsetFor(i),
+              y: offsetFor(i) + HEADER_H,
               // Cards behind shrink slightly when collapsed; full size when fanned.
               scale: expanded ? 1 : 1 - i * 0.04,
             }}
@@ -153,7 +157,8 @@ export function BookingToastHost() {
         ))}
       </AnimatePresence>
 
-      {/* One-click clear for the whole stack. */}
+      {/* One-click clear — pinned to a stable row above the deck so it never
+          moves (and stays clickable) when the stack expands on hover. */}
       <AnimatePresence>
         {toasts.length >= 2 && (
           <motion.button
@@ -163,8 +168,7 @@ export function BookingToastHost() {
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.2 }}
             onClick={() => dismissAll()}
-            style={{ top: stackHeight + 8 }}
-            className="pointer-events-auto absolute right-0 inline-flex items-center gap-1.5 rounded-full bg-white border border-[var(--border-default)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] shadow-[0_4px_16px_rgba(44,38,39,0.10)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+            className="pointer-events-auto absolute top-0 right-0 inline-flex items-center gap-1.5 rounded-full bg-white border border-[var(--border-default)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] shadow-[0_4px_16px_rgba(44,38,39,0.10)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
             {t('Clear all')} · {toasts.length}
