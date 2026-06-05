@@ -117,13 +117,6 @@ export function WelcomeModal() {
                           'Your command center for running the property — bookings, rooms, guests, and payouts, all in one place.',
                         )}
                       </p>
-                      <div className="mt-4 rounded-md bg-[var(--surface-muted)] border border-[var(--border-default)] px-3 py-2.5">
-                        <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                          {t(
-                            'You’re exploring with sample data, so feel free to click around — nothing here is real yet.',
-                          )}
-                        </p>
-                      </div>
                     </>
                   ) : (
                     <>
