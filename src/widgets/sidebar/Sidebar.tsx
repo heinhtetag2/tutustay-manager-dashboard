@@ -131,7 +131,7 @@ function ProfileMenu({ collapsed }: { collapsed: boolean }) {
               Support
             </button>
             <div className="h-px bg-[var(--border-default)] mx-1 my-1" />
-            <button className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
+            <button onClick={() => go('/login')} className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
               <LogOut className="w-4 h-4" />
               Log out
             </button>
