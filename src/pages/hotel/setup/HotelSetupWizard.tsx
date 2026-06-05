@@ -1020,6 +1020,12 @@ function AgreementStep({ draft, set, t, showErrors, errors }: StepProps) {
 /* ----------------------- Completion screen ----------------------- */
 
 function SetupSuccess({ t, name, onClose }: { t: TFn; name: string; onClose: () => void }) {
+  // Let the celebration play, then head to the dashboard automatically — no button.
+  useEffect(() => {
+    const id = setTimeout(onClose, 2400);
+    return () => clearTimeout(id);
+  }, [onClose]);
+
   // A few celebratory sparkles around the check, each popping in with a stagger.
   const sparkles = [
     { x: -90, y: -40, s: 8, d: 0.45, c: 'var(--brand-primary)' },
@@ -1092,16 +1098,6 @@ function SetupSuccess({ t, name, onClose }: { t: TFn; name: string; onClose: () 
       >
         {name ? `${name} ${t('is set up and ready to take bookings. You can manage everything from your dashboard.')}` : t('Your property is set up and ready to take bookings. You can manage everything from your dashboard.')}
       </motion.p>
-      <motion.button
-        type="button"
-        onClick={onClose}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.55, duration: 0.4 }}
-        className="mt-8 inline-flex items-center justify-center px-12 py-3 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
-      >
-        {t('Go to dashboard')}
-      </motion.button>
     </motion.div>
   );
 }
