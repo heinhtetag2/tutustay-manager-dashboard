@@ -25,12 +25,14 @@ import RoomTypeDetail from '@/pages/hotel/RoomTypeDetail';
 import Help from '@/pages/help';
 import Settings from '@/pages/settings';
 import HotelSetupPage from '@/pages/hotel/setup/HotelSetupPage';
+import LoginPage from '@/pages/login/LoginPage';
 import SetupHub from '@/pages/setup-hub/SetupHub';
 import DesignSystemPage from '@/pages/design-system/DesignSystemPage';
 import NotFound from '@/pages/not-found';
 
 export const router = createBrowserRouter([
-  // Full-page hotel setup flow — outside the app shell (no sidebar).
+  // Full-page flows — outside the app shell (no sidebar).
+  { path: '/login', Component: LoginPage },
   { path: '/hotel/setup', Component: HotelSetupPage },
   {
     path: '/',
