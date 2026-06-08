@@ -6,7 +6,6 @@ import {
   Search,
   Plus,
   BedDouble,
-  KeyRound,
   CheckCircle,
   XCircle,
   Layers,
@@ -15,13 +14,16 @@ import {
   Trash2,
   AlertCircle,
   X,
+  Pencil,
+  ChevronRight,
+  ChevronDown,
+  DoorOpen,
 } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
 import { Portal } from '@/shared/ui/portal';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MultiSelect } from '@/shared/ui/multi-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
-import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
 import { useHotel } from './use-hotel';
 import { AMENITIES, formatPrice, totalBeds, emptyRoomType, type Room, type RoomType, type RoomStatus } from './hotel-data';
 import { RoomEditor, AmenityIcon } from './room-editors';
@@ -29,26 +31,8 @@ import { RoomTypeEditor } from './RoomTypeEditor';
 import { useOnboarding } from '@/widgets/onboarding';
 import { useRoomsTour, type PriceTab } from '@/widgets/onboarding/rooms-tour';
 
-type View = 'rooms' | 'types';
-
-const emptyRoomFilters = { amenity: [] as string[], status: 'All' as 'All' | RoomStatus, roomType: 'All', floor: 'All', occupancy: 'All' };
-const emptyTypeFilters = { amenity: [] as string[], occupancy: 'All' };
+const emptyRoomFilters = { amenity: [] as string[], status: 'All' as 'All' | RoomStatus, floor: 'All', occupancy: 'All' };
 const OCCUPANCY_OPTIONS = ['1', '2', '3', '4'];
-
-const ROOM_COLS: ColumnDef[] = [
-  { key: 'select', w: 48, min: 48, resizable: false },
-  { key: 'room', w: 300, min: 220 },
-  { key: 'capacity', w: 150, min: 120 },
-  { key: 'amenity', w: 200, min: 140 },
-  { key: 'price', w: 140, min: 110 },
-  { key: 'status', w: 120, min: 100 },
-];
-const TYPE_COLS: ColumnDef[] = [
-  { key: 'select', w: 48, min: 48, resizable: false },
-  { key: 'roomType', w: 320, min: 240 },
-  { key: 'pricing', w: 200, min: 160 },
-  { key: 'amenity', w: 220, min: 150 },
-];
 
 function statusStyles(status: RoomStatus) {
   return status === 'Active' ? 'bg-[var(--success-tint)] text-[var(--success)]' : 'bg-[var(--surface-subtle)] text-[var(--text-secondary)]';
@@ -100,24 +84,18 @@ function Amenities({ items }: { items: string[] }) {
 export default function Rooms() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { rooms, roomTypes, property, upsertRoom, upsertRoomType, removeRoom, removeRoomType } = useHotel();
+  const { rooms, roomTypes, property, upsertRoom, upsertRoomType, removeRoom } = useHotel();
   // New room types inherit the hotel's pricing defaults (configured in Settings).
   const newRoomType = () => ({ ...emptyRoomType(), weekendDays: [...property.defaultWeekendDays], sessionHours: property.defaultSessionHours });
-  const roomCols = useResizableColumns(ROOM_COLS);
-  const typeCols = useResizableColumns(TYPE_COLS);
 
-  const [view, setView] = useState<View>('rooms');
   const [search, setSearch] = useState('');
   const [roomFilters, setRoomFilters] = useState(emptyRoomFilters);
-  const [typeFilters, setTypeFilters] = useState(emptyTypeFilters);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [roomEditor, setRoomEditor] = useState<Room | null>(null);
   const [typeEditor, setTypeEditor] = useState<RoomType | null>(null);
   const [forcePriceTab, setForcePriceTab] = useState<PriceTab | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  const switchView = (v: View) => { setView(v); setSelected(new Set()); };
 
   const counts = {
     total: rooms.length,
@@ -126,47 +104,60 @@ export default function Rooms() {
     types: roomTypes.length,
   };
 
-  const roomFilterCount = (roomFilters.amenity.length ? 1 : 0) + (roomFilters.status !== 'All' ? 1 : 0) + (roomFilters.roomType !== 'All' ? 1 : 0) + (roomFilters.floor !== 'All' ? 1 : 0) + (roomFilters.occupancy !== 'All' ? 1 : 0);
-  const typeFilterCount = (typeFilters.amenity.length ? 1 : 0) + (typeFilters.occupancy !== 'All' ? 1 : 0);
-  const activeFilterCount = view === 'rooms' ? roomFilterCount : typeFilterCount;
+  const roomFilterCount = (roomFilters.amenity.length ? 1 : 0) + (roomFilters.status !== 'All' ? 1 : 0) + (roomFilters.floor !== 'All' ? 1 : 0) + (roomFilters.occupancy !== 'All' ? 1 : 0);
   const floors = Array.from(new Set(rooms.map((r) => r.floor))).sort((a, b) => a - b);
-  const roomTypeNames = Array.from(new Set(rooms.map((r) => r.typeName))).sort();
 
   const q = search.trim().toLowerCase();
-  const visibleRooms = rooms.filter((r) => {
+  const anyFilterActive = roomFilterCount > 0 || q !== '';
+
+  // A room passes the non-search filters (amenity / status / floor / occupancy).
+  const passNonSearch = (r: Room) => {
     if (roomFilters.amenity.length && !roomFilters.amenity.some((a) => r.amenities.includes(a))) return false;
     if (roomFilters.status !== 'All' && r.status !== roomFilters.status) return false;
-    if (roomFilters.roomType !== 'All' && r.typeName !== roomFilters.roomType) return false;
     if (roomFilters.floor !== 'All' && r.floor !== Number(roomFilters.floor)) return false;
     if (roomFilters.occupancy !== 'All' && r.occupancy < Number(roomFilters.occupancy)) return false;
-    if (q && !`${r.number} ${r.typeName} ${r.floor}`.toLowerCase().includes(q)) return false;
     return true;
-  });
-  const visibleTypes = roomTypes.filter((rt) => {
-    if (typeFilters.amenity.length && !typeFilters.amenity.some((a) => rt.amenities.includes(a))) return false;
-    if (typeFilters.occupancy !== 'All' && rt.occupancy < Number(typeFilters.occupancy)) return false;
-    if (q && !rt.name.toLowerCase().includes(q)) return false;
-    return true;
-  });
+  };
 
-  const clearFilters = () => (view === 'rooms' ? setRoomFilters(emptyRoomFilters) : setTypeFilters(emptyTypeFilters));
+  // Group rooms under their room type. A type group is shown when it has matching
+  // rooms, when nothing is being filtered (so empty types still invite a first
+  // room), or when the search matches the type's own name.
+  const groups = roomTypes
+    .map((rt) => {
+      const typeMatch = q !== '' && rt.name.toLowerCase().includes(q);
+      const visibleRooms = rooms.filter((r) => {
+        if (r.typeName !== rt.name) return false;
+        if (!passNonSearch(r)) return false;
+        if (q && !typeMatch && !`${r.number} ${r.floor}`.toLowerCase().includes(q)) return false;
+        return true;
+      });
+      return { rt, visibleRooms, typeMatch };
+    })
+    .filter((g) => g.visibleRooms.length > 0 || !anyFilterActive || g.typeMatch);
 
-  const visibleIds = (view === 'rooms' ? visibleRooms : visibleTypes).map((x) => x.id);
-  const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
-  const toggleAll = () => setSelected((prev) => {
-    const next = new Set(prev);
-    if (allSelected) visibleIds.forEach((id) => next.delete(id));
-    else visibleIds.forEach((id) => next.add(id));
-    return next;
-  });
+  // Orphan rooms whose type was removed — keep them reachable under "Other".
+  const orphanRooms = rooms.filter((r) => !roomTypes.some((rt) => rt.name === r.typeName) && passNonSearch(r) && (!q || `${r.number} ${r.floor} ${r.typeName}`.toLowerCase().includes(q)));
+
+  const allVisibleRoomIds = [...groups.flatMap((g) => g.visibleRooms.map((r) => r.id)), ...orphanRooms.map((r) => r.id)];
+  const totalVisibleRooms = allVisibleRoomIds.length;
+
+  const clearFilters = () => { setRoomFilters(emptyRoomFilters); setSearch(''); };
+
   const toggleOne = (id: string) => setSelected((prev) => {
     const next = new Set(prev);
     if (next.has(id)) next.delete(id); else next.add(id);
     return next;
   });
+  const groupAllSelected = (ids: string[]) => ids.length > 0 && ids.every((id) => selected.has(id));
+  const toggleGroup = (ids: string[]) => setSelected((prev) => {
+    const next = new Set(prev);
+    if (groupAllSelected(ids)) ids.forEach((id) => next.delete(id));
+    else ids.forEach((id) => next.add(id));
+    return next;
+  });
 
   const confirmBulkDelete = () => {
-    selected.forEach((id) => (view === 'rooms' ? removeRoom(id) : removeRoomType(id)));
+    selected.forEach((id) => removeRoom(id));
     setSelected(new Set());
     setBulkDeleting(false);
   };
@@ -179,15 +170,18 @@ export default function Rooms() {
   ];
 
   const emptyRoom = (): Room => ({ id: '', floor: 1, number: '', typeName: roomTypes[0]?.name ?? '', beds: 1, occupancy: 2, amenities: [], price: roomTypes[0]?.regularPrice ?? 0, status: 'Active' });
+  // Pre-bind a new room to a specific type so "Add room" inside a group inherits its pricing.
+  const emptyRoomOfType = (rt: RoomType): Room => ({ ...emptyRoom(), typeName: rt.name, occupancy: rt.occupancy, price: rt.regularPrice });
 
   // Guided "create a room type → add a room" flow (drives the editors below).
+  // The grouped view has no tabs, so the tab-switch actions are no-ops.
   const tour = useRoomsTour({
     openTypeEditor: () => setTypeEditor((p) => p ?? newRoomType()),
     closeTypeEditor: () => setTypeEditor(null),
     openRoomEditor: () => setRoomEditor((p) => p ?? emptyRoom()),
     closeRoomEditor: () => setRoomEditor(null),
-    showRoomsTab: () => switchView('rooms'),
-    showTypesTab: () => switchView('types'),
+    showRoomsTab: () => {},
+    showTypesTab: () => {},
     setPriceTab: setForcePriceTab,
   });
 
@@ -205,31 +199,7 @@ export default function Rooms() {
     return () => window.clearTimeout(id);
   }, [welcomeOpen, globalTour, roomsTourSeen, markRoomsTourSeen]);
 
-  const typePhoto = (name: string) => roomTypes.find((rt) => rt.name === name)?.photos[0];
-  const ROOM_LABELS: Record<string, string> = { select: '', room: t('Room'), capacity: t('Capacity'), amenity: t('Amenity'), price: t('Price'), status: t('Status') };
-  const TYPE_LABELS: Record<string, string> = { select: '', roomType: t('Room Type'), pricing: t('Pricing'), amenity: t('Amenity') };
-
-  const renderHeader = (cols: ColumnDef[], labels: Record<string, string>, onResizeStart: (k: string, e: React.PointerEvent) => void) => (
-    <tr className="group/head border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium select-none">
-      {cols.map((c, i) => (
-        <th key={c.key} className={`group/col relative py-4 font-medium text-[11px] tracking-wider uppercase transition-colors hover:bg-[var(--surface-subtle)] ${c.key === 'select' ? 'pl-6 pr-3' : 'px-6'}`}>
-          {i > 0 && <ColLeftDivider />}
-          {c.key === 'select' ? (
-            <input type="checkbox" checked={allSelected} onChange={toggleAll} className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer align-middle" aria-label={t('Select all')} />
-          ) : (
-            <span className="block truncate">{labels[c.key]}</span>
-          )}
-          {c.resizable !== false && <ColResizeHandle onPointerDown={(e) => onResizeStart(c.key, e)} />}
-        </th>
-      ))}
-    </tr>
-  );
-
-  const SelectCell = ({ id }: { id: string }) => (
-    <td className="pl-6 pr-3 py-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
-      <input type="checkbox" checked={selected.has(id)} onChange={() => toggleOne(id)} className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer align-middle" aria-label={t('Select row')} />
-    </td>
-  );
+  const hasTypes = roomTypes.length > 0;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)] min-h-full">
@@ -237,41 +207,14 @@ export default function Rooms() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Rooms')}</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Set up your room types, nightly rates, and every individual room.')}</p>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Each room belongs to a room type, which sets its price, beds and amenities. Create a type, then add rooms to it.')}</p>
         </div>
         <div className="flex items-center gap-3">
-          <button data-tour="rooms-add" onClick={() => (view === 'rooms' ? setRoomEditor(emptyRoom()) : setTypeEditor(newRoomType()))} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
+          <button data-tour="rooms-add" onClick={() => setTypeEditor(newRoomType())} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
             <Plus className="w-4 h-4" />
-            {view === 'rooms' ? t('Add Room') : t('Add Room Type')}
+            {t('Add room type')}
           </button>
         </div>
-      </div>
-
-      {/* Primary view tabs */}
-      <div data-tour="rooms-tabs" className="border-b border-[var(--border-default)] mb-2">
-        <nav className="flex gap-8" aria-label={t('Rooms views')}>
-          {(['rooms', 'types'] as const).map((v) => {
-            const Icon = v === 'rooms' ? KeyRound : Layers;
-            return (
-              <button
-                key={v}
-                onClick={() => switchView(v)}
-                aria-current={view === v ? 'page' : undefined}
-                className={`relative -mb-px pb-3 inline-flex items-center gap-2 text-sm font-medium transition-colors cursor-pointer border-b-2 ${
-                  view === v
-                    ? 'text-[var(--text-primary)] border-[var(--brand-primary)]'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-transparent'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {v === 'rooms' ? t('Rooms') : t('Room Types')}
-                <span className="font-normal text-[var(--text-tertiary)] tabular-nums">
-                  ({v === 'rooms' ? rooms.length : roomTypes.length})
-                </span>
-              </button>
-            );
-          })}
-        </nav>
       </div>
 
       {/* KPI cards */}
@@ -288,69 +231,51 @@ export default function Rooms() {
         ))}
       </div>
 
-      {/* Toolbar — desktop (sm+) */}
-      <div className="hidden sm:flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
-        <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'rooms' ? t('Search rooms...') : t('Search room types...')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
-        </div>
-
-        <div className="flex gap-3 flex-wrap items-center">
-          {view === 'rooms' ? (
-            <>
+      {hasTypes && (
+        <>
+          {/* Toolbar — desktop (sm+) */}
+          <div className="hidden sm:flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+            <div className="relative flex-1 max-w-sm w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search rooms or types...')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
+            </div>
+            <div className="flex gap-3 flex-wrap items-center">
               <MultiSelect values={roomFilters.amenity} onChange={(v) => setRoomFilters((f) => ({ ...f, amenity: v }))} options={[...AMENITIES]} placeholder={t('Any amenity')} searchPlaceholder={t('Search amenity')} leftIcon={<Layers />} className="sm:w-auto min-w-[170px]" />
               <BrandSelect value={roomFilters.status} onValueChange={(v) => setRoomFilters((f) => ({ ...f, status: v as 'All' | RoomStatus }))} leftIcon={<CheckCircle />} className="sm:w-auto" options={[{ value: 'All', label: t('All Statuses') }, { value: 'Active', label: t('Active') }, { value: 'Inactive', label: t('Inactive') }]} />
-              <BrandSelect value={roomFilters.roomType} onValueChange={(v) => setRoomFilters((f) => ({ ...f, roomType: v }))} leftIcon={<BedDouble />} className="sm:w-auto" options={[{ value: 'All', label: t('All room types') }, ...roomTypeNames.map((n) => ({ value: n, label: t(n) }))]} />
               <BrandSelect value={roomFilters.floor} onValueChange={(v) => setRoomFilters((f) => ({ ...f, floor: v }))} leftIcon={<Building />} className="sm:w-auto" options={[{ value: 'All', label: t('All floors') }, ...floors.map((fl) => ({ value: String(fl), label: `${t('Floor')} ${fl}` }))]} />
               <BrandSelect value={roomFilters.occupancy} onValueChange={(v) => setRoomFilters((f) => ({ ...f, occupancy: v }))} leftIcon={<Users />} className="sm:w-auto" options={[{ value: 'All', label: t('Any occupancy') }, ...OCCUPANCY_OPTIONS.map((o) => ({ value: o, label: `${o}+ ${t('guests')}` }))]} />
-            </>
-          ) : (
-            <>
-              <MultiSelect values={typeFilters.amenity} onChange={(v) => setTypeFilters((f) => ({ ...f, amenity: v }))} options={[...AMENITIES]} placeholder={t('Any amenity')} searchPlaceholder={t('Search amenity')} leftIcon={<Layers />} className="sm:w-auto min-w-[170px]" />
-              <BrandSelect value={typeFilters.occupancy} onValueChange={(v) => setTypeFilters((f) => ({ ...f, occupancy: v }))} leftIcon={<Users />} className="sm:w-auto" options={[{ value: 'All', label: t('Any occupancy') }, ...OCCUPANCY_OPTIONS.map((o) => ({ value: o, label: `${o}+ ${t('guests')}` }))]} />
-            </>
-          )}
-          {activeFilterCount > 0 && (
-            <button onClick={clearFilters} className="flex items-center justify-center w-9 h-9 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-full transition-colors border border-transparent hover:border-[var(--border-default)] cursor-pointer flex-shrink-0" title={t('Clear filters')}>
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
+              {anyFilterActive && (
+                <button onClick={clearFilters} className="flex items-center justify-center w-9 h-9 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-full transition-colors border border-transparent hover:border-[var(--border-default)] cursor-pointer flex-shrink-0" title={t('Clear filters')}>
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
 
-      {/* Toolbar — mobile (search + Filters sheet trigger + companion select) */}
-      <div className="sm:hidden flex flex-col gap-3 mb-6">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'rooms' ? t('Search rooms...') : t('Search room types...')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
-        </div>
-        <div className="flex gap-2">
-          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
-          {view === 'rooms' ? (
-            <BrandSelect value={roomFilters.status} onValueChange={(v) => setRoomFilters((f) => ({ ...f, status: v as 'All' | RoomStatus }))} leftIcon={<CheckCircle />} className="flex-1" options={[{ value: 'All', label: t('All Statuses') }, { value: 'Active', label: t('Active') }, { value: 'Inactive', label: t('Inactive') }]} />
-          ) : (
-            <BrandSelect value={typeFilters.occupancy} onValueChange={(v) => setTypeFilters((f) => ({ ...f, occupancy: v }))} leftIcon={<Users />} className="flex-1" options={[{ value: 'All', label: t('Any occupancy') }, ...OCCUPANCY_OPTIONS.map((o) => ({ value: o, label: `${o}+ ${t('guests')}` }))]} />
-          )}
-        </div>
-      </div>
+          {/* Toolbar — mobile (search + Filters sheet trigger + status select) */}
+          <div className="sm:hidden flex flex-col gap-3 mb-6">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search rooms or types...')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
+            </div>
+            <div className="flex gap-2">
+              <MobileFilterButton count={roomFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+              <BrandSelect value={roomFilters.status} onValueChange={(v) => setRoomFilters((f) => ({ ...f, status: v as 'All' | RoomStatus }))} leftIcon={<CheckCircle />} className="flex-1" options={[{ value: 'All', label: t('All Statuses') }, { value: 'Active', label: t('Active') }, { value: 'Inactive', label: t('Inactive') }]} />
+            </div>
+          </div>
 
-      {/* Mobile filter sheet */}
-      <MobileFilterSheet
-        open={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
-        onClear={clearFilters}
-        onApply={() => setIsFilterOpen(false)}
-        title={t('Filters')}
-        clearLabel={t('Clear all')}
-        applyLabel={t('Show results')}
-      >
-        {view === 'rooms' ? (
-          <>
+          {/* Mobile filter sheet */}
+          <MobileFilterSheet
+            open={isFilterOpen}
+            onClose={() => setIsFilterOpen(false)}
+            onClear={clearFilters}
+            onApply={() => setIsFilterOpen(false)}
+            title={t('Filters')}
+            clearLabel={t('Clear all')}
+            applyLabel={t('Show results')}
+          >
             <FilterField label={t('Amenity')}>
               <MultiSelect values={roomFilters.amenity} onChange={(v) => setRoomFilters((f) => ({ ...f, amenity: v }))} options={[...AMENITIES]} placeholder={t('Any amenity')} searchPlaceholder={t('Search amenity')} leftIcon={<Layers />} className="w-full" />
-            </FilterField>
-            <FilterField label={t('Room Type')}>
-              <BrandSelect value={roomFilters.roomType} onValueChange={(v) => setRoomFilters((f) => ({ ...f, roomType: v }))} leftIcon={<BedDouble />} className="w-full" options={[{ value: 'All', label: t('All room types') }, ...roomTypeNames.map((n) => ({ value: n, label: t(n) }))]} />
             </FilterField>
             <FilterField label={t('Floor')}>
               <BrandSelect value={roomFilters.floor} onValueChange={(v) => setRoomFilters((f) => ({ ...f, floor: v }))} leftIcon={<Building />} className="w-full" options={[{ value: 'All', label: t('All floors') }, ...floors.map((fl) => ({ value: String(fl), label: `${t('Floor')} ${fl}` }))]} />
@@ -358,13 +283,9 @@ export default function Rooms() {
             <FilterField label={t('Occupancy')}>
               <BrandSelect value={roomFilters.occupancy} onValueChange={(v) => setRoomFilters((f) => ({ ...f, occupancy: v }))} leftIcon={<Users />} className="w-full" options={[{ value: 'All', label: t('Any occupancy') }, ...OCCUPANCY_OPTIONS.map((o) => ({ value: o, label: `${o}+ ${t('guests')}` }))]} />
             </FilterField>
-          </>
-        ) : (
-          <FilterField label={t('Amenity')}>
-            <MultiSelect values={typeFilters.amenity} onChange={(v) => setTypeFilters((f) => ({ ...f, amenity: v }))} options={[...AMENITIES]} placeholder={t('Any amenity')} searchPlaceholder={t('Search amenity')} leftIcon={<Layers />} className="w-full" />
-          </FilterField>
-        )}
-      </MobileFilterSheet>
+          </MobileFilterSheet>
+        </>
+      )}
 
       {/* Bulk selection bar */}
       <AnimatePresence initial={false}>
@@ -383,125 +304,74 @@ export default function Rooms() {
         )}
       </AnimatePresence>
 
-      {/* Table */}
-      <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
-        {/* Desktop: full data table (hidden on mobile) */}
-        <div className="hidden md:block overflow-x-auto">
-          {view === 'rooms' ? (
-            <table className="text-left text-sm whitespace-nowrap table-fixed" style={{ minWidth: '100%' }}>
-              <colgroup>{ROOM_COLS.map((c) => <col key={c.key} style={{ width: roomCols.widths[c.key] }} />)}</colgroup>
-              <thead>{renderHeader(ROOM_COLS, ROOM_LABELS, roomCols.onResizeStart)}</thead>
-              <tbody className="divide-y divide-[var(--surface-subtle)]">
-                {visibleRooms.length === 0 ? (
-                  <tr><td colSpan={ROOM_COLS.length} className="px-6 py-12 text-center text-[var(--text-secondary)]">{rooms.length === 0 ? (roomTypes.length === 0 ? t('No rooms yet. Create a room type first, then add rooms of that type.') : t('No rooms yet. Use “Add Room” to add bookable rooms of a type.')) : t('No rooms match these filters.')}</td></tr>
-                ) : visibleRooms.map((r, i) => (
-                  <motion.tr key={r.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: i * 0.02 }} onClick={() => navigate(`/hotel/rooms/${r.id}`)} className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer">
-                    <SelectCell id={r.id} />
-                    {/* Room: photo + number + floor·type */}
-                    <td className="px-6 py-4 overflow-hidden">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Thumb src={typePhoto(r.typeName)} label={r.typeName} />
-                        <div className="min-w-0">
-                          <div className="font-medium text-[var(--text-primary)] tabular-nums truncate">{t('Room')} {r.number}</div>
-                          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{t('Floor')} {r.floor} · {r.typeName}</div>
-                        </div>
-                      </div>
-                    </td>
-                    {/* Capacity */}
-                    <td className="px-6 py-4 text-[var(--text-tertiary)]">
-                      <span className="tabular-nums">{r.beds} {r.beds === 1 ? t('bed') : t('beds')} · {r.occupancy} {t('guests')}</span>
-                    </td>
-                    <td className="px-6 py-4 overflow-hidden"><Amenities items={r.amenities} /></td>
-                    <td className="px-6 py-4 text-[var(--text-primary)] tabular-nums font-medium">{formatPrice(r.price)}</td>
-                    <td className="px-6 py-4"><span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusStyles(r.status)}`}>{t(r.status)}</span></td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <table className="text-left text-sm whitespace-nowrap table-fixed" style={{ minWidth: '100%' }}>
-              <colgroup>{TYPE_COLS.map((c) => <col key={c.key} style={{ width: typeCols.widths[c.key] }} />)}</colgroup>
-              <thead>{renderHeader(TYPE_COLS, TYPE_LABELS, typeCols.onResizeStart)}</thead>
-              <tbody className="divide-y divide-[var(--surface-subtle)]">
-                {visibleTypes.length === 0 ? (
-                  <tr><td colSpan={TYPE_COLS.length} className="px-6 py-12 text-center text-[var(--text-secondary)]">{roomTypes.length === 0 ? t('No room types yet. Create your first room type to start pricing rooms.') : t('No room types found.')}</td></tr>
-                ) : visibleTypes.map((rt, i) => (
-                  <motion.tr key={rt.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: i * 0.02 }} onClick={() => navigate(`/hotel/room-types/${rt.id}`)} className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer">
-                    <SelectCell id={rt.id} />
-                    {/* Room type: photo + name + beds·sleeps */}
-                    <td className="px-6 py-4 overflow-hidden">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Thumb src={rt.photos[0]} label={rt.name} size="w-11 h-11" />
-                        <div className="min-w-0">
-                          <div className="font-medium text-[var(--text-primary)] truncate">{rt.name}</div>
-                          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5 tabular-nums">{totalBeds(rt)} {totalBeds(rt) === 1 ? t('bed') : t('beds')} · {rt.occupancy} {t('guests')}</div>
-                        </div>
-                      </div>
-                    </td>
-                    {/* Pricing: regular + weekend/session */}
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-[var(--text-primary)] tabular-nums">{formatPrice(rt.regularPrice)}</div>
-                      <div className="text-xs text-[var(--text-secondary)] tabular-nums mt-0.5">
-                        {rt.weekendEnabled ? `${t('Wknd')} ${formatPrice(rt.weekendPrice)}` : t('No weekend')}
-                        {rt.sessionEnabled ? ` · ${t('Sess')} ${formatPrice(rt.sessionPrice)}` : ''}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 overflow-hidden"><Amenities items={rt.amenities} /></td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+      {/* Empty: no room types at all — the guided first step. */}
+      {!hasTypes ? (
+        <div className="bg-white rounded-md border border-[var(--border-default)] shadow-none px-6 py-16 flex flex-col items-center text-center">
+          <div className="w-12 h-12 rounded-full bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center mb-4"><Layers className="w-6 h-6" /></div>
+          <h2 className="text-lg font-medium text-[var(--text-primary)]">{t('Start by creating a room type')}</h2>
+          <p className="text-sm text-[var(--text-secondary)] mt-1.5 max-w-md">{t('A room type is a reusable template — it sets the price, beds and amenities. Once you have one, you can add individual rooms to it.')}</p>
+          <button onClick={() => setTypeEditor(newRoomType())} className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer">
+            <Plus className="w-4 h-4" />{t('Create a room type')}
+          </button>
         </div>
-
-        {/* Mobile: stacked cards (hidden on desktop) */}
-        <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
-          {view === 'rooms' ? (
-            visibleRooms.length === 0 ? (
-              <div className="px-6 py-12 text-center text-[var(--text-secondary)]">{rooms.length === 0 ? (roomTypes.length === 0 ? t('No rooms yet. Create a room type first, then add rooms of that type.') : t('No rooms yet. Use “Add Room” to add bookable rooms of a type.')) : t('No rooms match these filters.')}</div>
-            ) : (
-              visibleRooms.map((r, i) => (
-                <RoomCard
-                  key={r.id}
-                  room={r}
-                  index={i}
-                  photoSrc={typePhoto(r.typeName)}
-                  selected={selected.has(r.id)}
-                  onToggle={() => toggleOne(r.id)}
-                  onOpen={() => navigate(`/hotel/rooms/${r.id}`)}
-                  t={t}
-                />
-              ))
-            )
-          ) : visibleTypes.length === 0 ? (
-            <div className="px-6 py-12 text-center text-[var(--text-secondary)]">{roomTypes.length === 0 ? t('No room types yet. Create your first room type to start pricing rooms.') : t('No room types found.')}</div>
-          ) : (
-            visibleTypes.map((rt, i) => (
-              <RoomTypeCard
-                key={rt.id}
-                type={rt}
-                index={i}
-                selected={selected.has(rt.id)}
-                onToggle={() => toggleOne(rt.id)}
-                onOpen={() => navigate(`/hotel/room-types/${rt.id}`)}
+      ) : groups.length === 0 && orphanRooms.length === 0 ? (
+        <div className="bg-white rounded-md border border-[var(--border-default)] shadow-none px-6 py-16 text-center text-[var(--text-secondary)]">
+          {t('No rooms or types match these filters.')}
+          <div className="mt-3"><button onClick={clearFilters} className="text-sm font-medium text-[var(--brand-primary)] hover:underline cursor-pointer">{t('Clear filters')}</button></div>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {groups.map((g, gi) => {
+            const ids = g.visibleRooms.map((r) => r.id);
+            return (
+              <RoomTypeGroup
+                key={g.rt.id}
+                rt={g.rt}
+                rooms={g.visibleRooms}
+                index={gi}
+                allSelected={groupAllSelected(ids)}
+                someSelected={ids.some((id) => selected.has(id))}
+                isSelected={(id) => selected.has(id)}
+                onToggleGroup={() => toggleGroup(ids)}
+                onToggleRoom={toggleOne}
+                onOpenType={() => navigate(`/hotel/room-types/${g.rt.id}`)}
+                onOpenRoom={(id) => navigate(`/hotel/rooms/${id}`)}
+                onAddRoom={() => setRoomEditor(emptyRoomOfType(g.rt))}
+                addRoomTourId={gi === 0 ? 'rooms-add-room' : undefined}
                 t={t}
               />
-            ))
-          )}
-        </div>
+            );
+          })}
 
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
-          <span className="text-sm text-[var(--text-secondary)]">{view === 'rooms' ? `${visibleRooms.length} ${t('rooms')}` : `${visibleTypes.length} ${t('room types')}`}</span>
+          {/* Orphan rooms whose type was deleted */}
+          {orphanRooms.length > 0 && (
+            <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
+              <div className="px-5 py-3 border-b border-[var(--surface-subtle)] bg-[var(--surface-subtle)]/40">
+                <span className="text-sm font-medium text-[var(--text-primary)]">{t('Other rooms')}</span>
+                <span className="ml-2 text-xs text-[var(--text-tertiary)]">{t('No matching room type')}</span>
+              </div>
+              <div className="divide-y divide-[var(--surface-subtle)]">
+                {orphanRooms.map((r, i) => (
+                  <RoomRow key={r.id} room={r} index={i} selected={selected.has(r.id)} onToggle={() => toggleOne(r.id)} onOpen={() => navigate(`/hotel/rooms/${r.id}`)} t={t} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Footer count + create-type affordance */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-1 pt-1">
+            <span className="text-sm text-[var(--text-secondary)] tabular-nums">{totalVisibleRooms} {totalVisibleRooms === 1 ? t('room') : t('rooms')} · {groups.length} {groups.length === 1 ? t('type') : t('types')}</span>
+            <button onClick={() => setTypeEditor(newRoomType())} className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-[var(--brand-primary)] bg-white border border-[var(--border-default)] hover:border-[var(--brand-primary)] hover:bg-[var(--brand-tint)] transition-colors cursor-pointer">
+              <Plus className="w-4 h-4" />{t('Create a new room type')}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Editors */}
       <AnimatePresence>
         {roomEditor && <RoomEditor initial={roomEditor} roomTypes={roomTypes} hideBackdrop={tour.active} onClose={() => setRoomEditor(null)} onSave={(r) => { upsertRoom(r.id ? r : { ...r, id: `rm-${Date.now()}` }); setRoomEditor(null); }} />}
         {typeEditor && <RoomTypeEditor initial={typeEditor} forcePriceTab={forcePriceTab} hideBackdrop={tour.active} onClose={() => setTypeEditor(null)} onSave={(rt) => { upsertRoomType(rt); setTypeEditor(null); }} />}
-      </AnimatePresence>
-
-      <AnimatePresence>
       </AnimatePresence>
 
       {/* Bulk delete confirm */}
@@ -510,7 +380,7 @@ export default function Rooms() {
           {bulkDeleting && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-[var(--text-primary)]/30 flex items-center justify-center z-50 p-4" onClick={() => setBulkDeleting(false)}>
               <motion.div initial={{ scale: 0.95, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 10 }} transition={{ type: 'spring', duration: 0.3 }} className="bg-white rounded-md w-full max-w-sm shadow-none border border-[var(--surface-subtle)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                <div className="px-6 py-4 border-b border-[var(--surface-subtle)]"><h2 className="text-lg font-medium text-[var(--text-primary)]">{t('Delete')} {selected.size} {view === 'rooms' ? t('rooms') : t('room types')}?</h2></div>
+                <div className="px-6 py-4 border-b border-[var(--surface-subtle)]"><h2 className="text-lg font-medium text-[var(--text-primary)]">{t('Delete')} {selected.size} {selected.size === 1 ? t('room') : t('rooms')}?</h2></div>
                 <div className="p-6">
                   <p className="text-sm text-[var(--text-tertiary)] leading-relaxed">{t('This permanently removes the selected records. This action cannot be undone.')}</p>
                   <p className="mt-4 text-[var(--danger)] text-xs font-medium flex items-center gap-1.5"><AlertCircle className="w-4 h-4" />{t('This action cannot be undone.')}</p>
@@ -531,93 +401,141 @@ export default function Rooms() {
   );
 }
 
-function RoomCard({ room: r, index, photoSrc, selected, onToggle, onOpen, t }: { room: Room; index: number; photoSrc?: string; selected: boolean; onToggle: () => void; onOpen: () => void; t: (k: string) => string }) {
+/** One room-type section: header (type summary + actions) with its rooms nested beneath. Collapsible. */
+function RoomTypeGroup({
+  rt, rooms, index, allSelected, someSelected, isSelected, onToggleGroup, onToggleRoom, onOpenType, onOpenRoom, onAddRoom, addRoomTourId, t,
+}: {
+  rt: RoomType;
+  rooms: Room[];
+  index: number;
+  allSelected: boolean;
+  someSelected: boolean;
+  isSelected: (id: string) => boolean;
+  onToggleGroup: () => void;
+  onToggleRoom: (id: string) => void;
+  onOpenType: () => void;
+  onOpenRoom: (id: string) => void;
+  onAddRoom: () => void;
+  addRoomTourId?: string;
+  t: (k: string) => string;
+}) {
+  const [open, setOpen] = useState(true);
   return (
-    <motion.div
+    <motion.section
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, delay: index * 0.02 }}
-      onClick={onOpen}
-      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+      transition={{ duration: 0.25, delay: index * 0.04 }}
+      className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none"
     >
-      {/* Identity row */}
-      <div className="flex items-center gap-3">
+      {/* Type header */}
+      <div className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3.5 bg-[var(--surface-subtle)]/40 ${open ? 'border-b border-[var(--surface-subtle)]' : ''}`}>
+        {/* Collapse / expand toggle */}
+        <button
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-label={open ? t('Collapse') : t('Expand')}
+          className="flex items-center justify-center w-6 h-6 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer shrink-0"
+        >
+          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${open ? '' : '-rotate-90'}`} />
+        </button>
         <input
           type="checkbox"
-          checked={selected}
-          onChange={onToggle}
-          onClick={(e) => e.stopPropagation()}
-          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0"
-          aria-label={t('Select row')}
+          checked={allSelected}
+          ref={(el) => { if (el) el.indeterminate = !allSelected && someSelected; }}
+          onChange={onToggleGroup}
+          disabled={rooms.length === 0}
+          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label={t('Select all rooms of this type')}
         />
-        <Thumb src={photoSrc} label={r.typeName} />
-        <div className="min-w-0 flex-1">
-          <div className="font-medium text-[var(--text-primary)] tabular-nums truncate">{t('Room')} {r.number}</div>
-          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{t('Floor')} {r.floor} · {r.typeName}</div>
+        <button onClick={onOpenType} className="flex items-center gap-3 min-w-0 flex-1 text-left cursor-pointer group">
+          <Thumb src={rt.photos[0]} label={rt.name} size="w-11 h-11" />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--brand-primary)] transition-colors">{rt.name}</span>
+              <span className="text-[11px] font-normal text-[var(--text-tertiary)] tabular-nums">· {rooms.length} {rooms.length === 1 ? t('room') : t('rooms')}</span>
+            </div>
+            <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5 tabular-nums">
+              {formatPrice(rt.regularPrice)}
+              <span className="text-[var(--text-tertiary)]"> · {totalBeds(rt)} {totalBeds(rt) === 1 ? t('bed') : t('beds')} · {rt.occupancy} {t('guests')}</span>
+            </div>
+          </div>
+        </button>
+        {/* Amenities (hidden on small) */}
+        <div className="hidden lg:block shrink-0"><Amenities items={rt.amenities} /></div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button onClick={onOpenType} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer" title={t('Edit type')}>
+            <Pencil className="w-3.5 h-3.5" /><span className="hidden sm:inline">{t('Edit type')}</span>
+          </button>
+          <button data-tour={addRoomTourId} onClick={onAddRoom} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[var(--brand-primary)] bg-[var(--brand-tint)] border border-[var(--brand-border)] rounded-md hover:bg-[var(--brand-primary)] hover:text-white transition-colors cursor-pointer">
+            <Plus className="w-3.5 h-3.5" />{t('Add room')}
+          </button>
         </div>
-        <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${statusStyles(r.status)}`}>{t(r.status)}</span>
       </div>
 
-      {/* Detail grid */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-7">
-        <div>
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Capacity')}</div>
-          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5">{r.beds} {r.beds === 1 ? t('bed') : t('beds')} · {r.occupancy} {t('guests')}</div>
-        </div>
-        <div>
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Price')}</div>
-          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatPrice(r.price)}</div>
-        </div>
-        <div className="col-span-2 min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Amenity')}</div>
-          <div className="mt-1"><Amenities items={r.amenities} /></div>
-        </div>
-      </div>
-    </motion.div>
+      {/* Rooms of this type (collapsible) */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            {rooms.length === 0 ? (
+              <div className="px-5 py-8 flex flex-col items-center text-center">
+                <DoorOpen className="w-6 h-6 text-[var(--text-tertiary)] mb-2" strokeWidth={1.5} />
+                <p className="text-sm text-[var(--text-secondary)]">{t('No rooms of this type yet.')}</p>
+                <button onClick={onAddRoom} className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] hover:underline cursor-pointer">
+                  <Plus className="w-4 h-4" />{t('Add the first room')}
+                </button>
+              </div>
+            ) : (
+              <div className="divide-y divide-[var(--surface-subtle)]">
+                {rooms.map((r, i) => (
+                  <RoomRow key={r.id} room={r} index={i} selected={isSelected(r.id)} onToggle={() => onToggleRoom(r.id)} onOpen={() => onOpenRoom(r.id)} t={t} />
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.section>
   );
 }
 
-function RoomTypeCard({ type: rt, index, selected, onToggle, onOpen, t }: { type: RoomType; index: number; selected: boolean; onToggle: () => void; onOpen: () => void; t: (k: string) => string }) {
+/** A single room row, nested under its type. Responsive: inline on desktop, stacked on mobile. */
+function RoomRow({ room: r, index, selected, onToggle, onOpen, t }: { room: Room; index: number; selected: boolean; onToggle: () => void; onOpen: () => void; t: (k: string) => string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.02 }}
       onClick={onOpen}
-      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+      className="flex items-center gap-3 px-4 sm:px-5 py-3 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
     >
-      {/* Identity row */}
-      <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          checked={selected}
-          onChange={onToggle}
-          onClick={(e) => e.stopPropagation()}
-          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0"
-          aria-label={t('Select row')}
-        />
-        <Thumb src={rt.photos[0]} label={rt.name} size="w-11 h-11" />
-        <div className="min-w-0 flex-1">
-          <div className="font-medium text-[var(--text-primary)] truncate">{rt.name}</div>
-          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5 tabular-nums">{totalBeds(rt)} {totalBeds(rt) === 1 ? t('bed') : t('beds')} · {rt.occupancy} {t('guests')}</div>
-        </div>
+      <input
+        type="checkbox"
+        checked={selected}
+        onChange={onToggle}
+        onClick={(e) => e.stopPropagation()}
+        className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0"
+        aria-label={t('Select room')}
+      />
+      {/* Room identity */}
+      <div className="min-w-0 flex-1 sm:flex-none sm:w-44">
+        <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums truncate">{t('Room')} {r.number}</div>
+        <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{t('Floor')} {r.floor}</div>
       </div>
-
-      {/* Detail grid */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-7">
-        <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Pricing')}</div>
-          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatPrice(rt.regularPrice)}</div>
-          <div className="text-xs text-[var(--text-secondary)] tabular-nums mt-0.5">
-            {rt.weekendEnabled ? `${t('Wknd')} ${formatPrice(rt.weekendPrice)}` : t('No weekend')}
-            {rt.sessionEnabled ? ` · ${t('Sess')} ${formatPrice(rt.sessionPrice)}` : ''}
-          </div>
-        </div>
-        <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Amenity')}</div>
-          <div className="mt-1"><Amenities items={rt.amenities} /></div>
-        </div>
-      </div>
+      {/* Capacity (sm+) */}
+      <div className="hidden sm:block text-sm text-[var(--text-tertiary)] tabular-nums w-40 shrink-0">{r.beds} {r.beds === 1 ? t('bed') : t('beds')} · {r.occupancy} {t('guests')}</div>
+      {/* Amenities (md+) */}
+      <div className="hidden md:block flex-1 min-w-0"><Amenities items={r.amenities} /></div>
+      {/* Price */}
+      <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums shrink-0 w-20 sm:w-24 text-right sm:text-left">{formatPrice(r.price)}</div>
+      {/* Status */}
+      <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${statusStyles(r.status)}`}>{t(r.status)}</span>
+      <ChevronRight className="w-4 h-4 text-[var(--text-tertiary)] shrink-0 hidden sm:block" />
     </motion.div>
   );
 }

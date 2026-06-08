@@ -63,12 +63,12 @@ const STEPS: Step[] = [
     enter: (a) => { a.openTypeEditor(); a.setPriceTab('regular'); },
   },
   {
-    target: '[data-tour="rooms-add"]',
+    target: '[data-tour="rooms-add-room"]',
     title: 'Now add a room',
-    body: 'Switch to Rooms and create a physical room (e.g. Room 201) of the type you just made.',
-    placement: 'bottom',
+    body: 'Each room type has its own “Add room” button. Add a physical room (e.g. Room 201) to the type you just created — it lives right under that type.',
+    placement: 'left',
     nextLabel: 'Add a room',
-    enter: (a) => { a.closeTypeEditor(); a.showRoomsTab(); a.closeRoomEditor(); },
+    enter: (a) => { a.closeTypeEditor(); a.closeRoomEditor(); },
   },
   {
     target: '[data-tour="room-type-field"]',
@@ -76,7 +76,7 @@ const STEPS: Step[] = [
     body: 'Pick the room type here — the room automatically inherits its price, beds and amenities. That’s it!',
     placement: 'left',
     nextLabel: 'Finish',
-    enter: (a) => { a.showRoomsTab(); a.openRoomEditor(); },
+    enter: (a) => { a.openRoomEditor(); },
   },
 ];
 

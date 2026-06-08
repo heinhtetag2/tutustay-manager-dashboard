@@ -129,10 +129,11 @@ export default function Settlements() {
     { value: '1to3m', label: t('1M – 3M') },
     { value: 'gt3m', label: t('Over 3M') },
   ];
-  const datePresets = ['This month', 'Last 30 days', 'Last 90 days', 'This year', 'Custom date range'];
+  const datePresets = ['Today', 'This month', 'Last 30 days', 'Last 90 days', 'This year', 'Custom date range'];
   const applyDatePreset = (preset: string) => {
     setSelectedPreset(preset);
-    if (preset === 'This month') setDateRange({ from: startOfMonth(NOW), to: endOfMonth(NOW) });
+    if (preset === 'Today') setDateRange({ from: NOW, to: NOW });
+    else if (preset === 'This month') setDateRange({ from: startOfMonth(NOW), to: endOfMonth(NOW) });
     else if (preset === 'Last 30 days') setDateRange({ from: subDays(NOW, 30), to: NOW });
     else if (preset === 'Last 90 days') setDateRange({ from: subDays(NOW, 90), to: NOW });
     else if (preset === 'This year') setDateRange({ from: new Date('2026-01-01'), to: new Date('2026-12-31') });

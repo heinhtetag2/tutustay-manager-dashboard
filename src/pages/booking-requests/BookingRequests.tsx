@@ -82,10 +82,11 @@ export default function BookingRequests() {
     { value: 'checkin', label: t('Check-in soonest') },
     { value: 'amount', label: t('Highest amount') },
   ];
-  const datePresets = ['Next 7 days', 'Next 30 days', 'Next 90 days', 'Past 30 days', 'Custom date range'];
+  const datePresets = ['Today', 'Next 7 days', 'Next 30 days', 'Next 90 days', 'Past 30 days', 'Custom date range'];
   const applyDatePreset = (preset: string) => {
     setSelectedPreset(preset);
-    if (preset === 'Next 7 days') setDateRange({ from: new Date(), to: addDays(new Date(), 7) });
+    if (preset === 'Today') setDateRange({ from: new Date(), to: new Date() });
+    else if (preset === 'Next 7 days') setDateRange({ from: new Date(), to: addDays(new Date(), 7) });
     else if (preset === 'Next 30 days') setDateRange({ from: new Date(), to: addDays(new Date(), 30) });
     else if (preset === 'Next 90 days') setDateRange({ from: new Date(), to: addMonths(new Date(), 3) });
     else if (preset === 'Past 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });

@@ -126,10 +126,11 @@ export default function Reservations() {
     { value: '2-3', label: t('2–3 nights') },
     { value: '4+', label: t('4+ nights') },
   ];
-  const datePresets = ['Next 7 days', 'Next 30 days', 'Next 90 days', 'Past 30 days', 'Custom date range'];
+  const datePresets = ['Today', 'Next 7 days', 'Next 30 days', 'Next 90 days', 'Past 30 days', 'Custom date range'];
   const applyDatePreset = (preset: string) => {
     setSelectedPreset(preset);
-    if (preset === 'Next 7 days') setDateRange({ from: new Date(), to: addDays(new Date(), 7) });
+    if (preset === 'Today') setDateRange({ from: new Date(), to: new Date() });
+    else if (preset === 'Next 7 days') setDateRange({ from: new Date(), to: addDays(new Date(), 7) });
     else if (preset === 'Next 30 days') setDateRange({ from: new Date(), to: addDays(new Date(), 30) });
     else if (preset === 'Next 90 days') setDateRange({ from: new Date(), to: addMonths(new Date(), 3) });
     else if (preset === 'Past 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });
@@ -457,20 +458,25 @@ export default function Reservations() {
           )}
         </div>
 
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
+        <div className="flex flex-col gap-3 px-6 py-4 border-t border-[var(--surface-subtle)] bg-white sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm text-[var(--text-secondary)] tabular-nums">{t('Showing')} {rangeStart} {t('to')} {rangeEnd} {t('of')} {visible.length} {t('reservations')}</span>
           <div className="flex items-center gap-1">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">{t('Previous')}</button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPage(p)}
-                className={`h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border rounded-md tabular-nums transition-colors cursor-pointer ${p === currentPage ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-[var(--border-default)] bg-white text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}
-              >
-                {p}
-              </button>
-            ))}
-            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-8 px-3 inline-flex items-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">{t('Next')}</button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 px-3 inline-flex items-center justify-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer flex-1 sm:flex-none">{t('Previous')}</button>
+            {/* Numbered pages: desktop only */}
+            <div className="hidden sm:flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border rounded-md tabular-nums transition-colors cursor-pointer ${p === currentPage ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-[var(--border-default)] bg-white text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            {/* Compact page indicator: mobile only */}
+            <span className="sm:hidden inline-flex items-center justify-center h-8 px-3 text-sm font-medium text-[var(--text-secondary)] tabular-nums whitespace-nowrap">{currentPage} / {totalPages}</span>
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-8 px-3 inline-flex items-center justify-center text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer flex-1 sm:flex-none">{t('Next')}</button>
           </div>
         </div>
       </div>

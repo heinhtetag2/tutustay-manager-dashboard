@@ -108,10 +108,12 @@ export default function Coupons() {
   const activeFilterCount = (dateRange?.from ? 1 : 0);
 
   const statusOptions = [{ value: 'All', label: t('All statuses') }, ...COUPON_STATUSES.map((s) => ({ value: s, label: t(s) }))];
-  const datePresets = ['Next 30 days', 'Next 90 days', 'This year', 'Custom date range'];
+  const datePresets = ['Today', 'Next 7 days', 'Next 30 days', 'Next 90 days', 'This year', 'Custom date range'];
   const applyDatePreset = (preset: string) => {
     setSelectedPreset(preset);
-    if (preset === 'Next 30 days') setDateRange({ from: NOW, to: addDays(NOW, 30) });
+    if (preset === 'Today') setDateRange({ from: NOW, to: NOW });
+    else if (preset === 'Next 7 days') setDateRange({ from: NOW, to: addDays(NOW, 7) });
+    else if (preset === 'Next 30 days') setDateRange({ from: NOW, to: addDays(NOW, 30) });
     else if (preset === 'Next 90 days') setDateRange({ from: NOW, to: addMonths(NOW, 3) });
     else if (preset === 'This year') setDateRange({ from: new Date(NOW.getFullYear(), 0, 1), to: new Date(NOW.getFullYear(), 11, 31) });
   };
