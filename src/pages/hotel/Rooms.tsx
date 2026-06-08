@@ -335,6 +335,7 @@ export default function Rooms() {
                 onToggleGroup={() => toggleGroup(ids)}
                 onToggleRoom={toggleOne}
                 onOpenType={() => navigate(`/hotel/room-types/${g.rt.id}`)}
+                onEditType={() => setTypeEditor(g.rt)}
                 onOpenRoom={(id) => navigate(`/hotel/rooms/${id}`)}
                 onAddRoom={() => setRoomEditor(emptyRoomOfType(g.rt))}
                 addRoomTourId={gi === 0 ? 'rooms-add-room' : undefined}
@@ -403,7 +404,7 @@ export default function Rooms() {
 
 /** One room-type section: header (type summary + actions) with its rooms nested beneath. Collapsible. */
 function RoomTypeGroup({
-  rt, rooms, index, allSelected, someSelected, isSelected, onToggleGroup, onToggleRoom, onOpenType, onOpenRoom, onAddRoom, addRoomTourId, t,
+  rt, rooms, index, allSelected, someSelected, isSelected, onToggleGroup, onToggleRoom, onOpenType, onEditType, onOpenRoom, onAddRoom, addRoomTourId, t,
 }: {
   rt: RoomType;
   rooms: Room[];
@@ -414,6 +415,7 @@ function RoomTypeGroup({
   onToggleGroup: () => void;
   onToggleRoom: (id: string) => void;
   onOpenType: () => void;
+  onEditType: () => void;
   onOpenRoom: (id: string) => void;
   onAddRoom: () => void;
   addRoomTourId?: string;
@@ -447,8 +449,8 @@ function RoomTypeGroup({
           className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label={t('Select all rooms of this type')}
         />
-        <button onClick={onOpenType} className="flex items-center gap-3 min-w-0 flex-1 text-left cursor-pointer group">
-          <Thumb src={rt.photos[0]} label={rt.name} size="w-11 h-11" />
+        <button onClick={onOpenType} className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 text-left cursor-pointer group">
+          <span className="hidden sm:block shrink-0"><Thumb src={rt.photos[0]} label={rt.name} size="w-11 h-11" /></span>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--brand-primary)] transition-colors">{rt.name}</span>
@@ -463,7 +465,7 @@ function RoomTypeGroup({
         {/* Amenities (hidden on small) */}
         <div className="hidden lg:block shrink-0"><Amenities items={rt.amenities} /></div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <button onClick={onOpenType} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer" title={t('Edit type')}>
+          <button onClick={onEditType} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer" title={t('Edit type')}>
             <Pencil className="w-3.5 h-3.5" /><span className="hidden sm:inline">{t('Edit type')}</span>
           </button>
           <button data-tour={addRoomTourId} onClick={onAddRoom} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[var(--brand-primary)] bg-[var(--brand-tint)] border border-[var(--brand-border)] rounded-md hover:bg-[var(--brand-primary)] hover:text-white transition-colors cursor-pointer">
@@ -512,8 +514,10 @@ function RoomRow({ room: r, index, selected, onToggle, onOpen, t }: { room: Room
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.02 }}
       onClick={onOpen}
-      className="flex items-center gap-3 px-4 sm:px-5 py-3 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
     >
+      {/* Spacer matching the header's collapse chevron, so the row checkbox lines up with the type checkbox above. */}
+      <span className="w-6 shrink-0" aria-hidden="true" />
       <input
         type="checkbox"
         checked={selected}
