@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { isAfter, isBefore, subDays, addDays, addMonths, format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import {
@@ -17,9 +17,13 @@ import {
   CalendarSearch,
   X,
   CloudMoon,
+  Trash2,
+  AlertCircle,
 } from 'lucide-react';
 
+import { Portal } from '@/shared/ui/portal';
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
@@ -32,6 +36,7 @@ type StatusFilter = 'All' | ReservationStatus | 'Overdue';
 type NightsFilter = 'All' | 'day-use' | '1' | '2-3' | '4+';
 
 const COL_DEFS: ColumnDef[] = [
+  { key: 'select', w: 48, min: 48, resizable: false },
   { key: 'no', w: 60, min: 52 },
   { key: 'guest', w: 280, min: 220 },
   { key: 'room', w: 160, min: 120 },
@@ -90,6 +95,7 @@ export default function Reservations() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const reservations = useReservations((s) => s.reservations);
+  const removeReservation = useReservations((s) => s.removeReservation);
   const { formatDate, formatDateTime } = useDateFormat();
 
   const [search, setSearch] = useState('');
@@ -98,13 +104,36 @@ export default function Reservations() {
   const [nightsFilter, setNightsFilter] = useState<NightsFilter>('All');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateOpen, setIsDateOpen] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState('Custom date range');
+  const [selectedPreset, setSelectedPreset] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const roomTypeOptions = [
     { value: 'All', label: t('All types') },
     ...Array.from(new Set(reservations.map((r) => r.roomType))).sort().map((rt) => ({ value: rt, label: t(rt) })),
   ];
+  const statusOptions = [
+    { value: 'All', label: t('All statuses') },
+    ...RESERVATION_STATUSES.map((s) => ({ value: s, label: t(s) })),
+    { value: 'Overdue', label: t('Overdue') },
+  ];
+  const nightsOptions = [
+    { value: 'All', label: t('Any duration') },
+    { value: 'day-use', label: t('Day use') },
+    { value: '1', label: t('1 night') },
+    { value: '2-3', label: t('2–3 nights') },
+    { value: '4+', label: t('4+ nights') },
+  ];
+  const datePresets = ['Next 7 days', 'Next 30 days', 'Next 90 days', 'Past 30 days', 'Custom date range'];
+  const applyDatePreset = (preset: string) => {
+    setSelectedPreset(preset);
+    if (preset === 'Next 7 days') setDateRange({ from: new Date(), to: addDays(new Date(), 7) });
+    else if (preset === 'Next 30 days') setDateRange({ from: new Date(), to: addDays(new Date(), 30) });
+    else if (preset === 'Next 90 days') setDateRange({ from: new Date(), to: addMonths(new Date(), 3) });
+    else if (preset === 'Past 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });
+  };
   const { widths: colWidths, onResizeStart } = useResizableColumns(COL_DEFS);
 
   const counts = {
@@ -122,6 +151,12 @@ export default function Reservations() {
       ? `${format(dateRange.from, 'MMM d, yyyy')} – ${format(dateRange.to, 'MMM d, yyyy')}`
       : format(dateRange.from, 'MMM d, yyyy')
     : t('Check-in date');
+
+  // Status lives on the mobile bar; count the remaining secondary filters + date range.
+  const activeFilterCount =
+    (roomTypeFilter !== 'All' ? 1 : 0) +
+    (nightsFilter !== 'All' ? 1 : 0) +
+    (dateRange?.from ? 1 : 0);
 
   const query = search.trim().toLowerCase();
   const visible = reservations
@@ -153,6 +188,28 @@ export default function Reservations() {
   const rangeStart = visible.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(currentPage * PAGE_SIZE, visible.length);
 
+  const pageIds = paged.map((r) => r.id);
+  const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+  const toggleAll = () =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  const toggleOne = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const confirmBulkDelete = () => {
+    selected.forEach((id) => removeReservation(id));
+    setSelected(new Set());
+    setBulkDeleting(false);
+  };
+
   const stats = [
     { title: 'Total reservations', Icon: CalendarCheck, value: String(counts.total), subtitle: t('All statuses') },
     { title: 'Overdue', Icon: TriangleAlert, value: String(counts.overdue), subtitle: t('Past checkout, not closed') },
@@ -161,6 +218,7 @@ export default function Reservations() {
   ];
 
   const colLabel: Record<string, string> = {
+    select: '',
     no: t('No.'), guest: t('Guest'), room: t('Room'), stay: t('Stay'),
     nights: t('Duration'), amount: t('Amount'), status: t('Status'),
   };
@@ -174,11 +232,11 @@ export default function Reservations() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
         {stats.map((card, i) => (
-          <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
-            <div className="flex justify-between items-start mb-4">
-              <span className="flex items-center gap-1 text-sm font-medium text-[var(--text-secondary)]">
+          <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="flex items-center gap-1 text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
                 {t(card.title)}
                 {GLOSSARY[card.title] && <InfoTooltip label={GLOSSARY[card.title]} />}
               </span>
@@ -186,22 +244,22 @@ export default function Reservations() {
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Filters — desktop (sm+) */}
+      <div className="hidden sm:flex flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by guest, code or room')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
         </div>
         <div className="flex gap-3 w-full sm:w-auto flex-wrap">
-          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<ListFilter />} className="sm:w-auto" options={[{ value: 'All', label: t('All statuses') }, ...RESERVATION_STATUSES.map((s) => ({ value: s, label: t(s) })), { value: 'Overdue', label: t('Overdue') }]} />
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<ListFilter />} className="sm:w-auto" options={statusOptions} />
           <BrandSelect value={roomTypeFilter} onValueChange={setRoomTypeFilter} leftIcon={<BedSingle />} className="sm:w-auto" options={roomTypeOptions} />
-          <BrandSelect value={nightsFilter} onValueChange={(v) => setNightsFilter(v as NightsFilter)} leftIcon={<CloudMoon />} className="sm:w-auto" options={[{ value: 'All', label: t('Any duration') }, { value: 'day-use', label: t('Day use') }, { value: '1', label: t('1 night') }, { value: '2-3', label: t('2–3 nights') }, { value: '4+', label: t('4+ nights') }]} />
+          <BrandSelect value={nightsFilter} onValueChange={(v) => setNightsFilter(v as NightsFilter)} leftIcon={<CloudMoon />} className="sm:w-auto" options={nightsOptions} />
 
           {/* Check-in date range filter */}
           <div className="relative">
@@ -214,14 +272,8 @@ export default function Reservations() {
                 <div className="fixed inset-0 z-10" onClick={() => setIsDateOpen(false)} />
                 <div className="absolute top-full right-0 mt-2 bg-white border border-[var(--border-default)] rounded-md z-20 flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
                   <div className="w-52 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
-                    {['Next 7 days', 'Next 30 days', 'Next 90 days', 'Past 30 days', 'Custom date range'].map((preset) => (
-                      <button key={preset} onClick={() => {
-                          setSelectedPreset(preset);
-                          if (preset === 'Next 7 days') setDateRange({ from: new Date(), to: addDays(new Date(), 7) });
-                          else if (preset === 'Next 30 days') setDateRange({ from: new Date(), to: addDays(new Date(), 30) });
-                          else if (preset === 'Next 90 days') setDateRange({ from: new Date(), to: addMonths(new Date(), 3) });
-                          else if (preset === 'Past 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });
-                        }}
+                    {datePresets.map((preset) => (
+                      <button key={preset} onClick={() => applyDatePreset(preset)}
                         className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors shadow-none cursor-pointer ${selectedPreset === preset ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium' : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}>
                         {t(preset)}
                         {selectedPreset === preset && <Check className="w-4 h-4 text-[var(--brand-primary)]" />}
@@ -248,17 +300,123 @@ export default function Reservations() {
         </div>
       </div>
 
+      {/* Filters — mobile (search + Filters sheet trigger + Status) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by guest, code or room')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<ListFilter />} className="flex-1" options={statusOptions} />
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        <FilterField label={t('Room')}>
+          <BrandSelect value={roomTypeFilter} onValueChange={setRoomTypeFilter} leftIcon={<BedSingle />} className="w-full" options={roomTypeOptions} />
+        </FilterField>
+        <FilterField label={t('Duration')}>
+          <BrandSelect value={nightsFilter} onValueChange={(v) => setNightsFilter(v as NightsFilter)} leftIcon={<CloudMoon />} className="w-full" options={nightsOptions} />
+        </FilterField>
+        <FilterField label={t('Check-in date')}>
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => applyDatePreset(preset)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+                  selectedPreset === preset
+                    ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]'
+                    : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white hover:bg-[var(--surface-subtle)]'
+                }`}
+              >
+                {t(preset)}
+              </button>
+            ))}
+          </div>
+          {selectedPreset === 'Custom date range' && (
+            <div className="flex justify-center mt-3" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}>
+              <CalendarUI
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }}
+                numberOfMonths={1}
+                className="border border-[var(--border-default)] rounded-md p-2"
+                classNames={{ table: 'border-collapse space-x-1', row: 'flex mt-2' }}
+              />
+            </div>
+          )}
+        </FilterField>
+      </MobileFilterSheet>
+
+      {/* Bulk selection bar */}
+      <AnimatePresence initial={false}>
+        {selected.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -6, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-center justify-between gap-3 mb-4 px-4 py-2.5 bg-[var(--brand-tint)] border border-[var(--brand-border)] rounded-md">
+              <span className="text-sm font-medium text-[var(--brand-primary)] tabular-nums">
+                {selected.size} {t('selected')}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelected(new Set())}
+                  className="px-3 py-1.5 text-sm font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white rounded-md transition-colors cursor-pointer"
+                >
+                  {t('Clear')}
+                </button>
+                <button
+                  onClick={() => setBulkDeleting(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {t('Delete')}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Table */}
       <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
-        <div className="overflow-x-auto">
+        {/* Desktop: full data table (hidden on mobile) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="text-left text-sm whitespace-nowrap table-fixed" style={{ minWidth: '100%' }}>
             <colgroup>{COL_DEFS.map((c) => (<col key={c.key} style={{ width: colWidths[c.key] }} />))}</colgroup>
             <thead>
               <tr className="group/head border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium select-none">
                 {COL_DEFS.map((c, i) => (
-                  <th key={c.key} className={`group/col relative py-4 px-6 font-medium text-[11px] tracking-wider uppercase transition-colors hover:bg-[var(--surface-subtle)] ${c.key === 'nights' ? 'text-center' : ''}`}>
+                  <th key={c.key} className={`group/col relative py-4 font-medium text-[11px] tracking-wider uppercase transition-colors hover:bg-[var(--surface-subtle)] ${c.key === 'select' ? 'pl-6 pr-3' : 'px-6'} ${c.key === 'nights' ? 'text-center' : ''}`}>
                     {i > 0 && <ColLeftDivider />}
-                    <span className="block truncate">{colLabel[c.key]}</span>
+                    {c.key === 'select' ? (
+                      <input
+                        type="checkbox"
+                        checked={allPageSelected}
+                        onChange={toggleAll}
+                        className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer align-middle"
+                        aria-label={t('Select all')}
+                      />
+                    ) : (
+                      <span className="block truncate">{colLabel[c.key]}</span>
+                    )}
                     {c.resizable !== false && <ColResizeHandle onPointerDown={(e) => onResizeStart(c.key, e)} />}
                   </th>
                 ))}
@@ -277,11 +435,26 @@ export default function Reservations() {
                 </tr>
               ) : (
                 paged.map((r, i) => (
-                  <ReservationRow key={r.id} reservation={r} index={(currentPage - 1) * PAGE_SIZE + i} formatDateTime={formatDateTime} onOpen={() => navigate(`/reservations/${r.id}`)} t={t} />
+                  <ReservationRow key={r.id} reservation={r} index={(currentPage - 1) * PAGE_SIZE + i} selected={selected.has(r.id)} onToggle={() => toggleOne(r.id)} formatDateTime={formatDateTime} onOpen={() => navigate(`/reservations/${r.id}`)} t={t} />
                 ))
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile: stacked cards (hidden on desktop) */}
+        <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+          {visible.length === 0 ? (
+            <div className="px-6 py-16 flex flex-col items-center justify-center text-center">
+              <CalendarSearch className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+              <p className="text-sm font-medium text-[var(--text-primary)]">{t('No reservations found')}</p>
+              <p className="text-sm text-[var(--text-secondary)] mt-1">{hasActiveFilters ? t('No reservations match these filters.') : t('Reservations will appear here.')}</p>
+            </div>
+          ) : (
+            paged.map((r, i) => (
+              <ReservationCard key={r.id} reservation={r} index={(currentPage - 1) * PAGE_SIZE + i} selected={selected.has(r.id)} onToggle={() => toggleOne(r.id)} onOpen={() => navigate(`/reservations/${r.id}`)} t={t} />
+            ))
+          )}
         </div>
 
         <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
@@ -301,14 +474,83 @@ export default function Reservations() {
           </div>
         </div>
       </div>
+
+      {/* Bulk delete confirmation */}
+      <Portal>
+        <AnimatePresence>
+          {bulkDeleting && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-[var(--text-primary)]/30 flex items-center justify-center z-50 p-4"
+              onClick={() => setBulkDeleting(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                transition={{ type: 'spring', duration: 0.3 }}
+                className="bg-white rounded-md w-full max-w-sm shadow-none border border-[var(--surface-subtle)] flex flex-col overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)]">
+                  <h2 className="text-lg font-medium text-[var(--text-primary)]">
+                    {t('Delete')} {selected.size} {t('reservations')}?
+                  </h2>
+                  <button
+                    onClick={() => setBulkDeleting(false)}
+                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors p-1 cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="p-6">
+                  <p className="text-[var(--text-tertiary)] text-sm leading-relaxed">
+                    {t('This permanently removes the selected reservation records. This action cannot be undone.')}
+                  </p>
+                  <p className="mt-4 text-[var(--danger)] text-xs font-medium flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4" />
+                    {t('This action cannot be undone.')}
+                  </p>
+                </div>
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--surface-subtle)]">
+                  <button
+                    onClick={() => setBulkDeleting(false)}
+                    className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                  >
+                    {t('Cancel')}
+                  </button>
+                  <button
+                    onClick={confirmBulkDelete}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-[var(--danger-strong)] hover:bg-[var(--danger)] transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {t('Delete')}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Portal>
     </motion.div>
   );
 }
 
-function ReservationRow({ reservation: r, index, formatDateTime, onOpen, t }: { reservation: Reservation; index: number; formatDateTime: (v: string) => string; onOpen: () => void; t: (k: string) => string }) {
+function ReservationRow({ reservation: r, index, selected, onToggle, formatDateTime, onOpen, t }: { reservation: Reservation; index: number; selected: boolean; onToggle: () => void; formatDateTime: (v: string) => string; onOpen: () => void; t: (k: string) => string }) {
   const ds = displayStatus(r.checkOut, r.status);
   return (
     <motion.tr initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: index * 0.02 }} onClick={onOpen} className="hover:bg-[var(--surface-muted)] transition-colors cursor-pointer">
+      <td className="pl-6 pr-3 py-4" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer align-middle"
+          aria-label={t('Select row')}
+        />
+      </td>
       <td className="px-6 py-4 text-[var(--text-tertiary)] tabular-nums">{index + 1}</td>
       <td className="px-6 py-4 overflow-hidden">
         <div className="flex items-center gap-3 min-w-0">
@@ -349,5 +591,74 @@ function ReservationRow({ reservation: r, index, formatDateTime, onOpen, t }: { 
         </span>
       </td>
     </motion.tr>
+  );
+}
+
+function ReservationCard({ reservation: r, index, selected, onToggle, onOpen, t }: { reservation: Reservation; index: number; selected: boolean; onToggle: () => void; onOpen: () => void; t: (k: string) => string }) {
+  const ds = displayStatus(r.checkOut, r.status);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+    >
+      {/* Identity row */}
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          onClick={(e) => e.stopPropagation()}
+          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0"
+          aria-label={t('Select row')}
+        />
+        <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0">{initialOf(r.guestName)}</div>
+        <div className="min-w-0 flex-1">
+          <div className="font-medium text-[var(--text-primary)] truncate">{r.guestName}</div>
+          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5"><span className="tabular-nums">{r.code}</span> · {r.guestEmail}</div>
+        </div>
+        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${statusStyle(ds)}`}>
+          {ds === 'Overdue' && <TriangleAlert className="w-3 h-3" />}
+          {t(ds)}
+        </span>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Room')}</div>
+          <div className="text-sm text-[var(--text-primary)] truncate mt-0.5">{t(r.roomType)}</div>
+          <div className="text-xs text-[var(--text-secondary)] tabular-nums">{t('Room')} {r.roomNo}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Duration')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5">
+            {r.rateType === 'Session'
+              ? <span className="text-[var(--text-secondary)]">{t('Day use')}</span>
+              : `${r.nights} ${r.nights === 1 ? t('night') : t('nights')}`}
+          </div>
+        </div>
+        <div className="min-w-0 col-span-2">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Stay')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5 flex items-center gap-1.5">
+            <CalendarClock className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
+            <span className="truncate">
+              {r.rateType === 'Session'
+                ? format(new Date(r.checkIn), 'MMM d, yyyy')
+                : `${format(new Date(r.checkIn), 'MMM d')} – ${format(new Date(r.checkOut), 'MMM d, yyyy')}`}
+            </span>
+            {r.rateType && r.rateType !== 'Regular' && (
+              <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full shrink-0 ${rateChipStyle(r.rateType)}`}>{t(rateLabel(r.rateType))}</span>
+            )}
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Amount')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatAmount(r.amount)}</div>
+        </div>
+      </div>
+    </motion.div>
   );
 }

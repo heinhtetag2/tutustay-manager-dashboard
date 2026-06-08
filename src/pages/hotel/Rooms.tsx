@@ -20,6 +20,7 @@ import * as Popover from '@radix-ui/react-popover';
 import { Portal } from '@/shared/ui/portal';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MultiSelect } from '@/shared/ui/multi-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
 import { useHotel } from './use-hotel';
 import { AMENITIES, formatPrice, totalBeds, emptyRoomType, type Room, type RoomType, type RoomStatus } from './hotel-data';
@@ -114,6 +115,7 @@ export default function Rooms() {
   const [roomEditor, setRoomEditor] = useState<Room | null>(null);
   const [typeEditor, setTypeEditor] = useState<RoomType | null>(null);
   const [forcePriceTab, setForcePriceTab] = useState<PriceTab | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const switchView = (v: View) => { setView(v); setSelected(new Set()); };
 
@@ -273,21 +275,21 @@ export default function Rooms() {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
         {stats.map((card, i) => (
-          <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+          <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors"><card.Icon className="w-4 h-4" /></div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Toolbar — desktop (sm+) */}
+      <div className="hidden sm:flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'rooms' ? t('Search rooms...') : t('Search room types...')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
@@ -316,6 +318,54 @@ export default function Rooms() {
         </div>
       </div>
 
+      {/* Toolbar — mobile (search + Filters sheet trigger + companion select) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'rooms' ? t('Search rooms...') : t('Search room types...')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          {view === 'rooms' ? (
+            <BrandSelect value={roomFilters.status} onValueChange={(v) => setRoomFilters((f) => ({ ...f, status: v as 'All' | RoomStatus }))} leftIcon={<CheckCircle />} className="flex-1" options={[{ value: 'All', label: t('All Statuses') }, { value: 'Active', label: t('Active') }, { value: 'Inactive', label: t('Inactive') }]} />
+          ) : (
+            <BrandSelect value={typeFilters.occupancy} onValueChange={(v) => setTypeFilters((f) => ({ ...f, occupancy: v }))} leftIcon={<Users />} className="flex-1" options={[{ value: 'All', label: t('Any occupancy') }, ...OCCUPANCY_OPTIONS.map((o) => ({ value: o, label: `${o}+ ${t('guests')}` }))]} />
+          )}
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        {view === 'rooms' ? (
+          <>
+            <FilterField label={t('Amenity')}>
+              <MultiSelect values={roomFilters.amenity} onChange={(v) => setRoomFilters((f) => ({ ...f, amenity: v }))} options={[...AMENITIES]} placeholder={t('Any amenity')} searchPlaceholder={t('Search amenity')} leftIcon={<Layers />} className="w-full" />
+            </FilterField>
+            <FilterField label={t('Room Type')}>
+              <BrandSelect value={roomFilters.roomType} onValueChange={(v) => setRoomFilters((f) => ({ ...f, roomType: v }))} leftIcon={<BedDouble />} className="w-full" options={[{ value: 'All', label: t('All room types') }, ...roomTypeNames.map((n) => ({ value: n, label: t(n) }))]} />
+            </FilterField>
+            <FilterField label={t('Floor')}>
+              <BrandSelect value={roomFilters.floor} onValueChange={(v) => setRoomFilters((f) => ({ ...f, floor: v }))} leftIcon={<Building />} className="w-full" options={[{ value: 'All', label: t('All floors') }, ...floors.map((fl) => ({ value: String(fl), label: `${t('Floor')} ${fl}` }))]} />
+            </FilterField>
+            <FilterField label={t('Occupancy')}>
+              <BrandSelect value={roomFilters.occupancy} onValueChange={(v) => setRoomFilters((f) => ({ ...f, occupancy: v }))} leftIcon={<Users />} className="w-full" options={[{ value: 'All', label: t('Any occupancy') }, ...OCCUPANCY_OPTIONS.map((o) => ({ value: o, label: `${o}+ ${t('guests')}` }))]} />
+            </FilterField>
+          </>
+        ) : (
+          <FilterField label={t('Amenity')}>
+            <MultiSelect values={typeFilters.amenity} onChange={(v) => setTypeFilters((f) => ({ ...f, amenity: v }))} options={[...AMENITIES]} placeholder={t('Any amenity')} searchPlaceholder={t('Search amenity')} leftIcon={<Layers />} className="w-full" />
+          </FilterField>
+        )}
+      </MobileFilterSheet>
+
       {/* Bulk selection bar */}
       <AnimatePresence initial={false}>
         {selected.size > 0 && (
@@ -335,7 +385,8 @@ export default function Rooms() {
 
       {/* Table */}
       <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
-        <div className="overflow-x-auto">
+        {/* Desktop: full data table (hidden on mobile) */}
+        <div className="hidden md:block overflow-x-auto">
           {view === 'rooms' ? (
             <table className="text-left text-sm whitespace-nowrap table-fixed" style={{ minWidth: '100%' }}>
               <colgroup>{ROOM_COLS.map((c) => <col key={c.key} style={{ width: roomCols.widths[c.key] }} />)}</colgroup>
@@ -402,6 +453,43 @@ export default function Rooms() {
             </table>
           )}
         </div>
+
+        {/* Mobile: stacked cards (hidden on desktop) */}
+        <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+          {view === 'rooms' ? (
+            visibleRooms.length === 0 ? (
+              <div className="px-6 py-12 text-center text-[var(--text-secondary)]">{rooms.length === 0 ? (roomTypes.length === 0 ? t('No rooms yet. Create a room type first, then add rooms of that type.') : t('No rooms yet. Use “Add Room” to add bookable rooms of a type.')) : t('No rooms match these filters.')}</div>
+            ) : (
+              visibleRooms.map((r, i) => (
+                <RoomCard
+                  key={r.id}
+                  room={r}
+                  index={i}
+                  photoSrc={typePhoto(r.typeName)}
+                  selected={selected.has(r.id)}
+                  onToggle={() => toggleOne(r.id)}
+                  onOpen={() => navigate(`/hotel/rooms/${r.id}`)}
+                  t={t}
+                />
+              ))
+            )
+          ) : visibleTypes.length === 0 ? (
+            <div className="px-6 py-12 text-center text-[var(--text-secondary)]">{roomTypes.length === 0 ? t('No room types yet. Create your first room type to start pricing rooms.') : t('No room types found.')}</div>
+          ) : (
+            visibleTypes.map((rt, i) => (
+              <RoomTypeCard
+                key={rt.id}
+                type={rt}
+                index={i}
+                selected={selected.has(rt.id)}
+                onToggle={() => toggleOne(rt.id)}
+                onOpen={() => navigate(`/hotel/room-types/${rt.id}`)}
+                t={t}
+              />
+            ))
+          )}
+        </div>
+
         <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
           <span className="text-sm text-[var(--text-secondary)]">{view === 'rooms' ? `${visibleRooms.length} ${t('rooms')}` : `${visibleTypes.length} ${t('room types')}`}</span>
         </div>
@@ -439,6 +527,97 @@ export default function Rooms() {
 
       {/* Guided rooms onboarding flow */}
       {tour.node}
+    </motion.div>
+  );
+}
+
+function RoomCard({ room: r, index, photoSrc, selected, onToggle, onOpen, t }: { room: Room; index: number; photoSrc?: string; selected: boolean; onToggle: () => void; onOpen: () => void; t: (k: string) => string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+    >
+      {/* Identity row */}
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          onClick={(e) => e.stopPropagation()}
+          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0"
+          aria-label={t('Select row')}
+        />
+        <Thumb src={photoSrc} label={r.typeName} />
+        <div className="min-w-0 flex-1">
+          <div className="font-medium text-[var(--text-primary)] tabular-nums truncate">{t('Room')} {r.number}</div>
+          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{t('Floor')} {r.floor} · {r.typeName}</div>
+        </div>
+        <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${statusStyles(r.status)}`}>{t(r.status)}</span>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-7">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Capacity')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5">{r.beds} {r.beds === 1 ? t('bed') : t('beds')} · {r.occupancy} {t('guests')}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Price')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatPrice(r.price)}</div>
+        </div>
+        <div className="col-span-2 min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Amenity')}</div>
+          <div className="mt-1"><Amenities items={r.amenities} /></div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function RoomTypeCard({ type: rt, index, selected, onToggle, onOpen, t }: { type: RoomType; index: number; selected: boolean; onToggle: () => void; onOpen: () => void; t: (k: string) => string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+    >
+      {/* Identity row */}
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          onClick={(e) => e.stopPropagation()}
+          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0"
+          aria-label={t('Select row')}
+        />
+        <Thumb src={rt.photos[0]} label={rt.name} size="w-11 h-11" />
+        <div className="min-w-0 flex-1">
+          <div className="font-medium text-[var(--text-primary)] truncate">{rt.name}</div>
+          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5 tabular-nums">{totalBeds(rt)} {totalBeds(rt) === 1 ? t('bed') : t('beds')} · {rt.occupancy} {t('guests')}</div>
+        </div>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-7">
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Pricing')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatPrice(rt.regularPrice)}</div>
+          <div className="text-xs text-[var(--text-secondary)] tabular-nums mt-0.5">
+            {rt.weekendEnabled ? `${t('Wknd')} ${formatPrice(rt.weekendPrice)}` : t('No weekend')}
+            {rt.sessionEnabled ? ` · ${t('Sess')} ${formatPrice(rt.sessionPrice)}` : ''}
+          </div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Amenity')}</div>
+          <div className="mt-1"><Amenities items={rt.amenities} /></div>
+        </div>
+      </div>
     </motion.div>
   );
 }

@@ -603,7 +603,7 @@ export default function SurveyDetail() {
 
       {activeTab === 'overview' && (<>
       {/* KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
         <KpiCard
           icon={<Users className="w-5 h-5" />}
           iconTone="brand"
@@ -731,7 +731,8 @@ export default function SurveyDetail() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop: table (hidden on mobile) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
               <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
@@ -775,6 +776,13 @@ export default function SurveyDetail() {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile: stacked cards (hidden on desktop) */}
+        <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+          {allResponses.slice(0, 6).map((r, index) => (
+            <ResponseCard key={r.id} response={r} index={index} onOpen={() => setSelectedResponse(r)} />
+          ))}
         </div>
       </div>
       </>)}
@@ -843,7 +851,8 @@ export default function SurveyDetail() {
 
           {/* Full table */}
           <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Desktop: table (hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead>
                   <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
@@ -893,6 +902,19 @@ export default function SurveyDetail() {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile: stacked cards (hidden on desktop) */}
+            <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+              {pageRows.length === 0 ? (
+                <div className="px-6 py-12 text-center text-[var(--text-secondary)]">
+                  {t('No responses match these filters.')}
+                </div>
+              ) : (
+                pageRows.map((r, index) => (
+                  <ResponseCard key={r.id} response={r} index={index} onOpen={() => setSelectedResponse(r)} />
+                ))
+              )}
             </div>
 
             {/* Pagination */}
@@ -1141,6 +1163,43 @@ export default function SurveyDetail() {
   );
 }
 
+function ResponseCard({ response: r, index, onOpen }: { response: Response; index: number; onOpen: () => void }) {
+  const { t } = useTranslation();
+  const rs = rewardStatusDisplay(r.rewardStatus);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+    >
+      {/* Identity row */}
+      <div className="flex items-center justify-between gap-3">
+        <span className="font-medium text-[var(--text-primary)] truncate">{r.respondent}</span>
+        <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${qualityBadge(r.quality)}`}>
+          {t(r.quality)}
+        </span>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Reward Status')}</div>
+          <div className={`text-sm mt-0.5 inline-flex items-center gap-1.5 font-medium ${rs.className}`}>
+            {rs.icon}
+            {t(rs.label)}
+          </div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Submitted')}</div>
+          <div className="text-sm text-[var(--text-primary)] mt-0.5">{t(r.submittedLabel)}</div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 interface KpiCardProps {
   icon: React.ReactNode;
   iconTone: 'brand' | 'green' | 'amber' | 'blue';
@@ -1156,12 +1215,12 @@ function KpiCard({ icon, iconTone, label, value }: KpiCardProps) {
     blue:  'bg-[var(--brand-tint)] text-[var(--brand-primary-hover)]',
   };
   return (
-    <div className="bg-white rounded-md border border-[var(--border-default)] p-5">
-      <div className={`w-10 h-10 rounded-md flex items-center justify-center mb-4 ${tones[iconTone]}`}>
+    <div className="bg-white rounded-md border border-[var(--border-default)] p-3 sm:p-5">
+      <div className={`flex w-10 h-10 rounded-md items-center justify-center mb-4 ${tones[iconTone]}`}>
         {icon}
       </div>
-      <div className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight mb-1 tabular-nums">{value}</div>
-      <div className="text-sm text-[var(--text-secondary)]">{label}</div>
+      <div className="text-xl sm:text-2xl font-semibold text-[var(--text-primary)] tracking-tight mb-1 tabular-nums">{value}</div>
+      <div className="text-xs sm:text-sm text-[var(--text-secondary)] truncate">{label}</div>
     </div>
   );
 }

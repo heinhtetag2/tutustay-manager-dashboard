@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { formatAmount, type BookingRequest, type RequestStatus, type RateType } from './booking-requests-data';
@@ -47,7 +48,8 @@ export default function BookingRequests() {
   const [sort, setSort] = useState<Sort>('newest');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateOpen, setIsDateOpen] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState('Custom date range');
+  const [selectedPreset, setSelectedPreset] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const pending = requests.filter((r) => r.status === 'Pending');
   const counts = {
@@ -65,6 +67,29 @@ export default function BookingRequests() {
       ? `${format(dateRange.from, 'MMM d, yyyy')} – ${format(dateRange.to, 'MMM d, yyyy')}`
       : format(dateRange.from, 'MMM d, yyyy')
     : t('Check-in date');
+
+  // Count of active secondary filters (search + sort live on the bar, excluded).
+  const activeFilterCount = (statusFilter !== 'All' ? 1 : 0) + (dateRange?.from ? 1 : 0);
+
+  const statusOptions = [
+    { value: 'All', label: t('All requests') },
+    { value: 'Pending', label: t('Pending') },
+    { value: 'Approved', label: t('Approved') },
+    { value: 'Declined', label: t('Declined') },
+  ];
+  const sortOptions = [
+    { value: 'newest', label: t('Newest first') },
+    { value: 'checkin', label: t('Check-in soonest') },
+    { value: 'amount', label: t('Highest amount') },
+  ];
+  const datePresets = ['Next 7 days', 'Next 30 days', 'Next 90 days', 'Past 30 days', 'Custom date range'];
+  const applyDatePreset = (preset: string) => {
+    setSelectedPreset(preset);
+    if (preset === 'Next 7 days') setDateRange({ from: new Date(), to: addDays(new Date(), 7) });
+    else if (preset === 'Next 30 days') setDateRange({ from: new Date(), to: addDays(new Date(), 30) });
+    else if (preset === 'Next 90 days') setDateRange({ from: new Date(), to: addMonths(new Date(), 3) });
+    else if (preset === 'Past 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });
+  };
 
   const query = search.trim().toLowerCase();
   const visible = requests
@@ -107,29 +132,29 @@ export default function BookingRequests() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
         {stats.map((card, i) => (
           <motion.div
             key={card.title}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
+            className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Filters — desktop (sm+) */}
+      <div className="hidden sm:flex flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
@@ -146,23 +171,14 @@ export default function BookingRequests() {
             onValueChange={(v) => setStatusFilter(v as StatusFilter)}
             leftIcon={<Inbox />}
             className="sm:w-auto"
-            options={[
-              { value: 'All', label: t('All requests') },
-              { value: 'Pending', label: t('Pending') },
-              { value: 'Approved', label: t('Approved') },
-              { value: 'Declined', label: t('Declined') },
-            ]}
+            options={statusOptions}
           />
           <BrandSelect
             value={sort}
             onValueChange={(v) => setSort(v as Sort)}
             leftIcon={<ArrowUpDown />}
             className="sm:w-auto"
-            options={[
-              { value: 'newest', label: t('Newest first') },
-              { value: 'checkin', label: t('Check-in soonest') },
-              { value: 'amount', label: t('Highest amount') },
-            ]}
+            options={sortOptions}
           />
 
           {/* Check-in date range filter */}
@@ -184,16 +200,10 @@ export default function BookingRequests() {
                 <div className="fixed inset-0 z-10" onClick={() => setIsDateOpen(false)} />
                 <div className="absolute top-full right-0 mt-2 bg-white border border-[var(--border-default)] rounded-md z-20 flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
                   <div className="w-52 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
-                    {['Next 7 days', 'Next 30 days', 'Next 90 days', 'Past 30 days', 'Custom date range'].map((preset) => (
+                    {datePresets.map((preset) => (
                       <button
                         key={preset}
-                        onClick={() => {
-                          setSelectedPreset(preset);
-                          if (preset === 'Next 7 days') setDateRange({ from: new Date(), to: addDays(new Date(), 7) });
-                          else if (preset === 'Next 30 days') setDateRange({ from: new Date(), to: addDays(new Date(), 30) });
-                          else if (preset === 'Next 90 days') setDateRange({ from: new Date(), to: addMonths(new Date(), 3) });
-                          else if (preset === 'Past 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });
-                        }}
+                        onClick={() => applyDatePreset(preset)}
                         className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors shadow-none cursor-pointer ${
                           selectedPreset === preset
                             ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium'
@@ -246,6 +256,77 @@ export default function BookingRequests() {
           )}
         </div>
       </div>
+
+      {/* Filters — mobile (search + Filters sheet trigger + Sort) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('Search by guest or room')}
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
+          />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          <BrandSelect
+            value={sort}
+            onValueChange={(v) => setSort(v as Sort)}
+            leftIcon={<ArrowUpDown />}
+            className="flex-1"
+            options={sortOptions}
+          />
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        <FilterField label={t('Status')}>
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<Inbox />} className="w-full" options={statusOptions} />
+        </FilterField>
+        <FilterField label={t('Check-in date')}>
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => applyDatePreset(preset)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+                  selectedPreset === preset
+                    ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]'
+                    : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white hover:bg-[var(--surface-subtle)]'
+                }`}
+              >
+                {t(preset)}
+              </button>
+            ))}
+          </div>
+          {/* Calendar only appears for a custom range — keeps the sheet short for the common preset case. */}
+          {selectedPreset === 'Custom date range' && (
+            <div className="flex justify-center mt-3" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}>
+              <CalendarUI
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }}
+                numberOfMonths={1}
+                className="border border-[var(--border-default)] rounded-md p-2"
+                classNames={{ table: 'border-collapse space-x-1', row: 'flex mt-2' }}
+              />
+            </div>
+          )}
+        </FilterField>
+      </MobileFilterSheet>
 
       {/* Request list */}
       {visible.length === 0 ? (
@@ -357,14 +438,14 @@ function RequestCard({
       </div>
 
       {/* Details */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-6 gap-y-3 mt-5">
+      <div className="grid grid-cols-2 sm:grid-cols-5 grid-flow-dense sm:grid-flow-row gap-x-6 gap-y-3 mt-5">
         {/* Room type */}
         <div>
           <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-1"><BedDouble className="w-3 h-3" />{t('Room type')}</div>
           <div className="text-sm font-medium text-[var(--text-primary)]">{t(r.roomType)}</div>
         </div>
         {/* Stay */}
-        <div>
+        <div className="col-span-2 sm:col-span-1">
           <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-tertiary)] uppercase tracking-wide mb-1"><CalendarCheck className="w-3 h-3" />{t('Stay')}</div>
           <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums whitespace-nowrap">
             {format(new Date(r.checkIn), 'MMM d')} – {format(new Date(r.checkOut), 'MMM d, yyyy')}
@@ -398,10 +479,10 @@ function RequestCard({
 
       {/* Actions */}
       <div className="flex items-center justify-between gap-2 mt-4">
-        <button onClick={onOpen} className="text-sm font-medium text-[var(--brand-primary)] hover:underline cursor-pointer">
+        <button onClick={onOpen} className="hidden sm:block text-sm font-medium text-[var(--brand-primary)] hover:underline cursor-pointer">
           {t('View details')}
         </button>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
         {r.status === 'Pending' ? (
           <>
             <button

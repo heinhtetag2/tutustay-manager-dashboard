@@ -23,6 +23,7 @@ import {
 
 import { Portal } from '@/shared/ui/portal';
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
@@ -58,7 +59,8 @@ export default function Customers() {
   const [sort, setSort] = useState<Sort>('recent');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateOpen, setIsDateOpen] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState('Custom date range');
+  const [selectedPreset, setSelectedPreset] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const { widths: colWidths, onResizeStart } = useResizableColumns(COL_DEFS);
@@ -78,6 +80,29 @@ export default function Customers() {
       ? `${format(dateRange.from, 'MMM d, yyyy')} – ${format(dateRange.to, 'MMM d, yyyy')}`
       : format(dateRange.from, 'MMM d, yyyy')
     : t('Booking date');
+
+  // Search + sort live on the bar; count only the secondary filters.
+  const activeFilterCount = (segment !== 'All' ? 1 : 0) + (dateRange?.from ? 1 : 0);
+
+  const segmentOptions = [
+    { value: 'All', label: t('All customers') },
+    { value: 'Repeat', label: t('Repeat guests') },
+    { value: 'New', label: t('New (1 booking)') },
+    { value: 'Inactive', label: t('Inactive') },
+  ];
+  const sortOptions = [
+    { value: 'recent', label: t('Recent booking') },
+    { value: 'spend', label: t('Highest spend') },
+    { value: 'bookings', label: t('Most bookings') },
+  ];
+  const datePresets = ['Last 7 days', 'Last 30 days', 'Last 90 days', 'Last 12 months', 'Custom date range'];
+  const applyDatePreset = (preset: string) => {
+    setSelectedPreset(preset);
+    if (preset === 'Last 7 days') setDateRange({ from: subDays(new Date(), 7), to: new Date() });
+    else if (preset === 'Last 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });
+    else if (preset === 'Last 90 days') setDateRange({ from: subDays(new Date(), 90), to: new Date() });
+    else if (preset === 'Last 12 months') setDateRange({ from: subMonths(new Date(), 12), to: new Date() });
+  };
 
   const query = search.trim().toLowerCase();
   const visible = customers
@@ -158,29 +183,29 @@ export default function Customers() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
         {stats.map((card, i) => (
           <motion.div
             key={card.title}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
+            className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Filters — desktop (sm+) */}
+      <div className="hidden sm:flex flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
@@ -198,23 +223,14 @@ export default function Customers() {
             onValueChange={(v) => setSegment(v as Segment)}
             leftIcon={<Layers />}
             className="sm:w-auto"
-            options={[
-              { value: 'All', label: t('All customers') },
-              { value: 'Repeat', label: t('Repeat guests') },
-              { value: 'New', label: t('New (1 booking)') },
-              { value: 'Inactive', label: t('Inactive') },
-            ]}
+            options={segmentOptions}
           />
           <BrandSelect
             value={sort}
             onValueChange={(v) => setSort(v as Sort)}
             leftIcon={<ArrowUpDown />}
             className="sm:w-auto"
-            options={[
-              { value: 'recent', label: t('Recent booking') },
-              { value: 'spend', label: t('Highest spend') },
-              { value: 'bookings', label: t('Most bookings') },
-            ]}
+            options={sortOptions}
           />
 
           {/* Booking-date range filter */}
@@ -236,16 +252,10 @@ export default function Customers() {
                 <div className="fixed inset-0 z-10" onClick={() => setIsDateOpen(false)} />
                 <div className="absolute top-full right-0 mt-2 bg-white border border-[var(--border-default)] rounded-md z-20 flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
                   <div className="w-52 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
-                    {['Last 7 days', 'Last 30 days', 'Last 90 days', 'Last 12 months', 'Custom date range'].map((preset) => (
+                    {datePresets.map((preset) => (
                       <button
                         key={preset}
-                        onClick={() => {
-                          setSelectedPreset(preset);
-                          if (preset === 'Last 7 days') setDateRange({ from: subDays(new Date(), 7), to: new Date() });
-                          else if (preset === 'Last 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });
-                          else if (preset === 'Last 90 days') setDateRange({ from: subDays(new Date(), 90), to: new Date() });
-                          else if (preset === 'Last 12 months') setDateRange({ from: subMonths(new Date(), 12), to: new Date() });
-                        }}
+                        onClick={() => applyDatePreset(preset)}
                         className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors shadow-none cursor-pointer ${
                           selectedPreset === preset
                             ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium'
@@ -299,6 +309,76 @@ export default function Customers() {
         </div>
       </div>
 
+      {/* Filters — mobile (search + Filters sheet trigger + Sort) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('Search by customer name')}
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
+          />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          <BrandSelect
+            value={sort}
+            onValueChange={(v) => setSort(v as Sort)}
+            leftIcon={<ArrowUpDown />}
+            className="flex-1"
+            options={sortOptions}
+          />
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        <FilterField label={t('Segment')}>
+          <BrandSelect value={segment} onValueChange={(v) => setSegment(v as Segment)} leftIcon={<Layers />} className="w-full" options={segmentOptions} />
+        </FilterField>
+        <FilterField label={t('Booking date')}>
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => applyDatePreset(preset)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+                  selectedPreset === preset
+                    ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]'
+                    : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white hover:bg-[var(--surface-subtle)]'
+                }`}
+              >
+                {t(preset)}
+              </button>
+            ))}
+          </div>
+          {selectedPreset === 'Custom date range' && (
+            <div className="flex justify-center mt-3" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}>
+              <CalendarUI
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }}
+                numberOfMonths={1}
+                className="border border-[var(--border-default)] rounded-md p-2"
+                classNames={{ table: 'border-collapse space-x-1', row: 'flex mt-2' }}
+              />
+            </div>
+          )}
+        </FilterField>
+      </MobileFilterSheet>
+
       {/* Bulk selection bar */}
       <AnimatePresence initial={false}>
         {selected.size > 0 && (
@@ -335,7 +415,8 @@ export default function Customers() {
 
       {/* Table */}
       <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
-        <div className="overflow-x-auto">
+        {/* Desktop: full data table (hidden on mobile) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="text-left text-sm whitespace-nowrap table-fixed" style={{ minWidth: '100%' }}>
             <colgroup>
               {COL_DEFS.map((c) => (
@@ -395,6 +476,32 @@ export default function Customers() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile: stacked cards (hidden on desktop) */}
+        <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+          {visible.length === 0 ? (
+            <div className="px-6 py-16 flex flex-col items-center justify-center text-center">
+              <UserSearch className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+              <p className="text-sm font-medium text-[var(--text-primary)]">{t('No customers found')}</p>
+              <p className="text-sm text-[var(--text-secondary)] mt-1">
+                {hasActiveFilters ? t('No customers match these filters.') : t('Customers will appear here once they book.')}
+              </p>
+            </div>
+          ) : (
+            visible.map((c, index) => (
+              <CustomerCard
+                key={c.id}
+                customer={c}
+                index={index}
+                selected={selected.has(c.id)}
+                onToggle={() => toggleOne(c.id)}
+                onOpen={() => navigate(`/customers/${c.id}`)}
+                formatDateTime={formatDateTime}
+                t={t}
+              />
+            ))
+          )}
         </div>
 
         {/* Pagination */}
@@ -526,5 +633,69 @@ function CustomerRow({ customer: c, index, selected, onToggle, onOpen, formatDat
         {c.notes ? <span className="block truncate" title={c.notes}>{c.notes}</span> : <span className="text-[var(--text-secondary)]">—</span>}
       </td>
     </motion.tr>
+  );
+}
+
+function CustomerCard({ customer: c, index, selected, onToggle, onOpen, formatDateTime, t }: { customer: Customer; index: number; selected: boolean; onToggle: () => void; onOpen: () => void; formatDateTime: (v: string) => string; t: (k: string) => string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+    >
+      {/* Identity row */}
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          onClick={(e) => e.stopPropagation()}
+          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0"
+          aria-label={t('Select row')}
+        />
+        <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0 overflow-hidden">
+          {c.avatarUrl ? <img src={c.avatarUrl} alt="" className="w-full h-full object-cover" /> : initialOf(c.fullName)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-medium text-[var(--text-primary)] truncate">{c.fullName}</div>
+          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">
+            <span className="tabular-nums">ID {c.userId}</span> · {c.email}
+          </div>
+        </div>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-7">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Last booking date')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5 flex items-center gap-1.5">
+            {c.lastBookingDate ? (
+              <>
+                <CalendarClock className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
+                <span className="truncate">{formatDateTime(c.lastBookingDate)}</span>
+              </>
+            ) : (
+              <span className="text-[var(--text-secondary)]">—</span>
+            )}
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Total booking')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5">{c.totalBookings}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Total payment')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatMoney(c.totalPayment)}</div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Notes')}</div>
+          <div className="text-sm text-[var(--text-tertiary)] mt-0.5 truncate" title={c.notes || undefined}>
+            {c.notes || <span className="text-[var(--text-secondary)]">—</span>}
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }

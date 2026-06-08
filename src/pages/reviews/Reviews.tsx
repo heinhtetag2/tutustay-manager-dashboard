@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { averageRating, type Review } from './reviews-data';
@@ -61,7 +62,8 @@ export default function Reviews() {
   const [sort, setSort] = useState<Sort>('recent');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDateOpen, setIsDateOpen] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState('Custom date range');
+  const [selectedPreset, setSelectedPreset] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const total = reviews.length;
   const replied = reviews.filter((r) => r.reply).length;
@@ -75,6 +77,37 @@ export default function Reviews() {
       ? `${format(dateRange.from, 'MMM d, yyyy')} – ${format(dateRange.to, 'MMM d, yyyy')}`
       : format(dateRange.from, 'MMM d, yyyy')
     : t('Review date');
+
+  // Count of active secondary filters (search + sort live on the bar, excluded).
+  const activeFilterCount = (ratingFilter !== 'All' ? 1 : 0) + (statusFilter !== 'All' ? 1 : 0) + (dateRange?.from ? 1 : 0);
+
+  const ratingOptions = [
+    { value: 'All', label: t('All ratings') },
+    { value: '5', label: `5 ${t('stars')}` },
+    { value: '4', label: `4 ${t('stars')}` },
+    { value: '3', label: `3 ${t('stars')}` },
+    { value: '2', label: `2 ${t('stars')}` },
+    { value: '1', label: `1 ${t('star')}` },
+  ];
+  const statusOptions = [
+    { value: 'All', label: t('All reviews') },
+    { value: 'Replied', label: t('Replied') },
+    { value: 'Awaiting', label: t('Awaiting reply') },
+    { value: 'Hidden', label: t('Hidden') },
+  ];
+  const sortOptions = [
+    { value: 'recent', label: t('Most recent') },
+    { value: 'highest', label: t('Highest rated') },
+    { value: 'lowest', label: t('Lowest rated') },
+  ];
+  const datePresets = ['Last 7 days', 'Last 30 days', 'Last 90 days', 'Last 12 months', 'Custom date range'];
+  const applyDatePreset = (preset: string) => {
+    setSelectedPreset(preset);
+    if (preset === 'Last 7 days') setDateRange({ from: subDays(new Date(), 7), to: new Date() });
+    else if (preset === 'Last 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });
+    else if (preset === 'Last 90 days') setDateRange({ from: subDays(new Date(), 90), to: new Date() });
+    else if (preset === 'Last 12 months') setDateRange({ from: subMonths(new Date(), 12), to: new Date() });
+  };
 
   const query = search.trim().toLowerCase();
   const visible = reviews
@@ -120,32 +153,32 @@ export default function Reviews() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
         {stats.map((card, i) => (
           <motion.div
             key={card.title}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
+            className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</span>
               {card.title === 'Average rating' && <Stars value={Math.round(avg)} />}
             </div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Filters — desktop (sm+) */}
+      <div className="hidden sm:flex flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
@@ -277,6 +310,80 @@ export default function Reviews() {
         </div>
       </div>
 
+      {/* Filters — mobile (search + Filters sheet trigger + Sort) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('Search reviews')}
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
+          />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          <BrandSelect
+            value={sort}
+            onValueChange={(v) => setSort(v as Sort)}
+            leftIcon={<ArrowUpDown />}
+            className="flex-1"
+            options={sortOptions}
+          />
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        <FilterField label={t('Rating')}>
+          <BrandSelect value={ratingFilter} onValueChange={(v) => setRatingFilter(v as RatingFilter)} leftIcon={<Star />} className="w-full" options={ratingOptions} />
+        </FilterField>
+        <FilterField label={t('Status')}>
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<MessageSquareReply />} className="w-full" options={statusOptions} />
+        </FilterField>
+        <FilterField label={t('Review date')}>
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => applyDatePreset(preset)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+                  selectedPreset === preset
+                    ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]'
+                    : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white hover:bg-[var(--surface-subtle)]'
+                }`}
+              >
+                {t(preset)}
+              </button>
+            ))}
+          </div>
+          {/* Calendar only appears for a custom range — keeps the sheet short for the common preset case. */}
+          {selectedPreset === 'Custom date range' && (
+            <div className="flex justify-center mt-3" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}>
+              <CalendarUI
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }}
+                numberOfMonths={1}
+                className="border border-[var(--border-default)] rounded-md p-2"
+                classNames={{ table: 'border-collapse space-x-1', row: 'flex mt-2' }}
+              />
+            </div>
+          )}
+        </FilterField>
+      </MobileFilterSheet>
+
       {/* Review list */}
       {visible.length === 0 ? (
         <div className="bg-white border border-[var(--border-default)] rounded-md p-16">
@@ -344,7 +451,7 @@ function ReviewCard({
       transition={{ duration: 0.25, delay: index * 0.03 }}
       className={`bg-white border rounded-md p-5 shadow-none transition-colors ${r.hidden ? 'border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)]/40' : 'border-[var(--border-default)]'}`}
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
         <button
           type="button"
           onClick={onOpenCustomer}
@@ -364,7 +471,7 @@ function ReviewCard({
             </div>
           </div>
         </button>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
           {r.hidden ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-[var(--surface-subtle)] text-[var(--text-secondary)] border border-[var(--border-default)]">
               <EyeOff className="w-3 h-3" />
@@ -384,7 +491,7 @@ function ReviewCard({
           <span className="text-xs text-[var(--text-secondary)] tabular-nums whitespace-nowrap">{formatDate(r.createdAt)}</span>
           <button
             onClick={onToggleHidden}
-            className="p-1.5 -mr-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer"
+            className="p-1.5 -mr-1 ml-auto sm:ml-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer"
             title={r.hidden ? t('Show review') : t('Hide review')}
             aria-label={r.hidden ? t('Show review') : t('Hide review')}
           >

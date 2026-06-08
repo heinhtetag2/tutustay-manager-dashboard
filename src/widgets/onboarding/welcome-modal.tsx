@@ -110,7 +110,7 @@ export function WelcomeModal() {
                   {isCover ? (
                     <>
                       <h2 className="text-2xl font-serif text-[var(--text-primary)]">
-                        {t('Welcome to TutuStay')} 👋
+                        {t('Welcome to TutuStay')}
                       </h2>
                       <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">
                         {t(

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
 import type {
   Report,
@@ -110,6 +111,7 @@ export default function Reports() {
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('All');
   const [reasonFilter, setReasonFilter] = useState<ReasonFilter>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [confirming, setConfirming] = useState<
     | { report: Report; action: ActionType }
     | null
@@ -184,6 +186,34 @@ export default function Reports() {
     setReasonFilter('All');
   };
 
+  // Count of active secondary filters (search + status live on the bar, excluded).
+  const activeFilterCount =
+    (severityFilter !== 'All' ? 1 : 0) +
+    (reasonFilter !== 'All' ? 1 : 0);
+
+  const severityOptions = [
+    { value: 'All', label: t('All Severities') },
+    { value: 'Low', label: t('Low') },
+    { value: 'Medium', label: t('Medium') },
+    { value: 'High', label: t('High') },
+    { value: 'Critical', label: t('Critical') },
+  ];
+  const reasonOptions = [
+    { value: 'All', label: t('Any reason') },
+    { value: 'Spam', label: t('Spam') },
+    { value: 'Fraud', label: t('Fraud') },
+    { value: 'Low quality', label: t('Low quality') },
+    { value: 'Abuse', label: t('Abuse') },
+    { value: 'Off-topic', label: t('Off-topic') },
+  ];
+  const statusOptions = [
+    { value: 'All', label: t('All Statuses') },
+    { value: 'Open', label: t('Open') },
+    { value: 'Reviewing', label: t('Reviewing') },
+    { value: 'Resolved', label: t('Resolved') },
+    { value: 'Dismissed', label: t('Dismissed') },
+  ];
+
   const visible = reports.filter((r) => {
     if (statusFilter !== 'All' && r.status !== statusFilter) return false;
     if (severityFilter !== 'All' && r.severity !== severityFilter) return false;
@@ -251,29 +281,29 @@ export default function Reports() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
         {stats.map((card, i) => (
           <motion.div
             key={card.title}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
+            className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Filters — desktop (sm+) */}
+      <div className="hidden sm:flex flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
@@ -291,13 +321,7 @@ export default function Reports() {
             onValueChange={(v) => setSeverityFilter(v as SeverityFilter)}
             leftIcon={<ShieldAlert />}
             className="sm:w-auto"
-            options={[
-              { value: 'All', label: t('All Severities') },
-              { value: 'Low', label: t('Low') },
-              { value: 'Medium', label: t('Medium') },
-              { value: 'High', label: t('High') },
-              { value: 'Critical', label: t('Critical') },
-            ]}
+            options={severityOptions}
           />
 
           <BrandSelect
@@ -305,14 +329,7 @@ export default function Reports() {
             onValueChange={(v) => setReasonFilter(v as ReasonFilter)}
             leftIcon={<Flag />}
             className="sm:w-auto"
-            options={[
-              { value: 'All', label: t('Any reason') },
-              { value: 'Spam', label: t('Spam') },
-              { value: 'Fraud', label: t('Fraud') },
-              { value: 'Low quality', label: t('Low quality') },
-              { value: 'Abuse', label: t('Abuse') },
-              { value: 'Off-topic', label: t('Off-topic') },
-            ]}
+            options={reasonOptions}
           />
 
           <BrandSelect
@@ -320,13 +337,7 @@ export default function Reports() {
             onValueChange={(v) => setStatusFilter(v as StatusFilter)}
             leftIcon={<CheckCircle />}
             className="sm:w-auto"
-            options={[
-              { value: 'All', label: t('All Statuses') },
-              { value: 'Open', label: t('Open') },
-              { value: 'Reviewing', label: t('Reviewing') },
-              { value: 'Resolved', label: t('Resolved') },
-              { value: 'Dismissed', label: t('Dismissed') },
-            ]}
+            options={statusOptions}
           />
 
           {hasActiveFilters && (
@@ -341,9 +352,46 @@ export default function Reports() {
         </div>
       </div>
 
+      {/* Filters — mobile (search + Filters sheet trigger) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('Search reports...')}
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
+          />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<CheckCircle />} className="flex-1" options={statusOptions} />
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        <FilterField label={t('Severity')}>
+          <BrandSelect value={severityFilter} onValueChange={(v) => setSeverityFilter(v as SeverityFilter)} leftIcon={<ShieldAlert />} className="w-full" options={severityOptions} />
+        </FilterField>
+        <FilterField label={t('Reason')}>
+          <BrandSelect value={reasonFilter} onValueChange={(v) => setReasonFilter(v as ReasonFilter)} leftIcon={<Flag />} className="w-full" options={reasonOptions} />
+        </FilterField>
+      </MobileFilterSheet>
+
       {/* Table */}
       <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
-        <div className="overflow-x-auto">
+        {/* Desktop: full data table (hidden on mobile) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="text-left text-sm whitespace-nowrap table-fixed" style={{ minWidth: '100%' }}>
             <colgroup>
               {REPORT_COLS.map((c) => (
@@ -499,6 +547,25 @@ export default function Reports() {
           </table>
         </div>
 
+        {/* Mobile: stacked cards (hidden on desktop) */}
+        <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+          {visible.length === 0 ? (
+            <div className="px-6 py-12 text-center text-[var(--text-secondary)]">
+              {t('No reports match these filters.')}
+            </div>
+          ) : (
+            visible.map((r, index) => (
+              <ReportRowCard
+                key={r.id}
+                report={r}
+                index={index}
+                onAction={(action) => setConfirming({ report: r, action })}
+                t={t}
+              />
+            ))
+          )}
+        </div>
+
         {/* Pagination */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
           <span className="text-sm text-[var(--text-secondary)]">
@@ -594,6 +661,109 @@ export default function Reports() {
         )}
       </AnimatePresence>
       </Portal>
+    </motion.div>
+  );
+}
+
+function ReportRowCard({ report: r, index, onAction, t }: { report: Report; index: number; onAction: (action: ActionType) => void; t: (k: string) => string }) {
+  const statusStyle = getStatusStyles(r.status);
+  const isClosed = r.status === 'Resolved' || r.status === 'Dismissed';
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors"
+    >
+      {/* Identity row */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0">
+          {r.initial}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-medium text-[var(--text-primary)] truncate">{r.reportedName}</div>
+          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{r.id} · {r.reportedEmail}</div>
+        </div>
+        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${statusStyle.badge}`}>
+          <statusStyle.Icon className="w-3 h-3" />
+          {t(r.status)}
+        </span>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Reason')}</div>
+          <div className="mt-0.5">
+            <span className="inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full bg-[var(--surface-subtle)] text-[var(--text-tertiary)]">
+              {t(r.reason)}
+            </span>
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Severity')}</div>
+          <div className="mt-1"><SeverityMeter severity={r.severity} /></div>
+        </div>
+        <div className="min-w-0 col-span-2">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Survey')}</div>
+          <div className="text-sm text-[var(--text-primary)] truncate mt-0.5">{r.surveyTitle}</div>
+          <div className="text-xs text-[var(--text-secondary)] truncate">{t(r.surveyCategory)}</div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Reporter')}</div>
+          <div className="text-sm text-[var(--text-primary)] truncate mt-0.5">{r.reporter === 'System' ? t('System') : r.reporter}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Reported')}</div>
+          <div className="text-sm text-[var(--text-tertiary)] tabular-nums mt-0.5" title={format(new Date(r.reportedAt), 'MMM d, yyyy')}>
+            {formatDistanceToNow(new Date(r.reportedAt), { addSuffix: true })}
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-1.5 mt-4 flex-wrap">
+        {isClosed ? (
+          <button
+            onClick={() => onAction('reopen')}
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--brand-tint)] text-[var(--brand-primary)] hover:bg-[var(--brand-border)] transition-colors cursor-pointer"
+            title={t('Reopen report')}
+          >
+            <RotateCcw className="w-3 h-3" />
+            {t('Reopen')}
+          </button>
+        ) : (
+          <>
+            {r.status === 'Open' ? (
+              <button
+                onClick={() => onAction('review')}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--brand-tint)] text-[var(--brand-primary)] hover:bg-[var(--brand-border)] transition-colors cursor-pointer"
+                title={t('Start review')}
+              >
+                <Eye className="w-3 h-3" />
+                {t('Review')}
+              </button>
+            ) : (
+              <button
+                onClick={() => onAction('resolve')}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--success-tint)] text-[var(--success)] hover:bg-[var(--success-tint-2)] transition-colors cursor-pointer"
+                title={t('Resolve report')}
+              >
+                <CheckCircle className="w-3 h-3" />
+                {t('Resolve')}
+              </button>
+            )}
+            <button
+              onClick={() => onAction('dismiss')}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--danger-tint)] text-[var(--danger)] hover:bg-[var(--danger-border)] transition-colors cursor-pointer"
+              title={t('Dismiss report')}
+            >
+              <XCircle className="w-3 h-3" />
+              {t('Dismiss')}
+            </button>
+          </>
+        )}
+      </div>
     </motion.div>
   );
 }

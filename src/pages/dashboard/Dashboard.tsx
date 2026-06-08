@@ -349,7 +349,7 @@ export default function Dashboard() {
       <QuickStartChecklist />
 
       {/* Summary cards */}
-      <div data-tour="dashboard-kpis" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div data-tour="dashboard-kpis" className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
         {stats.map((card, i) => (
           <motion.button
             key={card.title}
@@ -357,21 +357,21 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="text-left bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group cursor-pointer"
+            className="text-left bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group cursor-pointer"
           >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="text-2xl font-medium text-[var(--brand-primary)] tabular-nums">{card.value}</div>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <div className="text-xl sm:text-2xl font-medium text-[var(--brand-primary)] tabular-nums">{card.value}</div>
               {card.delta != null && card.delta !== 0 && (
                 <DeltaChip delta={card.delta} unit={card.deltaUnit} />
               )}
             </div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.button>
         ))}
       </div>

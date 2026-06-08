@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { format, isSameMonth, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import {
@@ -17,9 +17,13 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Trash2,
+  AlertCircle,
 } from 'lucide-react';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Portal } from '@/shared/ui/portal';
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import {
   formatAmount,
@@ -27,6 +31,7 @@ import {
   netAmount,
   settlementStatusClass,
   SETTLEMENT_STATUSES,
+  type Settlement,
   type SettlementStatus,
 } from './settlements-data';
 import { useSettlements } from './use-settlements';
@@ -48,6 +53,7 @@ export default function Settlements() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const settlements = useSettlements((s) => s.settlements);
+  const removeSettlement = useSettlements((s) => s.removeSettlement);
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
@@ -55,7 +61,10 @@ export default function Settlements() {
   const [chartMetric, setChartMetric] = useState<ChartMetric>('net');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isDateOpen, setIsDateOpen] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState('Custom date range');
+  const [selectedPreset, setSelectedPreset] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const counts = useMemo(() => {
     const paidOut = settlements.filter((s) => s.status === 'Paid').reduce((n, s) => n + netAmount(s), 0);
@@ -107,7 +116,26 @@ export default function Settlements() {
     setStatusFilter('All');
     setAmountFilter('All');
     setDateRange(undefined);
-    setSelectedPreset('Custom date range');
+    setSelectedPreset('');
+  };
+
+  // Status lives on the mobile bar; count the remaining secondary filters + date range.
+  const activeFilterCount = (amountFilter !== 'All' ? 1 : 0) + (dateRange?.from ? 1 : 0);
+
+  const statusOptions = [{ value: 'All', label: t('All statuses') }, ...SETTLEMENT_STATUSES.map((s) => ({ value: s, label: t(s) }))];
+  const amountOptions = [
+    { value: 'All', label: t('Any amount') },
+    { value: 'lt1m', label: t('Under 1M') },
+    { value: '1to3m', label: t('1M – 3M') },
+    { value: 'gt3m', label: t('Over 3M') },
+  ];
+  const datePresets = ['This month', 'Last 30 days', 'Last 90 days', 'This year', 'Custom date range'];
+  const applyDatePreset = (preset: string) => {
+    setSelectedPreset(preset);
+    if (preset === 'This month') setDateRange({ from: startOfMonth(NOW), to: endOfMonth(NOW) });
+    else if (preset === 'Last 30 days') setDateRange({ from: subDays(NOW, 30), to: NOW });
+    else if (preset === 'Last 90 days') setDateRange({ from: subDays(NOW, 90), to: NOW });
+    else if (preset === 'This year') setDateRange({ from: new Date('2026-01-01'), to: new Date('2026-12-31') });
   };
 
   // Pagination
@@ -119,6 +147,29 @@ export default function Settlements() {
   const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const rangeStart = filtered.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(currentPage * PAGE_SIZE, filtered.length);
+
+  // Bulk selection — scoped to the current page of rows.
+  const pageIds = pageRows.map((s) => s.id);
+  const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+  const toggleAll = () =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  const toggleOne = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const confirmBulkDelete = () => {
+    selected.forEach((id) => removeSettlement(id));
+    setSelected(new Set());
+    setBulkDeleting(false);
+  };
 
   // Net payout per period for the chart — most recent 8 periods, so it stays readable.
   const chartData = useMemo(
@@ -173,11 +224,11 @@ export default function Settlements() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
         {stats.map((card, i) => (
-          <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
-            <div className="flex justify-between items-start mb-4">
-              <span className="flex items-center gap-1 text-sm font-medium text-[var(--text-secondary)]">
+          <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="flex items-center gap-1 text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
                 {t(card.title)}
                 {GLOSSARY[card.title] && <InfoTooltip label={GLOSSARY[card.title]} />}
               </span>
@@ -185,8 +236,8 @@ export default function Settlements() {
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
@@ -271,8 +322,8 @@ export default function Settlements() {
         </motion.div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Filters — desktop (sm+) */}
+      <div className="hidden sm:flex flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by reference')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
@@ -282,7 +333,7 @@ export default function Settlements() {
           onValueChange={(v) => setStatusFilter(v as StatusFilter)}
           leftIcon={<ListFilter />}
           className="sm:w-auto"
-          options={[{ value: 'All', label: t('All statuses') }, ...SETTLEMENT_STATUSES.map((s) => ({ value: s, label: t(s) }))]}
+          options={statusOptions}
         />
 
         {/* Period date-range filter */}
@@ -296,14 +347,8 @@ export default function Settlements() {
               <div className="fixed inset-0 z-10" onClick={() => setIsDateOpen(false)} />
               <div className="absolute top-full right-0 mt-2 bg-white border border-[var(--border-default)] rounded-md z-20 flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
                 <div className="w-48 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
-                  {['This month', 'Last 30 days', 'Last 90 days', 'This year', 'Custom date range'].map((preset) => (
-                    <button key={preset} onClick={() => {
-                        setSelectedPreset(preset);
-                        if (preset === 'This month') setDateRange({ from: startOfMonth(NOW), to: endOfMonth(NOW) });
-                        else if (preset === 'Last 30 days') setDateRange({ from: subDays(NOW, 30), to: NOW });
-                        else if (preset === 'Last 90 days') setDateRange({ from: subDays(NOW, 90), to: NOW });
-                        else if (preset === 'This year') setDateRange({ from: new Date('2026-01-01'), to: new Date('2026-12-31') });
-                      }}
+                  {datePresets.map((preset) => (
+                    <button key={preset} onClick={() => applyDatePreset(preset)}
                       className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors shadow-none cursor-pointer ${selectedPreset === preset ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium' : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}>
                       {t(preset)}
                       {selectedPreset === preset && <Check className="w-4 h-4 text-[var(--brand-primary)]" />}
@@ -327,12 +372,7 @@ export default function Settlements() {
           onValueChange={(v) => setAmountFilter(v as AmountFilter)}
           leftIcon={<Coins />}
           className="sm:w-auto"
-          options={[
-            { value: 'All', label: t('Any amount') },
-            { value: 'lt1m', label: t('Under 1M') },
-            { value: '1to3m', label: t('1M – 3M') },
-            { value: 'gt3m', label: t('Over 3M') },
-          ]}
+          options={amountOptions}
         />
 
         {hasActiveFilters && (
@@ -342,12 +382,115 @@ export default function Settlements() {
         )}
       </div>
 
+      {/* Filters — mobile (search + Filters sheet trigger + Status) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by reference')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<ListFilter />} className="flex-1" options={statusOptions} />
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        <FilterField label={t('Amount')}>
+          <BrandSelect value={amountFilter} onValueChange={(v) => setAmountFilter(v as AmountFilter)} leftIcon={<Coins />} className="w-full" options={amountOptions} />
+        </FilterField>
+        <FilterField label={t('Period')}>
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => applyDatePreset(preset)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+                  selectedPreset === preset
+                    ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]'
+                    : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white hover:bg-[var(--surface-subtle)]'
+                }`}
+              >
+                {t(preset)}
+              </button>
+            ))}
+          </div>
+          {/* Calendar only appears for a custom range — keeps the sheet short for the common preset case. */}
+          {selectedPreset === 'Custom date range' && (
+            <div className="flex justify-center mt-3" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}>
+              <CalendarUI
+                mode="range"
+                defaultMonth={dateRange?.from ?? NOW}
+                selected={dateRange}
+                onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }}
+                numberOfMonths={1}
+                className="border border-[var(--border-default)] rounded-md p-2"
+                classNames={{ table: 'border-collapse space-x-1', row: 'flex mt-2' }}
+              />
+            </div>
+          )}
+        </FilterField>
+      </MobileFilterSheet>
+
+      {/* Bulk selection bar */}
+      <AnimatePresence initial={false}>
+        {selected.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -6, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="flex items-center justify-between gap-3 mb-4 px-4 py-2.5 bg-[var(--brand-tint)] border border-[var(--brand-border)] rounded-md">
+              <span className="text-sm font-medium text-[var(--brand-primary)] tabular-nums">
+                {selected.size} {t('selected')}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelected(new Set())}
+                  className="px-3 py-1.5 text-sm font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-white rounded-md transition-colors cursor-pointer"
+                >
+                  {t('Clear')}
+                </button>
+                <button
+                  onClick={() => setBulkDeleting(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {t('Delete')}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Table */}
       <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
-        <div className="overflow-x-auto">
+        {/* Desktop: full data table (hidden on mobile) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
               <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)]">
+                <th className="pl-6 pr-3 py-4 font-medium text-[11px] tracking-wider uppercase">
+                  <input
+                    type="checkbox"
+                    checked={allPageSelected}
+                    onChange={toggleAll}
+                    className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer align-middle"
+                    aria-label={t('Select all')}
+                  />
+                </th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Reference')}</th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Period')}</th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase text-center">{t('Bookings')}</th>
@@ -360,7 +503,7 @@ export default function Settlements() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-[var(--text-secondary)]">{t('No settlements match your filters.')}</td>
+                  <td colSpan={8} className="px-6 py-12 text-center text-sm text-[var(--text-secondary)]">{t('No settlements match your filters.')}</td>
                 </tr>
               ) : (
                 pageRows.map((s) => (
@@ -369,6 +512,15 @@ export default function Settlements() {
                     onClick={() => navigate(`/settlements/${s.id}`)}
                     className="border-b border-[var(--surface-subtle)] last:border-0 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
                   >
+                    <td className="pl-6 pr-3 py-4" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(s.id)}
+                        onChange={() => toggleOne(s.id)}
+                        className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer align-middle"
+                        aria-label={t('Select row')}
+                      />
+                    </td>
                     <td className="px-6 py-4 font-medium text-[var(--text-primary)] tabular-nums">{s.reference}</td>
                     <td className="px-6 py-4 text-[var(--text-secondary)] tabular-nums">
                       <span className="inline-flex items-center gap-2">
@@ -388,6 +540,17 @@ export default function Settlements() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile: stacked cards (hidden on desktop) */}
+        <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+          {filtered.length === 0 ? (
+            <div className="px-6 py-12 text-center text-sm text-[var(--text-secondary)]">{t('No settlements match your filters.')}</div>
+          ) : (
+            pageRows.map((s, index) => (
+              <SettlementCard key={s.id} settlement={s} index={index} selected={selected.has(s.id)} onToggle={() => toggleOne(s.id)} onOpen={() => navigate(`/settlements/${s.id}`)} t={t} />
+            ))
+          )}
         </div>
 
         {filtered.length > 0 && (
@@ -413,6 +576,66 @@ export default function Settlements() {
           </div>
         )}
       </div>
+
+      {/* Bulk delete confirmation */}
+      <Portal>
+        <AnimatePresence>
+          {bulkDeleting && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-[var(--text-primary)]/30 flex items-center justify-center z-50 p-4"
+              onClick={() => setBulkDeleting(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                transition={{ type: 'spring', duration: 0.3 }}
+                className="bg-white rounded-md w-full max-w-sm shadow-none border border-[var(--surface-subtle)] flex flex-col overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)]">
+                  <h2 className="text-lg font-medium text-[var(--text-primary)]">
+                    {t('Delete')} {selected.size} {t('settlements')}?
+                  </h2>
+                  <button
+                    onClick={() => setBulkDeleting(false)}
+                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors p-1 cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="p-6">
+                  <p className="text-[var(--text-tertiary)] text-sm leading-relaxed">
+                    {t('This permanently removes the selected settlement records. This action cannot be undone.')}
+                  </p>
+                  <p className="mt-4 text-[var(--danger)] text-xs font-medium flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4" />
+                    {t('This action cannot be undone.')}
+                  </p>
+                </div>
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--surface-subtle)]">
+                  <button
+                    onClick={() => setBulkDeleting(false)}
+                    className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                  >
+                    {t('Cancel')}
+                  </button>
+                  <button
+                    onClick={confirmBulkDelete}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-[var(--danger-strong)] hover:bg-[var(--danger)] transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {t('Delete')}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Portal>
     </motion.div>
   );
 }
@@ -438,5 +661,73 @@ function PayoutTooltip({
       <div className="font-medium tabular-nums">{formatAmount(p[metric])}</div>
       <div className="text-[var(--text-muted)] mt-0.5">{metricLabel} · {t(p.status)}</div>
     </div>
+  );
+}
+
+function SettlementCard({
+  settlement: s,
+  index,
+  selected,
+  onToggle,
+  onOpen,
+  t,
+}: {
+  settlement: Settlement;
+  index: number;
+  selected: boolean;
+  onToggle: () => void;
+  onOpen: () => void;
+  t: (key: string) => string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+    >
+      {/* Identity row */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={onToggle}
+            onClick={(e) => e.stopPropagation()}
+            className="w-4 h-4 mt-0.5 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0"
+            aria-label={t('Select row')}
+          />
+          <div className="min-w-0">
+            <div className="font-medium text-[var(--text-primary)] tabular-nums truncate">{s.reference}</div>
+            <div className="text-xs text-[var(--text-secondary)] tabular-nums mt-0.5 flex items-center gap-1.5">
+              <CalendarIcon className="w-3.5 h-3.5 text-[var(--text-tertiary)] shrink-0" />
+              <span className="truncate">{format(new Date(s.periodStart), 'MMM d')} – {format(new Date(s.periodEnd), 'MMM d, yyyy')}</span>
+            </div>
+          </div>
+        </div>
+        <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${settlementStatusClass(s.status)}`}>{t(s.status)}</span>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Bookings')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5">{s.bookingsCount}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Gross')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5">{formatAmount(s.grossAmount)}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Commission')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5">−{formatAmount(commissionAmount(s))}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Net payout')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatAmount(netAmount(s))}</div>
+        </div>
+      </div>
+    </motion.div>
   );
 }

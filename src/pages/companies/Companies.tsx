@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import type { Company, CompanyPlan, CompanyStatus } from './company-data';
 import { DEMO_COMPANIES } from './company-data';
 
@@ -73,6 +74,7 @@ export default function Companies() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
   const [planFilter, setPlanFilter] = useState<PlanFilter>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [confirming, setConfirming] = useState<
     | { company: Company; action: 'approve' | 'reject' | 'suspend' | 'reinstate' }
     | null
@@ -86,6 +88,22 @@ export default function Companies() {
     setStatusFilter('All');
     setPlanFilter('All');
   };
+
+  // Count of active secondary filters (search + status live on the bar, excluded).
+  const activeFilterCount = planFilter !== 'All' ? 1 : 0;
+
+  const planOptions = [
+    { value: 'All', label: t('All Plans') },
+    { value: 'Starter', label: t('Starter') },
+    { value: 'Growth', label: t('Growth') },
+    { value: 'Enterprise', label: t('Enterprise') },
+  ];
+  const statusOptions = [
+    { value: 'All', label: t('All Statuses') },
+    { value: 'Pending', label: t('Pending') },
+    { value: 'Approved', label: t('Approved') },
+    { value: 'Suspended', label: t('Suspended') },
+  ];
 
   const counts = useMemo(
     () => ({
@@ -178,7 +196,7 @@ export default function Companies() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
         {[
           {
             title: 'Total companies',
@@ -212,22 +230,22 @@ export default function Companies() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
+            className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Filters — desktop (sm+) */}
+      <div className="hidden sm:flex flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
@@ -245,12 +263,7 @@ export default function Companies() {
             onValueChange={(v) => setPlanFilter(v as PlanFilter)}
             leftIcon={<Tag />}
             className="sm:w-auto"
-            options={[
-              { value: 'All', label: t('All Plans') },
-              { value: 'Starter', label: t('Starter') },
-              { value: 'Growth', label: t('Growth') },
-              { value: 'Enterprise', label: t('Enterprise') },
-            ]}
+            options={planOptions}
           />
 
           <BrandSelect
@@ -258,12 +271,7 @@ export default function Companies() {
             onValueChange={(v) => setStatusFilter(v as StatusFilter)}
             leftIcon={<CheckCircle />}
             className="sm:w-auto"
-            options={[
-              { value: 'All', label: t('All Statuses') },
-              { value: 'Pending', label: t('Pending') },
-              { value: 'Approved', label: t('Approved') },
-              { value: 'Suspended', label: t('Suspended') },
-            ]}
+            options={statusOptions}
           />
 
           {hasActiveFilters && (
@@ -278,9 +286,43 @@ export default function Companies() {
         </div>
       </div>
 
+      {/* Filters — mobile (search + Filters sheet trigger) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('Search companies...')}
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
+          />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<CheckCircle />} className="flex-1" options={statusOptions} />
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        <FilterField label={t('Plan')}>
+          <BrandSelect value={planFilter} onValueChange={(v) => setPlanFilter(v as PlanFilter)} leftIcon={<Tag />} className="w-full" options={planOptions} />
+        </FilterField>
+      </MobileFilterSheet>
+
       {/* Table */}
       <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
-        <div className="overflow-x-auto">
+        {/* Desktop: full data table (hidden on mobile) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
               <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
@@ -430,6 +472,26 @@ export default function Companies() {
           </table>
         </div>
 
+        {/* Mobile: stacked cards (hidden on desktop) */}
+        <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+          {visible.length === 0 ? (
+            <div className="px-6 py-12 text-center text-[var(--text-secondary)] text-sm">
+              {t('No companies match these filters.')}
+            </div>
+          ) : (
+            visible.map((company, index) => (
+              <CompanyCard
+                key={company.id}
+                company={company}
+                index={index}
+                onOpen={() => navigate(`/companies/${company.id.toLowerCase()}`)}
+                onAction={(action) => setConfirming({ company, action })}
+                t={t}
+              />
+            ))
+          )}
+        </div>
+
         {/* Pagination */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
           <span className="text-sm text-[var(--text-secondary)]">
@@ -529,6 +591,102 @@ export default function Companies() {
         )}
       </AnimatePresence>
       </Portal>
+    </motion.div>
+  );
+}
+
+function CompanyCard({ company, index, onOpen, onAction, t }: { company: Company; index: number; onOpen: () => void; onAction: (action: 'approve' | 'reject' | 'suspend' | 'reinstate') => void; t: (k: string) => string }) {
+  const statusStyle = getStatusStyles(company.status);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+    >
+      {/* Identity row */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0">
+          {company.initial}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-medium text-[var(--text-primary)] truncate">{company.name}</div>
+          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{company.email}</div>
+        </div>
+        <span
+          className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${statusStyle.badge}`}
+        >
+          <statusStyle.Icon className="w-3 h-3" />
+          {t(company.status)}
+        </span>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Plan')}</div>
+          <div className="mt-1">
+            <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${getPlanStyles(company.plan)}`}>
+              {t(company.plan)}
+            </span>
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Surveys')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{company.surveys}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Total Spent')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatMnt(company.totalSpentMnt)}</div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Joined')}</div>
+          <div className="text-sm text-[var(--text-tertiary)] tabular-nums mt-0.5 truncate" title={format(new Date(company.joined), 'MMM d, yyyy')}>
+            {formatDistanceToNow(new Date(company.joined), { addSuffix: true })}
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-1.5 mt-4">
+        {company.status === 'Pending' && (
+          <>
+            <button
+              onClick={(e) => { e.stopPropagation(); onAction('approve'); }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--success-tint)] text-[var(--success)] hover:bg-[var(--success-tint-2)] transition-colors cursor-pointer"
+            >
+              <CheckCircle2 className="w-3 h-3" />
+              {t('Approve')}
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onAction('reject'); }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-white text-[var(--text-tertiary)] border border-[var(--border-default)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            >
+              <XCircle className="w-3 h-3" />
+              {t('Reject')}
+            </button>
+          </>
+        )}
+        {company.status === 'Approved' && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onAction('suspend'); }}
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--danger-tint)] text-[var(--danger)] hover:bg-[var(--danger-border)] transition-colors cursor-pointer"
+          >
+            <Ban className="w-3 h-3" />
+            {t('Suspend')}
+          </button>
+        )}
+        {company.status === 'Suspended' && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onAction('reinstate'); }}
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--success-tint)] text-[var(--success)] hover:bg-[var(--success-tint-2)] transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-3 h-3" />
+            {t('Reinstate')}
+          </button>
+        )}
+      </div>
     </motion.div>
   );
 }

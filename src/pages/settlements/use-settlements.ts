@@ -5,6 +5,7 @@ interface SettlementsState {
   settlements: Settlement[];
   /** Mark a settlement as paid (records the settle time, clears the schedule). */
   markPaid: (id: string, settledAt: string) => void;
+  removeSettlement: (id: string) => void;
 }
 
 export const useSettlements = create<SettlementsState>((set) => ({
@@ -15,4 +16,6 @@ export const useSettlements = create<SettlementsState>((set) => ({
         x.id === id ? { ...x, status: 'Paid', settledAt, scheduledFor: undefined } : x,
       ),
     })),
+  removeSettlement: (id) =>
+    set((s) => ({ settlements: s.settlements.filter((x) => x.id !== id) })),
 }));

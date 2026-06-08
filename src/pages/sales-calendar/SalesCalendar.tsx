@@ -52,6 +52,12 @@ export default function SalesCalendar() {
     return eachDayOfInterval({ start, end });
   }, [month]);
 
+  // Mobile agenda: only days within the month that actually have bookings.
+  const agendaDays = useMemo(() => {
+    return eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) })
+      .filter((d) => (byDay.get(format(d, 'yyyy-MM-dd')) ?? []).length > 0);
+  }, [month, byDay]);
+
   // KPIs for the visible month (by check-in date).
   const monthBookings = reservations.filter((r) => isSameMonth(new Date(r.checkIn), month));
   const counts = {
@@ -78,7 +84,7 @@ export default function SalesCalendar() {
           <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Sales Calendar')}</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">{t('A month-by-month view of your bookings and revenue, day by day.')}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-between sm:justify-normal sticky top-0 z-20 -mx-6 px-6 py-3 bg-[var(--surface-muted)]/90 backdrop-blur border-b border-[var(--border-default)] sm:static sm:mx-0 sm:px-0 sm:py-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none">
           <button onClick={() => setMonth((m) => addMonths(m, -1))} className="w-9 h-9 inline-flex items-center justify-center border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer" aria-label={t('Previous month')}>
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -93,15 +99,15 @@ export default function SalesCalendar() {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
         {stats.map((card) => (
-          <div key={card.title} className="bg-white border border-[var(--border-default)] rounded-md p-5 shadow-none">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+          <div key={card.title} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 shadow-none">
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)]"><card.Icon className="w-4 h-4" /></div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </div>
         ))}
       </div>
@@ -109,13 +115,13 @@ export default function SalesCalendar() {
       {/* Calendar */}
       <div className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden shadow-none">
         {/* Weekday header */}
-        <div className="grid grid-cols-7 border-b border-[var(--border-default)]">
+        <div className="hidden sm:grid grid-cols-7 border-b border-[var(--border-default)]">
           {WEEKDAYS.map((d) => (
             <div key={d} className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-tertiary)] text-center sm:text-left">{t(d)}</div>
           ))}
         </div>
         {/* Day grid */}
-        <div className="grid grid-cols-7">
+        <div className="hidden sm:grid grid-cols-7">
           {gridDays.map((day, idx) => {
             const key = format(day, 'yyyy-MM-dd');
             const list = byDay.get(key) ?? [];
@@ -159,6 +165,57 @@ export default function SalesCalendar() {
               </button>
             );
           })}
+        </div>
+
+        {/* Mobile agenda: days with bookings, listed (replaces the cramped grid on phones) */}
+        <div className="sm:hidden divide-y divide-[var(--border-default)]">
+          {agendaDays.length === 0 ? (
+            <div className="px-4 py-12 flex flex-col items-center justify-center text-center">
+              <CalendarDays className="w-7 h-7 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+              <p className="text-sm font-medium text-[var(--text-primary)]">{t('No bookings this month')}</p>
+              <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Bookings will appear here as they come in.')}</p>
+            </div>
+          ) : (
+            agendaDays.map((day) => {
+              const key = format(day, 'yyyy-MM-dd');
+              const list = byDay.get(key) ?? [];
+              const today = isSameDay(day, TODAY);
+              const rev = list.filter((r) => countsAsRevenue(r.status)).reduce((n, r) => n + r.amount, 0);
+              return (
+                <div key={key} className="px-4 py-4">
+                  <button onClick={() => openDay(day)} className="flex items-center justify-between w-full gap-3 mb-3 text-left cursor-pointer">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className={`inline-flex items-center justify-center w-9 h-9 text-sm tabular-nums rounded-md shrink-0 ${
+                        today ? 'bg-[var(--brand-primary)] text-white font-semibold' : 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium'
+                      }`}>{format(day, 'd')}</span>
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-[var(--text-primary)]">{format(day, 'EEEE')}</div>
+                        <div className="text-xs text-[var(--text-tertiary)]">{list.length} {t(list.length === 1 ? 'booking' : 'bookings')}</div>
+                      </div>
+                    </div>
+                    {rev > 0 && (
+                      <span className="text-xs font-semibold text-[var(--brand-primary)] tabular-nums bg-[var(--brand-tint)]/60 px-2 py-1 rounded-full shrink-0">
+                        {compact(rev)}
+                      </span>
+                    )}
+                  </button>
+                  <div className="space-y-1.5">
+                    {list.map((r) => (
+                      <button
+                        key={r.id}
+                        onClick={() => navigate(`/reservations/${r.id}`)}
+                        className={`flex items-center gap-2 w-full px-3 py-2 rounded-md text-left transition-shadow hover:ring-1 hover:ring-inset hover:ring-[var(--border-strong)] ${statusChipStyle(r.status)}`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor(r.status)}`} />
+                        <span className="text-sm font-medium truncate flex-1">{r.guestName}</span>
+                        <span className="text-xs text-[var(--text-tertiary)] truncate shrink-0 max-w-[40%]">{t(r.roomType)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 

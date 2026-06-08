@@ -340,23 +340,23 @@ export default function CompanyDetail() {
           transition={{ duration: 0.25 }}
         >
           {/* KPI cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
             {stats.map((card, i) => (
               <motion.div
                 key={card.title}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.08 }}
-                className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
+                className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+                <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+                  <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
                   <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                     <card.Icon className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
-                <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+                <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+                <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
               </motion.div>
             ))}
           </div>

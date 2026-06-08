@@ -24,6 +24,7 @@ import {
 } from 'date-fns';
 import { cn } from '@/shared/lib/cn';
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import {
   DEMO_FILLED_SURVEYS,
   type FilledSurvey,
@@ -94,6 +95,28 @@ export default function MySurveys() {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sort, setSort] = useState<SortKey>('newest');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  // Count of active secondary filters (search + sort live on the bar, excluded).
+  const activeFilterCount = statusFilter !== 'all' ? 1 : 0;
+  const clearFilters = () => {
+    setQuery('');
+    setStatusFilter('all');
+  };
+
+  const statusOptions = [
+    { value: 'all', label: t('All statuses') },
+    { value: 'paid', label: t('Paid') },
+    { value: 'held', label: t('Held 24h') },
+    { value: 'under-review', label: t('Under review') },
+    { value: 'rejected', label: t('Rejected') },
+  ];
+  const sortOptions = [
+    { value: 'newest', label: t('Newest first') },
+    { value: 'oldest', label: t('Oldest first') },
+    { value: 'reward-high', label: t('Highest reward') },
+    { value: 'reward-low', label: t('Lowest reward') },
+  ];
 
   const filtered = useMemo(() => {
     let list = DEMO_FILLED_SURVEYS.slice();
@@ -235,17 +258,17 @@ export default function MySurveys() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
         {statCards.map((card, i) => (
           <motion.div
             key={card.title}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.05 }}
-            className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
+            className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
                 {t(card.title)}
               </span>
               <div
@@ -261,19 +284,19 @@ export default function MySurveys() {
             </div>
             <div
               className={cn(
-                'text-2xl font-medium tabular-nums lining-nums',
+                'text-xl sm:text-2xl font-medium tabular-nums lining-nums',
                 card.accent ? 'text-[var(--brand-primary)]' : 'text-[var(--text-primary)]',
               )}
             >
               {card.value}
             </div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Filters — desktop (sm+) */}
+      <div className="hidden sm:flex flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
@@ -292,13 +315,7 @@ export default function MySurveys() {
             leftIcon={<CheckCircle />}
             ariaLabel={t('Status')}
             className="sm:w-auto"
-            options={[
-              { value: 'all', label: t('All statuses') },
-              { value: 'paid', label: t('Paid') },
-              { value: 'held', label: t('Held 24h') },
-              { value: 'under-review', label: t('Under review') },
-              { value: 'rejected', label: t('Rejected') },
-            ]}
+            options={statusOptions}
           />
           <BrandSelect
             value={sort}
@@ -306,15 +323,50 @@ export default function MySurveys() {
             leftIcon={<ArrowUpDown />}
             ariaLabel={t('Sort')}
             className="sm:w-auto"
-            options={[
-              { value: 'newest', label: t('Newest first') },
-              { value: 'oldest', label: t('Oldest first') },
-              { value: 'reward-high', label: t('Highest reward') },
-              { value: 'reward-low', label: t('Lowest reward') },
-            ]}
+            options={sortOptions}
           />
         </div>
       </div>
+
+      {/* Filters — mobile (search + Filters sheet trigger + Sort) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t('Search surveys or companies...')}
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
+          />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          <BrandSelect
+            value={sort}
+            onValueChange={(v) => setSort(v as SortKey)}
+            leftIcon={<ArrowUpDown />}
+            ariaLabel={t('Sort')}
+            className="flex-1"
+            options={sortOptions}
+          />
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        <FilterField label={t('Status')}>
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<CheckCircle />} ariaLabel={t('Status')} className="w-full" options={statusOptions} />
+        </FilterField>
+      </MobileFilterSheet>
 
       {/* List */}
       {filtered.length === 0 ? (

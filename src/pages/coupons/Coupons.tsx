@@ -19,6 +19,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { Portal } from '@/shared/ui/portal';
 import { formatAmount } from '@/pages/reservations/reservations-data';
@@ -29,6 +30,7 @@ import {
   formatScope,
   COUPON_STATUSES,
   type CouponStatus,
+  type Coupon,
 } from './coupons-data';
 import { useCoupons } from './use-coupons';
 import { CouponFormSheet } from './CouponFormSheet';
@@ -47,7 +49,8 @@ export default function Coupons() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isDateOpen, setIsDateOpen] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState('Custom date range');
+  const [selectedPreset, setSelectedPreset] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
@@ -98,7 +101,19 @@ export default function Coupons() {
     setSearch('');
     setStatusFilter('All');
     setDateRange(undefined);
-    setSelectedPreset('Custom date range');
+    setSelectedPreset('');
+  };
+
+  // Status lives on the mobile bar; only the date range remains as a secondary filter.
+  const activeFilterCount = (dateRange?.from ? 1 : 0);
+
+  const statusOptions = [{ value: 'All', label: t('All statuses') }, ...COUPON_STATUSES.map((s) => ({ value: s, label: t(s) }))];
+  const datePresets = ['Next 30 days', 'Next 90 days', 'This year', 'Custom date range'];
+  const applyDatePreset = (preset: string) => {
+    setSelectedPreset(preset);
+    if (preset === 'Next 30 days') setDateRange({ from: NOW, to: addDays(NOW, 30) });
+    else if (preset === 'Next 90 days') setDateRange({ from: NOW, to: addMonths(NOW, 3) });
+    else if (preset === 'This year') setDateRange({ from: new Date(NOW.getFullYear(), 0, 1), to: new Date(NOW.getFullYear(), 11, 31) });
   };
 
   // Bulk selection (matches the Rooms table pattern).
@@ -131,7 +146,7 @@ export default function Coupons() {
         </div>
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium rounded-md transition-colors cursor-pointer shrink-0"
+          className="self-start inline-flex items-center gap-2 px-4 py-2 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium rounded-md transition-colors cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
           {t('New coupon')}
@@ -139,23 +154,23 @@ export default function Coupons() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
         {stats.map((card, i) => (
-          <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+          <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Filters — desktop (sm+) */}
+      <div className="hidden sm:flex flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by code or description')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
@@ -165,7 +180,7 @@ export default function Coupons() {
           onValueChange={(v) => setStatusFilter(v as StatusFilter)}
           leftIcon={<ListFilter />}
           className="sm:w-auto"
-          options={[{ value: 'All', label: t('All statuses') }, ...COUPON_STATUSES.map((s) => ({ value: s, label: t(s) }))]}
+          options={statusOptions}
         />
 
         {/* Validity date-range filter */}
@@ -179,13 +194,8 @@ export default function Coupons() {
               <div className="fixed inset-0 z-10" onClick={() => setIsDateOpen(false)} />
               <div className="absolute top-full right-0 mt-2 bg-white border border-[var(--border-default)] rounded-md z-20 flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
                 <div className="w-52 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
-                  {['Next 30 days', 'Next 90 days', 'This year', 'Custom date range'].map((preset) => (
-                    <button key={preset} onClick={() => {
-                        setSelectedPreset(preset);
-                        if (preset === 'Next 30 days') setDateRange({ from: NOW, to: addDays(NOW, 30) });
-                        else if (preset === 'Next 90 days') setDateRange({ from: NOW, to: addMonths(NOW, 3) });
-                        else if (preset === 'This year') setDateRange({ from: new Date(NOW.getFullYear(), 0, 1), to: new Date(NOW.getFullYear(), 11, 31) });
-                      }}
+                  {datePresets.map((preset) => (
+                    <button key={preset} onClick={() => applyDatePreset(preset)}
                       className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors shadow-none cursor-pointer ${selectedPreset === preset ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium' : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}>
                       {t(preset)}
                       {selectedPreset === preset && <Check className="w-4 h-4 text-[var(--brand-primary)]" />}
@@ -211,6 +221,62 @@ export default function Coupons() {
         )}
       </div>
 
+      {/* Filters — mobile (search + Filters sheet trigger + Status) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search by code or description')} className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]" />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)} leftIcon={<ListFilter />} className="flex-1" options={statusOptions} />
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        <FilterField label={t('Validity date')}>
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => applyDatePreset(preset)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+                  selectedPreset === preset
+                    ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]'
+                    : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white hover:bg-[var(--surface-subtle)]'
+                }`}
+              >
+                {t(preset)}
+              </button>
+            ))}
+          </div>
+          {/* Calendar only appears for a custom range — keeps the sheet short for the common preset case. */}
+          {selectedPreset === 'Custom date range' && (
+            <div className="flex justify-center mt-3" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as CSSProperties}>
+              <CalendarUI
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }}
+                numberOfMonths={1}
+                className="border border-[var(--border-default)] rounded-md p-2"
+                classNames={{ table: 'border-collapse space-x-1', row: 'flex mt-2' }}
+              />
+            </div>
+          )}
+        </FilterField>
+      </MobileFilterSheet>
+
       {/* Bulk selection bar */}
       <AnimatePresence initial={false}>
         {selected.size > 0 && (
@@ -230,7 +296,8 @@ export default function Coupons() {
 
       {/* Table */}
       <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
-        <div className="overflow-x-auto">
+        {/* Desktop: full data table (hidden on mobile) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
               <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)]">
@@ -302,6 +369,26 @@ export default function Coupons() {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile: stacked cards (hidden on desktop) */}
+        <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+          {filtered.length === 0 ? (
+            <div className="px-6 py-12 text-center text-sm text-[var(--text-secondary)]">{t('No coupons match your filters.')}</div>
+          ) : (
+            filtered.map(({ coupon, status }, index) => (
+              <CouponCard
+                key={coupon.id}
+                coupon={coupon}
+                status={status}
+                index={index}
+                selected={selected.has(coupon.id)}
+                onToggle={() => toggleOne(coupon.id)}
+                onOpen={() => navigate(`/coupons/${coupon.id}`)}
+                t={t}
+              />
+            ))
+          )}
+        </div>
       </div>
 
       {/* Create coupon sheet */}
@@ -353,6 +440,69 @@ export default function Coupons() {
           </Portal>
         )}
       </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function CouponCard({ coupon: c, status, index, selected, onToggle, onOpen, t }: { coupon: Coupon; status: CouponStatus; index: number; selected: boolean; onToggle: () => void; onOpen: () => void; t: (k: string) => string }) {
+  const usagePct = c.usageLimit > 0 ? Math.min(100, (c.usedCount / c.usageLimit) * 100) : 0;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className={`px-4 py-4 transition-colors cursor-pointer ${selected ? 'bg-[var(--brand-tint)]/40' : 'hover:bg-[var(--surface-muted)]'}`}
+    >
+      {/* Identity row */}
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          onClick={(e) => e.stopPropagation()}
+          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0"
+          aria-label={t('Select row')}
+        />
+        <div className="w-8 h-8 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center shrink-0">
+          <BadgePercent className="w-4 h-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-medium text-[var(--text-primary)] truncate">{c.code}</div>
+          <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{c.description}</div>
+        </div>
+        <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${couponStatusClass(status)}`}>{t(status)}</span>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-7">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Discount')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatDiscount(c)}</div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Applies to')}</div>
+          <div className="text-sm text-[var(--text-primary)] mt-0.5 truncate">{formatScope(c)}</div>
+        </div>
+        <div className="col-span-2 min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Validity')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5 flex items-center gap-1.5">
+            <CalendarIcon className="w-3.5 h-3.5 text-[var(--text-tertiary)] shrink-0" />
+            <span className="truncate">{format(new Date(c.startsAt), 'MMM d')} – {format(new Date(c.expiresAt), 'MMM d, yyyy')}</span>
+          </div>
+        </div>
+        <div className="col-span-2">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Usage')}</div>
+          <div className="flex items-center gap-2 tabular-nums text-sm text-[var(--text-primary)] mt-0.5">
+            <span>{c.usedCount}{c.usageLimit > 0 ? ` / ${c.usageLimit}` : ''}</span>
+            {c.usageLimit > 0 && (
+              <div className="w-16 h-1.5 bg-[var(--surface-subtle)] rounded-full overflow-hidden">
+                <div className="h-full bg-[var(--brand-primary)] rounded-full" style={{ width: `${usagePct}%` }} />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 }

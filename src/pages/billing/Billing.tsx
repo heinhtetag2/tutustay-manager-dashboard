@@ -306,7 +306,8 @@ export default function Billing() {
           </p>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop: full data table (hidden on mobile) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
               <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
@@ -362,6 +363,19 @@ export default function Billing() {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile: stacked cards (hidden on desktop) */}
+        <div className="md:hidden divide-y divide-[var(--surface-subtle)] border-t border-[var(--border-default)]">
+          {ACTIVITY.map((item, index) => (
+            <InvoiceCard
+              key={item.id}
+              item={item}
+              index={index}
+              onOpen={() => setOpenInvoice(item.invoice)}
+              t={t}
+            />
+          ))}
         </div>
       </motion.div>
 
@@ -518,6 +532,55 @@ export default function Billing() {
         )}
       </AnimatePresence>
       </Portal>
+    </motion.div>
+  );
+}
+
+function InvoiceCard({ item, index, onOpen, t }: { item: Activity; index: number; onOpen: () => void; t: (k: string) => string }) {
+  const statusBadge =
+    item.status === 'Paid'
+      ? 'bg-[var(--success-tint)] text-[var(--success)]'
+      : item.status === 'Overdue'
+      ? 'bg-[var(--danger-tint)] text-[var(--danger-strong)]'
+      : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]';
+  const Icon = item.kind === 'subscription' ? Receipt : Sparkles;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer group"
+    >
+      {/* Identity row */}
+      <div className="flex items-center gap-3">
+        <span className="flex items-center justify-center w-8 h-8 rounded-md bg-[var(--surface-subtle)] text-[var(--text-tertiary)] shrink-0">
+          <Icon className="w-4 h-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="font-medium text-[var(--text-primary)] truncate">{t(item.label)}</div>
+          <div className="text-xs text-[var(--text-secondary)] tabular-nums truncate mt-0.5">{item.date}</div>
+        </div>
+        <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-tertiary)] transition-colors shrink-0" />
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-11">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Status')}</div>
+          <div className="mt-1">
+            <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusBadge}`}>
+              {t(item.status)}
+            </span>
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Amount')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">
+            {item.amount === null ? <span className="text-[var(--text-muted)]">—</span> : formatMnt(item.amount)}
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 }

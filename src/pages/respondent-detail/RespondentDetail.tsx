@@ -335,23 +335,23 @@ export default function RespondentDetail() {
           transition={{ duration: 0.25 }}
         >
           {/* KPI cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
             {stats.map((card, i) => (
               <motion.div
                 key={card.title}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.08 }}
-                className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
+                className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+                <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+                  <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
                   <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                     <card.Icon className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
-                <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+                <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+                <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
               </motion.div>
             ))}
           </div>
@@ -497,7 +497,8 @@ export default function RespondentDetail() {
               {t('Surveys this respondent has completed')}
             </p>
           </div>
-          <div className="overflow-x-auto">
+          {/* Desktop: table (hidden on mobile) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
                 <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
@@ -548,6 +549,13 @@ export default function RespondentDetail() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile: stacked cards (hidden on desktop) */}
+          <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+            {respondent.recentSurveys.map((s, index) => (
+              <SurveyCard key={s.id} survey={s} index={index} />
+            ))}
+          </div>
         </motion.section>
       )}
 
@@ -574,7 +582,8 @@ export default function RespondentDetail() {
               </span>
             </div>
           </div>
-          <div className="overflow-x-auto">
+          {/* Desktop: table (hidden on mobile) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
                 <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
@@ -607,6 +616,13 @@ export default function RespondentDetail() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile: stacked cards (hidden on desktop) */}
+          <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+            {respondent.recentPayouts.map((p, index) => (
+              <PayoutCard key={p.id} payout={p} index={index} />
+            ))}
           </div>
         </motion.section>
       )}
@@ -684,6 +700,91 @@ export default function RespondentDetail() {
         )}
       </AnimatePresence>
       </Portal>
+    </motion.div>
+  );
+}
+
+function SurveyCard({ survey: s, index }: { survey: RespondentSurvey; index: number }) {
+  const { t } = useTranslation();
+  const q = getQualityStyles(s.qualityScore);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      className="px-4 py-4"
+    >
+      {/* Identity row */}
+      <div className="flex items-center justify-between gap-3">
+        <span className="font-medium text-[var(--text-primary)] truncate">{s.title}</span>
+        <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${getSurveyStatusStyles(s.status)}`}>
+          {t(s.status)}
+        </span>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Company')}</div>
+          <div className="text-sm text-[var(--text-primary)] mt-0.5 truncate">{s.company}</div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Reward')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatMnt(s.rewardMnt)}</div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Quality')}</div>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="relative w-20 h-1.5 bg-[var(--surface-subtle)] rounded-full overflow-hidden">
+              <div
+                className={`absolute inset-y-0 left-0 ${q.bar} rounded-full`}
+                style={{ width: `${s.qualityScore}%` }}
+              />
+            </div>
+            <span className={`text-xs font-medium tabular-nums ${q.text}`}>{s.qualityScore}%</span>
+          </div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Completed')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5">{format(new Date(s.completedAt), 'MMM d, yyyy')}</div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function PayoutCard({ payout: p, index }: { payout: RespondentPayout; index: number }) {
+  const { t } = useTranslation();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      className="px-4 py-4"
+    >
+      {/* Identity row */}
+      <div className="flex items-center justify-between gap-3">
+        <span className="font-medium text-[var(--text-primary)] tabular-nums truncate">{p.id.toUpperCase()}</span>
+        <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${getPayoutStatusStyles(p.status)}`}>
+          {t(p.status)}
+        </span>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Method')}</div>
+          <div className="text-sm text-[var(--text-primary)] mt-0.5 truncate">{p.method}</div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Amount')}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatMnt(p.amountMnt)}</div>
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Date')}</div>
+          <div className="text-sm text-[var(--text-primary)] tabular-nums mt-0.5">{format(new Date(p.date), 'MMM d, yyyy')}</div>
+        </div>
+      </div>
     </motion.div>
   );
 }

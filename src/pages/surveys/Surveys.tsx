@@ -6,6 +6,7 @@ import { format, formatDistanceToNow, subDays, subMonths } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import {
   Search,
   Download,
@@ -56,6 +57,7 @@ export default function Surveys() {
   const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [surveys, setSurveys] = useState<Survey[]>(DEMO_SURVEYS);
   const [confirming, setConfirming] = useState<
@@ -75,6 +77,35 @@ export default function Surveys() {
     setCategoryFilter('All');
     setDateRange(undefined);
     setSelectedPreset(null);
+  };
+
+  // Status lives on the mobile bar; count the remaining secondary filters + date range.
+  const activeFilterCount =
+    (categoryFilter !== 'All' ? 1 : 0) +
+    (dateRange?.from ? 1 : 0);
+
+  const categoryOptions = [
+    { value: 'All', label: t('All Categories') },
+    { value: 'Social', label: t('Social') },
+    { value: 'Product', label: t('Product') },
+    { value: 'Brand', label: t('Brand') },
+    { value: 'Other', label: t('Other') },
+  ];
+  const statusOptions = [
+    { value: 'All', label: t('All Statuses') },
+    { value: 'Active', label: t('Active') },
+    { value: 'Draft', label: t('Draft') },
+    { value: 'Paused', label: t('Paused') },
+    { value: 'Completed', label: t('Completed') },
+    { value: 'Rejected', label: t('Rejected') },
+  ];
+  const datePresets = ['Last 7 days', 'Last 30 days', 'Last 90 days', 'Last 12 months', 'Custom date range'];
+  const applyDatePreset = (preset: string) => {
+    setSelectedPreset(preset);
+    if (preset === 'Last 7 days') setDateRange({ from: subDays(new Date(), 7), to: new Date() });
+    else if (preset === 'Last 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });
+    else if (preset === 'Last 90 days') setDateRange({ from: subDays(new Date(), 90), to: new Date() });
+    else if (preset === 'Last 12 months') setDateRange({ from: subMonths(new Date(), 12), to: new Date() });
   };
 
   const visibleSurveys = surveys.filter((s) => {
@@ -172,7 +203,7 @@ export default function Surveys() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-8">
         {[
           {
             title: 'Active surveys',
@@ -204,22 +235,22 @@ export default function Surveys() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: i * 0.08 }}
-            className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
+            className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+            <div className="flex justify-between items-start mb-1.5 sm:mb-4">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
               <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
-            <div className="text-xs text-[var(--text-tertiary)] mt-2">{card.subtitle}</div>
+            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center flex-wrap">
+      {/* Filters — desktop (sm+) */}
+      <div className="hidden sm:flex flex-row gap-3 mb-6 items-center flex-wrap">
         <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
@@ -307,13 +338,7 @@ export default function Surveys() {
             onValueChange={(v) => setCategoryFilter(v as SurveyCategory | 'All')}
             leftIcon={<List />}
             className="sm:w-auto"
-            options={[
-              { value: 'All', label: t('All Categories') },
-              { value: 'Social', label: t('Social') },
-              { value: 'Product', label: t('Product') },
-              { value: 'Brand', label: t('Brand') },
-              { value: 'Other', label: t('Other') },
-            ]}
+            options={categoryOptions}
           />
 
           <BrandSelect
@@ -321,14 +346,7 @@ export default function Surveys() {
             onValueChange={(v) => setStatusFilter(v as SurveyStatus | 'All')}
             leftIcon={<CheckCircle />}
             className="sm:w-auto"
-            options={[
-              { value: 'All', label: t('All Statuses') },
-              { value: 'Active', label: t('Active') },
-              { value: 'Draft', label: t('Draft') },
-              { value: 'Paused', label: t('Paused') },
-              { value: 'Completed', label: t('Completed') },
-              { value: 'Rejected', label: t('Rejected') },
-            ]}
+            options={statusOptions}
           />
 
           {hasActiveFilters && (
@@ -343,9 +361,75 @@ export default function Surveys() {
         </div>
       </div>
 
+      {/* Filters — mobile (search + Filters sheet trigger + Status) */}
+      <div className="sm:hidden flex flex-col gap-3 mb-6">
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('Search surveys or companies...')}
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
+          />
+        </div>
+        <div className="flex gap-2">
+          <MobileFilterButton count={activeFilterCount} onClick={() => setIsFilterOpen(true)} label={t('Filters')} className="flex-1" />
+          <BrandSelect value={statusFilter} onValueChange={(v) => setStatusFilter(v as SurveyStatus | 'All')} leftIcon={<CheckCircle />} className="flex-1" options={statusOptions} />
+        </div>
+      </div>
+
+      {/* Mobile filter sheet */}
+      <MobileFilterSheet
+        open={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onClear={clearFilters}
+        onApply={() => setIsFilterOpen(false)}
+        title={t('Filters')}
+        clearLabel={t('Clear all')}
+        applyLabel={t('Show results')}
+      >
+        <FilterField label={t('Category')}>
+          <BrandSelect value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as SurveyCategory | 'All')} leftIcon={<List />} className="w-full" options={categoryOptions} />
+        </FilterField>
+        <FilterField label={t('Created Date')}>
+          <div className="flex flex-wrap gap-2">
+            {datePresets.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => applyDatePreset(preset)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+                  selectedPreset === preset
+                    ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]'
+                    : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white hover:bg-[var(--surface-subtle)]'
+                }`}
+              >
+                {t(preset)}
+              </button>
+            ))}
+          </div>
+          {/* Calendar only appears for a custom range — keeps the sheet short for the common preset case. */}
+          {selectedPreset === 'Custom date range' && (
+            <div className="flex justify-center mt-3" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}>
+              <CalendarUI
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }}
+                numberOfMonths={1}
+                className="border border-[var(--border-default)] rounded-md p-2"
+                classNames={{ table: 'border-collapse space-x-1', row: 'flex mt-2' }}
+              />
+            </div>
+          )}
+        </FilterField>
+      </MobileFilterSheet>
+
       {/* Table */}
       <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
-        <div className="overflow-x-auto">
+        {/* Desktop: full data table (hidden on mobile) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
               <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)] font-medium">
@@ -492,6 +576,27 @@ export default function Surveys() {
           </table>
         </div>
 
+        {/* Mobile: stacked cards (hidden on desktop) */}
+        <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
+          {visibleSurveys.length === 0 ? (
+            <div className="px-6 py-12 text-center text-[var(--text-secondary)]">
+              {t('No surveys match these filters.')}
+            </div>
+          ) : (
+            visibleSurveys.map((survey, index) => (
+              <SurveyCard
+                key={survey.id}
+                survey={survey}
+                index={index}
+                onOpen={() => navigate(`/surveys/${survey.id.toLowerCase()}`)}
+                onOpenCompany={() => navigate(`/companies/${survey.companyId.toLowerCase()}`)}
+                onAction={(action) => setConfirming({ survey, action })}
+                t={t}
+              />
+            ))
+          )}
+        </div>
+
         {/* Pagination Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
           <span className="text-sm text-[var(--text-secondary)]">
@@ -584,6 +689,136 @@ export default function Surveys() {
         )}
       </AnimatePresence>
       </Portal>
+    </motion.div>
+  );
+}
+
+function SurveyCard({
+  survey,
+  index,
+  onOpen,
+  onOpenCompany,
+  onAction,
+  t,
+}: {
+  survey: Survey;
+  index: number;
+  onOpen: () => void;
+  onOpenCompany: () => void;
+  onAction: (action: 'pause' | 'resume' | 'reject' | 'reinstate') => void;
+  t: (key: string) => string;
+}) {
+  const pct = Math.min(100, Math.round((survey.responsesCurrent / Math.max(1, survey.responsesTarget)) * 100));
+  const statusStyle = getStatusStyles(survey.status);
+  const canPause = survey.status === 'Active';
+  const canResume = survey.status === 'Paused';
+  const canReject = survey.status !== 'Rejected' && survey.status !== 'Completed';
+  const isRejected = survey.status === 'Rejected';
+  const showActions = isRejected || canPause || canResume || canReject;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.02 }}
+      onClick={onOpen}
+      className="px-4 py-4 hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+    >
+      {/* Identity row */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-medium text-[var(--text-primary)] truncate">{survey.title}</div>
+          <div className="text-xs text-[var(--text-secondary)] mt-0.5">{t(survey.category)}</div>
+        </div>
+        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${statusStyle.badge}`}>
+          <statusStyle.Icon className="w-3 h-3" />
+          {t(survey.status)}
+        </span>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Company')}</div>
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpenCompany(); }}
+            className="block max-w-full truncate text-left text-sm font-medium text-[var(--text-primary)] hover:text-[var(--brand-primary)] transition-colors cursor-pointer mt-0.5"
+          >
+            {survey.companyName}
+          </button>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Reward')}</div>
+          <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums mt-0.5">{formatMnt(survey.rewardMnt)}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Responses')}</div>
+          <div className="flex items-center gap-2 mt-1.5">
+            <div className="relative flex-1 h-1.5 bg-[var(--surface-subtle)] rounded-full overflow-hidden">
+              <div className="absolute inset-y-0 left-0 bg-[var(--brand-primary)] rounded-full" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="text-xs font-medium text-[var(--text-tertiary)] tabular-nums shrink-0">{survey.responsesCurrent}/{survey.responsesTarget}</span>
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Trust req.')}</div>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-[var(--surface-subtle)] text-[var(--text-tertiary)] mt-1">
+            <ShieldCheck className="w-3 h-3" />
+            {t('Level')} {survey.trustLevel}+
+          </span>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Created')}</div>
+          <div className="text-sm text-[var(--text-tertiary)] tabular-nums mt-0.5" title={format(new Date(survey.createdAt), 'MMM d, yyyy')}>
+            {formatDistanceToNow(new Date(survey.createdAt), { addSuffix: true })}
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      {showActions && (
+        <div className="flex items-center gap-1.5 mt-4 pt-3 border-t border-[var(--surface-subtle)]">
+          {isRejected ? (
+            <button
+              onClick={(e) => { e.stopPropagation(); onAction('reinstate'); }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--success-tint)] text-[var(--success)] hover:bg-[var(--success-tint-2)] transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3 h-3" />
+              {t('Reinstate')}
+            </button>
+          ) : (
+            <>
+              {canPause && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onAction('pause'); }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md text-[var(--text-secondary)] hover:text-[var(--warning)] hover:bg-[var(--warning-tint)] transition-colors cursor-pointer"
+                >
+                  <Pause className="w-3.5 h-3.5" />
+                  {t('Pause')}
+                </button>
+              )}
+              {canResume && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onAction('resume'); }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md text-[var(--text-secondary)] hover:text-[var(--success)] hover:bg-[var(--success-tint)] transition-colors cursor-pointer"
+                >
+                  <Play className="w-3.5 h-3.5" />
+                  {t('Resume')}
+                </button>
+              )}
+              {canReject && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onAction('reject'); }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md text-[var(--text-secondary)] hover:text-[var(--danger)] hover:bg-[var(--danger-tint)] transition-colors cursor-pointer"
+                >
+                  <XCircle className="w-3.5 h-3.5" />
+                  {t('Reject')}
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 }
