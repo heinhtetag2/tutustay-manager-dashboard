@@ -29,6 +29,7 @@ import {
   Building2,
   Ban,
   ShieldCheck,
+  Inbox,
 } from 'lucide-react';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { findSurveyById, DEMO_SURVEYS, type Survey as SurveyRecord } from '@/pages/surveys/survey-data';
@@ -872,8 +873,12 @@ export default function SurveyDetail() {
                 <tbody className="divide-y divide-[var(--surface-subtle)]">
                   {pageRows.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-[var(--text-secondary)]">
-                        {t('No responses match these filters.')}
+                      <td colSpan={4} className="px-6 py-16">
+                        <div className="flex flex-col items-center justify-center text-center">
+                          <Inbox className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{t('No responses found')}</p>
+                          <p className="text-sm text-[var(--text-secondary)] mt-1">{hasActiveFilters ? t('No responses match these filters.') : t('Responses will appear here.')}</p>
+                        </div>
                       </td>
                     </tr>
                   ) : pageRows.map((r) => {
@@ -907,8 +912,12 @@ export default function SurveyDetail() {
             {/* Mobile: stacked cards (hidden on desktop) */}
             <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
               {pageRows.length === 0 ? (
-                <div className="px-6 py-12 text-center text-[var(--text-secondary)]">
-                  {t('No responses match these filters.')}
+                <div className="px-6 py-16">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <Inbox className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                    <p className="text-sm font-medium text-[var(--text-primary)]">{t('No responses found')}</p>
+                    <p className="text-sm text-[var(--text-secondary)] mt-1">{hasActiveFilters ? t('No responses match these filters.') : t('Responses will appear here.')}</p>
+                  </div>
                 </div>
               ) : (
                 pageRows.map((r, index) => (

@@ -9,11 +9,27 @@ import {
   CalendarCheck, CreditCard, CalendarSearch, Rocket, Sparkles, ArrowRight, FlaskConical, Trash2,
   LayoutDashboard, ClipboardList, KeyRound, Star, UserPlus, LogIn, Ban,
 } from 'lucide-react';
+import { addDays, addMonths, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths } from 'date-fns';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { Calendar } from '@/shared/ui/calendar';
+import { MonthRangePicker } from '@/shared/ui/month-range-picker';
+import { Skeleton } from '@/shared/ui/skeleton';
 import { Portal } from '@/shared/ui/portal';
 import { InfoTooltip } from '@/shared/ui/info-tooltip';
 import { Section, ComponentEntry, DemoLabel } from './_doc';
+
+/** Fixed "today" for the date-filter demos, so presets land on real-looking ranges. */
+const DOC_NOW = new Date('2026-06-09T00:00:00');
+
+/** Mode toggle reference for the targeted date filter (mirrors Coupons.tsx). */
+const DATE_FILTER_MODES = [
+  { key: 'during', label: 'Valid during' },
+  { key: 'expiring', label: 'Expiring' },
+  { key: 'starting', label: 'Starting' },
+] as const;
+
+/** The brand-tinted CSS vars the day Calendar reads for its selected-range styling. */
+const CAL_VARS = { '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties;
 
 /* ============================================================================
    COMPOSED PAGE PATTERNS
@@ -280,6 +296,35 @@ function TablesSection() {
   const dateBtnRef = React.useRef<HTMLButtonElement>(null);
   const [range, setRange] = React.useState<{ from?: Date; to?: Date } | undefined>(undefined);
   const [page, setPage] = React.useState(1);
+  // Demos for the date-picker variants below.
+  const [monthRange, setMonthRange] = React.useState<{ from: Date; to: Date } | undefined>(() => ({ from: startOfMonth(DOC_NOW), to: endOfMonth(DOC_NOW) }));
+  const [settlePreset, setSettlePreset] = React.useState('This month');
+  const [dateMode, setDateMode] = React.useState<(typeof DATE_FILTER_MODES)[number]['key']>('during');
+  const [modeRange, setModeRange] = React.useState<{ from?: Date; to?: Date } | undefined>(undefined);
+  const [couponPreset, setCouponPreset] = React.useState('');
+  const [dayRange, setDayRange] = React.useState<{ from?: Date; to?: Date } | undefined>(undefined);
+  const [dayPreset, setDayPreset] = React.useState('');
+
+  const applyDayPreset = (p: string) => {
+    setDayPreset(p);
+    if (p === 'Next 7 days') setDayRange({ from: DOC_NOW, to: addDays(DOC_NOW, 7) });
+    else if (p === 'Next 30 days') setDayRange({ from: DOC_NOW, to: addDays(DOC_NOW, 30) });
+    else if (p === 'Next 90 days') setDayRange({ from: DOC_NOW, to: addMonths(DOC_NOW, 3) });
+  };
+  const applyCouponPreset = (p: string) => {
+    setCouponPreset(p);
+    if (p === 'This month') setModeRange({ from: startOfMonth(DOC_NOW), to: endOfMonth(DOC_NOW) });
+    else if (p === 'Next 30 days') setModeRange({ from: DOC_NOW, to: addDays(DOC_NOW, 30) });
+    else if (p === 'Next 90 days') setModeRange({ from: DOC_NOW, to: addMonths(DOC_NOW, 3) });
+    else if (p === 'This year') setModeRange({ from: startOfYear(DOC_NOW), to: endOfYear(DOC_NOW) });
+  };
+  const applySettlePreset = (p: string) => {
+    setSettlePreset(p);
+    if (p === 'This month') setMonthRange({ from: startOfMonth(DOC_NOW), to: endOfMonth(DOC_NOW) });
+    else if (p === 'Last 3 months') setMonthRange({ from: startOfMonth(subMonths(DOC_NOW, 2)), to: endOfMonth(DOC_NOW) });
+    else if (p === 'This year') setMonthRange({ from: startOfYear(DOC_NOW), to: endOfYear(DOC_NOW) });
+    else if (p === 'All time') setMonthRange(undefined);
+  };
 
   const toggleDate = () => {
     setDateOpen((v) => {
@@ -308,7 +353,7 @@ function TablesSection() {
   const paged = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
 
   return (
-    <Section id="tables" title="Tables & Filters" intro="The list-page workhorses: the filter toolbar (search + dropdowns + date), the data table with avatar rows and status badges, pagination, the empty state, and the full status-badge tone reference.">
+    <Section id="tables" title="Tables & Filters" intro="The list-page workhorses: the filter toolbar (search + dropdowns + date), the month-range and targeted date pickers, the loading skeleton, the data table with avatar rows and status badges, pagination, the empty state, and the full status-badge tone reference.">
       <ComponentEntry name="Filter toolbar" path="src/pages/reservations/Reservations.tsx" desc="A search field with a leading icon, BrandSelect dropdown filters, a date-range button, and a round clear-all button that appears when any filter is active. Fully interactive — it filters the table below.">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -374,6 +419,121 @@ function TablesSection() {
               <X className="w-4 h-4" />
             </button>
           )}
+        </div>
+      </ComponentEntry>
+
+      <ComponentEntry name="Date-range popover — day range" path="src/pages/reservations/Reservations.tsx · booking-requests/BookingRequests.tsx" desc="The default date filter, shown open: a left preset rail and a two-month day calendar, closed with Clear / Apply. Used where the field is a real day (check-in, arrival). The trigger chip turns brand-tinted and echoes the selection once a range is picked.">
+        <DemoLabel>Trigger chip → open popover</DemoLabel>
+        <button className={`mb-3 flex items-center gap-2 px-4 py-2 border rounded-md text-sm font-medium ${dayRange?.from ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]' : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white'}`}>
+          <CalendarIcon className="w-4 h-4" />{dayRange?.from ? 'Custom range' : 'Check-in date'}
+        </button>
+        <div className="bg-white border border-[var(--border-default)] rounded-md inline-flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
+          <div className="w-48 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
+            {['Next 7 days', 'Next 30 days', 'Next 90 days', 'Custom date range'].map((p) => (
+              <button key={p} onClick={() => applyDayPreset(p)} className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors cursor-pointer ${dayPreset === p ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium' : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}>
+                {p}{dayPreset === p && <Check className="w-4 h-4 text-[var(--brand-primary)]" />}
+              </button>
+            ))}
+          </div>
+          <div className="p-4" style={CAL_VARS}>
+            <Calendar mode="range" numberOfMonths={2} selected={dayRange as never} onSelect={(r) => { setDayRange(r as never); setDayPreset('Custom date range'); }} className="border-0 shadow-none p-0" />
+            <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-[var(--surface-subtle)]">
+              <button onClick={() => { setDayRange(undefined); setDayPreset(''); }} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">Clear</button>
+              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"><Check className="w-4 h-4" />Apply</button>
+            </div>
+          </div>
+        </div>
+      </ComponentEntry>
+
+      <ComponentEntry name="Date-range popover — targeted (mode toggle)" path="src/pages/coupons/Coupons.tsx" desc="Same day-range popover with a segmented Valid during / Expiring / Starting toggle above the calendar — for records that carry a date window (coupons: startsAt → expiresAt). The mode switches what the range targets (overlap, expiry, or start), so the date filter complements the status filter instead of duplicating it.">
+        <DemoLabel>Trigger chip → open popover</DemoLabel>
+        <button className={`mb-3 flex items-center gap-2 px-4 py-2 border rounded-md text-sm font-medium ${modeRange?.from ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]' : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white'}`}>
+          <CalendarIcon className="w-4 h-4" />{modeRange?.from ? `${DATE_FILTER_MODES.find((m) => m.key === dateMode)!.label}` : 'Validity date'}
+        </button>
+        <div className="bg-white border border-[var(--border-default)] rounded-md inline-flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
+          <div className="w-48 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
+            {['This month', 'Next 30 days', 'Next 90 days', 'This year', 'Custom date range'].map((p) => (
+              <button key={p} onClick={() => applyCouponPreset(p)} className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors cursor-pointer ${couponPreset === p ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium' : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}>
+                {p}{couponPreset === p && <Check className="w-4 h-4 text-[var(--brand-primary)]" />}
+              </button>
+            ))}
+          </div>
+          <div className="p-4" style={CAL_VARS}>
+            <div className="flex p-0.5 mb-3 bg-[var(--surface-subtle)] rounded-md">
+              {DATE_FILTER_MODES.map((m) => (
+                <button key={m.key} type="button" onClick={() => setDateMode(m.key)} className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-[5px] transition-colors cursor-pointer ${dateMode === m.key ? 'bg-white text-[var(--text-primary)] shadow-[0_1px_2px_rgba(44,38,39,0.08)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+            <Calendar mode="range" numberOfMonths={2} selected={modeRange as never} onSelect={(r) => { setModeRange(r as never); setCouponPreset('Custom date range'); }} className="border-0 shadow-none p-0" />
+            <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-[var(--surface-subtle)]">
+              <button onClick={() => { setModeRange(undefined); setCouponPreset(''); }} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">Clear</button>
+              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"><Check className="w-4 h-4" />Apply</button>
+            </div>
+          </div>
+        </div>
+      </ComponentEntry>
+
+      <ComponentEntry name="Date-range popover — month range" path="src/shared/ui/month-range-picker.tsx · src/pages/settlements/Settlements.tsx" desc="The same popover shell with a year-navigable month grid instead of a day calendar — for data bucketed by month/period (settlement payouts), where day precision would be fake. Click a start month then an end month; it emits { from: startOfMonth, to: endOfMonth } so it drops into the same overlap filters.">
+        <DemoLabel>Trigger chip → open popover</DemoLabel>
+        <button className={`mb-3 flex items-center gap-2 px-4 py-2 border rounded-md text-sm font-medium ${monthRange ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]' : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white'}`}>
+          <CalendarIcon className="w-4 h-4" />
+          {(() => {
+            if (!monthRange) return 'Any period';
+            const MN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const f = monthRange.from, to = monthRange.to;
+            if (f.getFullYear() === to.getFullYear() && f.getMonth() === to.getMonth()) return `${MN[f.getMonth()]} ${f.getFullYear()}`;
+            if (f.getFullYear() === to.getFullYear()) return `${MN[f.getMonth()]} – ${MN[to.getMonth()]} ${to.getFullYear()}`;
+            return `${MN[f.getMonth()]} ${f.getFullYear()} – ${MN[to.getMonth()]} ${to.getFullYear()}`;
+          })()}
+        </button>
+        <div className="bg-white border border-[var(--border-default)] rounded-md inline-flex shadow-[0_4px_16px_rgba(44,38,39,0.08)]">
+          <div className="w-44 border-r border-[var(--border-default)] p-2 flex flex-col gap-1">
+            {['This month', 'Last 3 months', 'This year', 'All time', 'Custom range'].map((p) => (
+              <button key={p} onClick={() => applySettlePreset(p)} className={`flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap rounded-md transition-colors cursor-pointer ${settlePreset === p ? 'bg-[var(--surface-subtle)] text-[var(--text-primary)] font-medium' : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}>
+                {p}{settlePreset === p && <Check className="w-4 h-4 text-[var(--brand-primary)]" />}
+              </button>
+            ))}
+          </div>
+          <div className="p-4">
+            <MonthRangePicker value={monthRange} onChange={(r) => { setMonthRange(r); setSettlePreset('Custom range'); }} defaultYear={2026} />
+            <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-[var(--surface-subtle)]">
+              <button onClick={() => { setMonthRange(undefined); setSettlePreset(''); }} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">Clear</button>
+              <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"><Check className="w-4 h-4" />Apply</button>
+            </div>
+          </div>
+        </div>
+      </ComponentEntry>
+
+      <ComponentEntry name="Loading skeleton" path="src/shared/ui/skeleton.tsx · all list pages" desc="A shimmer placeholder block shown on first load. Size it with width/height utility classes; it sweeps a soft highlight (the shimmer keyframe in index.css). List pages render skeleton rows in the table body while data loads, then fade into real rows.">
+        <div className="space-y-4">
+          <div className="flex items-center gap-6">
+            <div><DemoLabel>Sizes</DemoLabel>
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-10 w-10 rounded-md" />
+              </div>
+            </div>
+          </div>
+          <div>
+            <DemoLabel>Table loading rows</DemoLabel>
+            <div className="border border-[var(--border-default)] rounded-md divide-y divide-[var(--surface-subtle)] max-w-xl">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-3">
+                  <Skeleton className="h-10 w-10 rounded-md shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-44" />
+                  </div>
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </ComponentEntry>
 

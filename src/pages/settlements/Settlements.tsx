@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { format, isSameMonth, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { format, isSameMonth, subMonths, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import {
   CheckCircle2,
@@ -10,6 +10,7 @@ import {
   Coins,
   Percent,
   Search,
+  ReceiptText,
   ListFilter,
   Calendar as CalendarIcon,
   Download,
@@ -22,9 +23,10 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Portal } from '@/shared/ui/portal';
+import { Skeleton } from '@/shared/ui/skeleton';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
-import { Calendar as CalendarUI } from '@/shared/ui/calendar';
+import { MonthRangePicker, type MonthRange } from '@/shared/ui/month-range-picker';
 import {
   formatAmount,
   commissionAmount,
@@ -66,6 +68,13 @@ export default function Settlements() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
+  // Simulate fetching the list so the table shows its loading (skeleton) state on first load. Swap this for a real query later.
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(id);
+  }, []);
+
   const counts = useMemo(() => {
     const paidOut = settlements.filter((s) => s.status === 'Paid').reduce((n, s) => n + netAmount(s), 0);
     const pending = settlements.filter((s) => s.status !== 'Paid');
@@ -105,11 +114,15 @@ export default function Settlements() {
     })
     .sort((a, b) => b.periodStart.localeCompare(a.periodStart));
 
-  const dateLabel = dateRange?.from
-    ? dateRange.to && +dateRange.to !== +dateRange.from
-      ? `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d, yyyy')}`
-      : format(dateRange.from, 'MMM d, yyyy')
-    : t('Any period');
+  const dateLabel = (() => {
+    if (!dateRange?.from) return t('Any period');
+    const from = dateRange.from;
+    const to = dateRange.to ?? dateRange.from;
+    const sameMonth = from.getFullYear() === to.getFullYear() && from.getMonth() === to.getMonth();
+    if (sameMonth) return format(from, 'MMM yyyy');
+    if (from.getFullYear() === to.getFullYear()) return `${format(from, 'MMM')} – ${format(to, 'MMM yyyy')}`;
+    return `${format(from, 'MMM yyyy')} – ${format(to, 'MMM yyyy')}`;
+  })();
   const hasActiveFilters = search !== '' || statusFilter !== 'All' || amountFilter !== 'All' || !!dateRange?.from;
   const clearFilters = () => {
     setSearch('');
@@ -129,14 +142,19 @@ export default function Settlements() {
     { value: '1to3m', label: t('1M – 3M') },
     { value: 'gt3m', label: t('Over 3M') },
   ];
-  const datePresets = ['Today', 'This month', 'Last 30 days', 'Last 90 days', 'This year', 'Custom date range'];
+  const datePresets = ['This month', 'Last 3 months', 'This year', 'All time', 'Custom range'];
   const applyDatePreset = (preset: string) => {
     setSelectedPreset(preset);
-    if (preset === 'Today') setDateRange({ from: NOW, to: NOW });
-    else if (preset === 'This month') setDateRange({ from: startOfMonth(NOW), to: endOfMonth(NOW) });
-    else if (preset === 'Last 30 days') setDateRange({ from: subDays(NOW, 30), to: NOW });
-    else if (preset === 'Last 90 days') setDateRange({ from: subDays(NOW, 90), to: NOW });
-    else if (preset === 'This year') setDateRange({ from: new Date('2026-01-01'), to: new Date('2026-12-31') });
+    if (preset === 'This month') setDateRange({ from: startOfMonth(NOW), to: endOfMonth(NOW) });
+    else if (preset === 'Last 3 months') setDateRange({ from: startOfMonth(subMonths(NOW, 2)), to: endOfMonth(NOW) });
+    else if (preset === 'This year') setDateRange({ from: startOfYear(NOW), to: endOfYear(NOW) });
+    else if (preset === 'All time') setDateRange(undefined);
+    // 'Custom range' leaves the existing selection in place; the month grid drives it.
+  };
+  // Apply a month-grid selection and mark the picker as a custom range.
+  const applyMonthRange = (r: MonthRange) => {
+    setDateRange({ from: r.from, to: r.to });
+    setSelectedPreset('Custom range');
   };
 
   // Pagination
@@ -237,8 +255,17 @@ export default function Settlements() {
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
-            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+            {loading ? (
+              <>
+                <Skeleton className="h-7 sm:h-8 w-16 mt-0.5" />
+                <Skeleton className="h-3 w-24 mt-2 sm:mt-3" />
+              </>
+            ) : (
+              <>
+                <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+                <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+              </>
+            )}
           </motion.div>
         ))}
       </div>
@@ -356,10 +383,15 @@ export default function Settlements() {
                     </button>
                   ))}
                 </div>
-                <div className="p-4" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}>
-                  <CalendarUI mode="range" defaultMonth={dateRange?.from ?? NOW} selected={dateRange} onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }} numberOfMonths={2} className="border-0 shadow-none p-0" />
+                <div className="p-4">
+                  <MonthRangePicker
+                    value={dateRange?.from ? { from: dateRange.from, to: dateRange.to ?? dateRange.from } : undefined}
+                    onChange={applyMonthRange}
+                    defaultYear={NOW.getFullYear()}
+                    t={t}
+                  />
                   <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-[var(--surface-subtle)]">
-                    <button onClick={() => { setDateRange(undefined); setSelectedPreset('Custom date range'); setIsDateOpen(false); }} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors shadow-none cursor-pointer">{t('Clear')}</button>
+                    <button onClick={() => { setDateRange(undefined); setSelectedPreset(''); setIsDateOpen(false); }} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors shadow-none cursor-pointer">{t('Clear')}</button>
                     <button onClick={() => setIsDateOpen(false)} className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors shadow-none cursor-pointer"><Check className="w-4 h-4" />{t('Apply')}</button>
                   </div>
                 </div>
@@ -425,17 +457,14 @@ export default function Settlements() {
               </button>
             ))}
           </div>
-          {/* Calendar only appears for a custom range — keeps the sheet short for the common preset case. */}
-          {selectedPreset === 'Custom date range' && (
-            <div className="flex justify-center mt-3" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as React.CSSProperties}>
-              <CalendarUI
-                mode="range"
-                defaultMonth={dateRange?.from ?? NOW}
-                selected={dateRange}
-                onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }}
-                numberOfMonths={1}
-                className="border border-[var(--border-default)] rounded-md p-2"
-                classNames={{ table: 'border-collapse space-x-1', row: 'flex mt-2' }}
+          {/* Month grid only appears for a custom range — keeps the sheet short for the common preset case. */}
+          {selectedPreset === 'Custom range' && (
+            <div className="flex justify-center mt-3">
+              <MonthRangePicker
+                value={dateRange?.from ? { from: dateRange.from, to: dateRange.to ?? dateRange.from } : undefined}
+                onChange={applyMonthRange}
+                defaultYear={NOW.getFullYear()}
+                t={t}
               />
             </div>
           )}
@@ -502,9 +531,17 @@ export default function Settlements() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {loading ? (
+                Array.from({ length: PAGE_SIZE }).map((_, i) => <SettlementRowSkeleton key={i} />)
+              ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-sm text-[var(--text-secondary)]">{t('No settlements match your filters.')}</td>
+                  <td colSpan={8} className="px-6 py-16">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <ReceiptText className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{t('No settlements found')}</p>
+                      <p className="text-sm text-[var(--text-secondary)] mt-1">{t('No settlements match your filters.')}</p>
+                    </div>
+                  </td>
                 </tr>
               ) : (
                 pageRows.map((s) => (
@@ -545,8 +582,16 @@ export default function Settlements() {
 
         {/* Mobile: stacked cards (hidden on desktop) */}
         <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
-          {filtered.length === 0 ? (
-            <div className="px-6 py-12 text-center text-sm text-[var(--text-secondary)]">{t('No settlements match your filters.')}</div>
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => <SettlementCardSkeleton key={i} />)
+          ) : filtered.length === 0 ? (
+            <div className="px-6 py-16">
+              <div className="flex flex-col items-center justify-center text-center">
+                <ReceiptText className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                <p className="text-sm font-medium text-[var(--text-primary)]">{t('No settlements found')}</p>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">{t('No settlements match your filters.')}</p>
+              </div>
+            </div>
           ) : (
             pageRows.map((s, index) => (
               <SettlementCard key={s.id} settlement={s} index={index} selected={selected.has(s.id)} onToggle={() => toggleOne(s.id)} onOpen={() => navigate(`/settlements/${s.id}`)} t={t} />
@@ -556,7 +601,11 @@ export default function Settlements() {
 
         {filtered.length > 0 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
-            <span className="text-sm text-[var(--text-secondary)] tabular-nums">{t('Showing')} {rangeStart} {t('to')} {rangeEnd} {t('of')} {filtered.length} {t('settlements')}</span>
+            {loading ? (
+              <Skeleton className="h-4 w-48" />
+            ) : (
+              <span className="text-sm text-[var(--text-secondary)] tabular-nums">{t('Showing')} {rangeStart} {t('to')} {rangeEnd} {t('of')} {filtered.length} {t('settlements')}</span>
+            )}
             <div className="flex items-center gap-1">
               <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 px-3 inline-flex items-center gap-1 text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
                 <ChevronLeft className="w-4 h-4" />{t('Previous')}
@@ -638,6 +687,48 @@ export default function Settlements() {
         </AnimatePresence>
       </Portal>
     </motion.div>
+  );
+}
+
+/** Placeholder row shown in the desktop table while settlements load. */
+function SettlementRowSkeleton() {
+  return (
+    <tr>
+      <td className="pl-6 pr-3 py-4"><Skeleton className="h-4 w-4 rounded" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-28" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-40" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-8 mx-auto" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-28" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-5 w-20 rounded-full" /></td>
+    </tr>
+  );
+}
+
+/** Placeholder card shown in the mobile list while settlements load. */
+function SettlementCardSkeleton() {
+  return (
+    <div className="px-4 py-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 min-w-0">
+          <Skeleton className="h-4 w-4 rounded shrink-0 mt-0.5" />
+          <div className="min-w-0 space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        </div>
+        <Skeleton className="h-5 w-16 rounded-full shrink-0" />
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-2.5 w-12" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

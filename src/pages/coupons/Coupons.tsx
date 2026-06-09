@@ -1,8 +1,8 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { format, differenceInDays, addDays, addMonths } from 'date-fns';
+import { format, differenceInDays, addDays, addMonths, startOfMonth, endOfMonth } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import {
   TicketPercent,
@@ -18,6 +18,7 @@ import {
   X,
   Trash2,
 } from 'lucide-react';
+import { Skeleton } from '@/shared/ui/skeleton';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
@@ -37,6 +38,19 @@ import { CouponFormSheet } from './CouponFormSheet';
 
 const NOW = new Date('2026-06-02T10:00:00');
 
+/**
+ * What the date range targets. Coupons carry a validity window (startsAt →
+ * expiresAt), so the same range answers different manager questions depending
+ * on the mode: which coupons are live during the window, which expire in it
+ * (renewals), or which start in it (scheduling).
+ */
+const DATE_MODES = [
+  { key: 'during', label: 'Valid during' },
+  { key: 'expiring', label: 'Expiring' },
+  { key: 'starting', label: 'Starting' },
+] as const;
+type DateMode = (typeof DATE_MODES)[number]['key'];
+
 type StatusFilter = 'All' | CouponStatus;
 
 export default function Coupons() {
@@ -48,6 +62,7 @@ export default function Coupons() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateMode, setDateMode] = useState<DateMode>('during');
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -55,10 +70,16 @@ export default function Coupons() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
+  // Simulate fetching the list so the table shows its loading (skeleton) state on first load. Swap this for a real query later.
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(id);
+  }, []);
+
+  const modeLabel = DATE_MODES.find((m) => m.key === dateMode)!.label;
   const dateLabel = dateRange?.from
-    ? dateRange.to
-      ? `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d, yyyy')}`
-      : format(dateRange.from, 'MMM d, yyyy')
+    ? `${t(modeLabel)} ${dateRange.to ? `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d')}` : format(dateRange.from, 'MMM d')}`
     : t('Validity date');
 
   const withStatus = useMemo(
@@ -86,12 +107,22 @@ export default function Coupons() {
   const filtered = withStatus.filter(({ coupon, status }) => {
     if (statusFilter !== 'All' && status !== statusFilter) return false;
     if (query && !`${coupon.code} ${coupon.description}`.toLowerCase().includes(query)) return false;
-    // Date filter: keep coupons whose validity window overlaps the selected range.
+    // Date filter — the mode decides what the range targets.
     if (dateRange?.from) {
+      const from = dateRange.from;
       const to = dateRange.to ?? dateRange.from;
       const starts = new Date(coupon.startsAt);
       const expires = new Date(coupon.expiresAt);
-      if (!(starts <= to && expires >= dateRange.from)) return false;
+      if (dateMode === 'during') {
+        // Validity window overlaps the range.
+        if (!(starts <= to && expires >= from)) return false;
+      } else if (dateMode === 'expiring') {
+        // Expiry date falls inside the range.
+        if (!(expires >= from && expires <= to)) return false;
+      } else if (dateMode === 'starting') {
+        // Start date falls inside the range.
+        if (!(starts >= from && starts <= to)) return false;
+      }
     }
     return true;
   });
@@ -108,11 +139,10 @@ export default function Coupons() {
   const activeFilterCount = (dateRange?.from ? 1 : 0);
 
   const statusOptions = [{ value: 'All', label: t('All statuses') }, ...COUPON_STATUSES.map((s) => ({ value: s, label: t(s) }))];
-  const datePresets = ['Today', 'Next 7 days', 'Next 30 days', 'Next 90 days', 'This year', 'Custom date range'];
+  const datePresets = ['This month', 'Next 30 days', 'Next 90 days', 'This year', 'Custom date range'];
   const applyDatePreset = (preset: string) => {
     setSelectedPreset(preset);
-    if (preset === 'Today') setDateRange({ from: NOW, to: NOW });
-    else if (preset === 'Next 7 days') setDateRange({ from: NOW, to: addDays(NOW, 7) });
+    if (preset === 'This month') setDateRange({ from: startOfMonth(NOW), to: endOfMonth(NOW) });
     else if (preset === 'Next 30 days') setDateRange({ from: NOW, to: addDays(NOW, 30) });
     else if (preset === 'Next 90 days') setDateRange({ from: NOW, to: addMonths(NOW, 3) });
     else if (preset === 'This year') setDateRange({ from: new Date(NOW.getFullYear(), 0, 1), to: new Date(NOW.getFullYear(), 11, 31) });
@@ -165,8 +195,17 @@ export default function Coupons() {
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
-            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+            {loading ? (
+              <>
+                <Skeleton className="h-7 sm:h-8 w-16 mt-0.5" />
+                <Skeleton className="h-3 w-24 mt-2 sm:mt-3" />
+              </>
+            ) : (
+              <>
+                <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+                <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+              </>
+            )}
           </motion.div>
         ))}
       </div>
@@ -205,6 +244,19 @@ export default function Coupons() {
                   ))}
                 </div>
                 <div className="p-4" style={{ '--primary': 'var(--brand-primary)', '--primary-foreground': '#FFFFFF' } as CSSProperties}>
+                  {/* Mode toggle — what the range targets. */}
+                  <div className="flex p-0.5 mb-3 bg-[var(--surface-subtle)] rounded-md">
+                    {DATE_MODES.map((m) => (
+                      <button
+                        key={m.key}
+                        type="button"
+                        onClick={() => setDateMode(m.key)}
+                        className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-[5px] transition-colors cursor-pointer ${dateMode === m.key ? 'bg-white text-[var(--text-primary)] shadow-[0_1px_2px_rgba(44,38,39,0.08)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
+                      >
+                        {t(m.label)}
+                      </button>
+                    ))}
+                  </div>
                   <CalendarUI mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={(range) => { setDateRange(range); setSelectedPreset('Custom date range'); }} numberOfMonths={2} className="border-0 shadow-none p-0" />
                   <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-[var(--surface-subtle)]">
                     <button onClick={() => { setDateRange(undefined); setSelectedPreset('Custom date range'); setIsDateOpen(false); }} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors shadow-none cursor-pointer">{t('Clear')}</button>
@@ -246,6 +298,19 @@ export default function Coupons() {
         applyLabel={t('Show results')}
       >
         <FilterField label={t('Validity date')}>
+          {/* Mode toggle — what the range targets. */}
+          <div className="flex p-0.5 mb-3 bg-[var(--surface-subtle)] rounded-md">
+            {DATE_MODES.map((m) => (
+              <button
+                key={m.key}
+                type="button"
+                onClick={() => setDateMode(m.key)}
+                className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-[5px] transition-colors cursor-pointer ${dateMode === m.key ? 'bg-white text-[var(--text-primary)] shadow-[0_1px_2px_rgba(44,38,39,0.08)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
+              >
+                {t(m.label)}
+              </button>
+            ))}
+          </div>
           <div className="flex flex-wrap gap-2">
             {datePresets.map((preset) => (
               <button
@@ -315,10 +380,18 @@ export default function Coupons() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => <CouponRowSkeleton key={i} />)
+              ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-[var(--text-secondary)]">{t('No coupons match your filters.')}</td>
                   {/* colSpan accounts for the select column + 6 data columns */}
+                  <td colSpan={7} className="px-6 py-16">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <TicketPercent className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{t('No coupons found')}</p>
+                      <p className="text-sm text-[var(--text-secondary)] mt-1">{t('No coupons match your filters.')}</p>
+                    </div>
+                  </td>
                 </tr>
               ) : (
                 filtered.map(({ coupon: c, status }) => {
@@ -374,8 +447,16 @@ export default function Coupons() {
 
         {/* Mobile: stacked cards (hidden on desktop) */}
         <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
-          {filtered.length === 0 ? (
-            <div className="px-6 py-12 text-center text-sm text-[var(--text-secondary)]">{t('No coupons match your filters.')}</div>
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => <CouponCardSkeleton key={i} />)
+          ) : filtered.length === 0 ? (
+            <div className="px-6 py-16">
+              <div className="flex flex-col items-center justify-center text-center">
+                <TicketPercent className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                <p className="text-sm font-medium text-[var(--text-primary)]">{t('No coupons found')}</p>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">{t('No coupons match your filters.')}</p>
+              </div>
+            </div>
           ) : (
             filtered.map(({ coupon, status }, index) => (
               <CouponCard
@@ -443,6 +524,64 @@ export default function Coupons() {
         )}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+/** Placeholder row shown in the desktop table while coupons load. */
+function CouponRowSkeleton() {
+  return (
+    <tr>
+      <td className="pl-6 pr-3 py-4"><Skeleton className="h-4 w-4 rounded" /></td>
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-2.5">
+          <Skeleton className="h-8 w-8 rounded-md shrink-0" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-16" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-28" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-36" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-5 w-20 rounded-full" /></td>
+    </tr>
+  );
+}
+
+/** Placeholder card shown in the mobile list while coupons load. */
+function CouponCardSkeleton() {
+  return (
+    <div className="px-4 py-4">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-4 w-4 rounded shrink-0" />
+        <Skeleton className="h-8 w-8 rounded-md shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-3 w-36" />
+        </div>
+        <Skeleton className="h-5 w-16 rounded-full shrink-0" />
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-7">
+        <div className="space-y-2">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-2.5 w-16" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <div className="col-span-2 space-y-2">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-4 w-40" />
+        </div>
+        <div className="col-span-2 space-y-2">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+      </div>
+    </div>
   );
 }
 

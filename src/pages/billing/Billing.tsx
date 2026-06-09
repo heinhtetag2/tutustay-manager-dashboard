@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
 import { Portal } from '@/shared/ui/portal';
+import { Skeleton } from '@/shared/ui/skeleton';
 import {
   CreditCard,
   Sparkles,
@@ -98,6 +99,13 @@ export default function Billing() {
   const [selectedPayment, setSelectedPayment] = useState<PaymentId>('qpay');
   const [openInvoice, setOpenInvoice] = useState<Invoice | null>(null);
 
+  // Simulate fetching the list so the table shows its loading (skeleton) state on first load. Swap this for a real query later.
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(id);
+  }, []);
+
   const renewsOn = new Date();
   renewsOn.setDate(renewsOn.getDate() + 23);
   const renewsLabel = renewsOn.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -139,11 +147,20 @@ export default function Billing() {
         <div className="relative flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-white/60 mb-2">{t('Available Credits')}</p>
-            <h2 className="text-5xl font-medium text-white mb-4 tabular-nums tracking-tight">450,000</h2>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 rounded-md text-[11px] font-medium text-white backdrop-blur-sm">
-              <Building2 className="w-3 h-3" />
-              {t('GROWTH plan')}
-            </span>
+            {loading ? (
+              <>
+                <Skeleton className="h-12 w-32 mb-4" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }} />
+                <Skeleton className="h-7 w-28 rounded-md" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }} />
+              </>
+            ) : (
+              <>
+                <h2 className="text-5xl font-medium text-white mb-4 tabular-nums tracking-tight">450,000</h2>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 rounded-md text-[11px] font-medium text-white backdrop-blur-sm">
+                  <Building2 className="w-3 h-3" />
+                  {t('GROWTH plan')}
+                </span>
+              </>
+            )}
           </div>
 
           <div className="shrink-0 p-2.5 bg-white/10 border border-white/15 rounded-md text-white/80 backdrop-blur-sm">
@@ -319,7 +336,9 @@ export default function Billing() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--surface-subtle)]">
-              {ACTIVITY.map((item, index) => {
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => <BillingRowSkeleton key={i} />)
+              ) : ACTIVITY.map((item, index) => {
                 const statusBadge =
                   item.status === 'Paid'
                     ? 'bg-[var(--success-tint)] text-[var(--success)]'
@@ -367,15 +386,19 @@ export default function Billing() {
 
         {/* Mobile: stacked cards (hidden on desktop) */}
         <div className="md:hidden divide-y divide-[var(--surface-subtle)] border-t border-[var(--border-default)]">
-          {ACTIVITY.map((item, index) => (
-            <InvoiceCard
-              key={item.id}
-              item={item}
-              index={index}
-              onOpen={() => setOpenInvoice(item.invoice)}
-              t={t}
-            />
-          ))}
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => <BillingCardSkeleton key={i} />)
+          ) : (
+            ACTIVITY.map((item, index) => (
+              <InvoiceCard
+                key={item.id}
+                item={item}
+                index={index}
+                onOpen={() => setOpenInvoice(item.invoice)}
+                t={t}
+              />
+            ))
+          )}
         </div>
       </motion.div>
 
@@ -533,6 +556,50 @@ export default function Billing() {
       </AnimatePresence>
       </Portal>
     </motion.div>
+  );
+}
+
+/** Placeholder row shown in the desktop table while billing activity loads. */
+function BillingRowSkeleton() {
+  return (
+    <tr>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-8 rounded-md shrink-0" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+      </td>
+      <td className="px-6 py-4"><Skeleton className="h-5 w-16 rounded-full" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-20 ml-auto" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-4 ml-auto" /></td>
+    </tr>
+  );
+}
+
+/** Placeholder card shown in the mobile list while billing activity loads. */
+function BillingCardSkeleton() {
+  return (
+    <div className="px-4 py-4">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-8 rounded-md shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-3 w-24" />
+        </div>
+        <Skeleton className="h-4 w-4 shrink-0" />
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-11">
+        <div className="space-y-2">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+      </div>
+    </div>
   );
 }
 

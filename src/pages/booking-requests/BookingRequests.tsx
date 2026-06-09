@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { isAfter, isBefore, subDays, addDays, addMonths, format } from 'date-fns';
+import { isAfter, isBefore, addDays, addMonths, format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import {
   Search,
   Inbox,
+  CalendarSearch,
   Clock,
   CheckCircle2,
   XCircle,
@@ -22,6 +23,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { Skeleton } from '@/shared/ui/skeleton';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
@@ -31,6 +33,9 @@ import { useBookingRequests } from './use-booking-requests';
 
 type StatusFilter = 'All' | RequestStatus;
 type Sort = 'newest' | 'checkin' | 'amount';
+
+/** The app's fixed "today" for the demo, so date presets land on the sample data. */
+const NOW = new Date('2026-06-02T10:00:00');
 
 function initialOf(name: string): string {
   return name.trim().charAt(0).toUpperCase() || '?';
@@ -50,6 +55,13 @@ export default function BookingRequests() {
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  // Simulate fetching the list so the page shows its loading (skeleton) state on first load. Swap this for a real query later.
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(id);
+  }, []);
 
   const pending = requests.filter((r) => r.status === 'Pending');
   const counts = {
@@ -82,14 +94,12 @@ export default function BookingRequests() {
     { value: 'checkin', label: t('Check-in soonest') },
     { value: 'amount', label: t('Highest amount') },
   ];
-  const datePresets = ['Today', 'Next 7 days', 'Next 30 days', 'Next 90 days', 'Past 30 days', 'Custom date range'];
+  const datePresets = ['Next 7 days', 'Next 30 days', 'Next 90 days', 'Custom date range'];
   const applyDatePreset = (preset: string) => {
     setSelectedPreset(preset);
-    if (preset === 'Today') setDateRange({ from: new Date(), to: new Date() });
-    else if (preset === 'Next 7 days') setDateRange({ from: new Date(), to: addDays(new Date(), 7) });
-    else if (preset === 'Next 30 days') setDateRange({ from: new Date(), to: addDays(new Date(), 30) });
-    else if (preset === 'Next 90 days') setDateRange({ from: new Date(), to: addMonths(new Date(), 3) });
-    else if (preset === 'Past 30 days') setDateRange({ from: subDays(new Date(), 30), to: new Date() });
+    if (preset === 'Next 7 days') setDateRange({ from: NOW, to: addDays(NOW, 7) });
+    else if (preset === 'Next 30 days') setDateRange({ from: NOW, to: addDays(NOW, 30) });
+    else if (preset === 'Next 90 days') setDateRange({ from: NOW, to: addMonths(NOW, 3) });
   };
 
   const query = search.trim().toLowerCase();
@@ -148,8 +158,17 @@ export default function BookingRequests() {
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
-            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+            {loading ? (
+              <>
+                <Skeleton className="h-7 sm:h-8 w-16 mt-0.5" />
+                <Skeleton className="h-3 w-24 mt-2 sm:mt-3" />
+              </>
+            ) : (
+              <>
+                <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
+                <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+              </>
+            )}
           </motion.div>
         ))}
       </div>
@@ -330,11 +349,15 @@ export default function BookingRequests() {
       </MobileFilterSheet>
 
       {/* Request list */}
-      {visible.length === 0 ? (
-        <div className="bg-white border border-[var(--border-default)] rounded-md p-16">
+      {loading ? (
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => <BookingRequestCardSkeleton key={i} />)}
+        </div>
+      ) : visible.length === 0 ? (
+        <div className="bg-white border border-[var(--border-default)] rounded-md px-6 py-16">
           <div className="flex flex-col items-center justify-center text-center">
-            <Inbox className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
-            <p className="text-sm font-medium text-[var(--text-primary)]">{t('No booking requests')}</p>
+            <CalendarSearch className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+            <p className="text-sm font-medium text-[var(--text-primary)]">{t('No requests found')}</p>
             <p className="text-sm text-[var(--text-secondary)] mt-1">
               {hasActiveFilters ? t('No requests match these filters.') : t('Incoming requests will appear here.')}
             </p>
@@ -359,6 +382,42 @@ export default function BookingRequests() {
         </div>
       )}
     </motion.div>
+  );
+}
+
+/** Placeholder card shown while booking requests load. */
+function BookingRequestCardSkeleton() {
+  return (
+    <div className="bg-white border border-[var(--border-default)] rounded-md p-5 shadow-none">
+      {/* Header row: avatar + name/email + badge + date */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <Skeleton className="h-10 w-10 rounded-md shrink-0" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-36" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+      </div>
+      {/* Detail grid: room, stay, nights, guests, amount */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-6 gap-y-3 mt-5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-2.5 w-14" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        ))}
+      </div>
+      {/* Actions row */}
+      <div className="flex items-center justify-end gap-2 mt-4">
+        <Skeleton className="h-8 w-20 rounded-md" />
+        <Skeleton className="h-8 w-20 rounded-md" />
+      </div>
+    </div>
   );
 }
 

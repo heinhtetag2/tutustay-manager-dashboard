@@ -36,3 +36,6 @@ pnpm-debug.log*
 .cache/
 .eslintcache
 node_modules/.cache/
+
+# Local Claude Code config
+.claude/

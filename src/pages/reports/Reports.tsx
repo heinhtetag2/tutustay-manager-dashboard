@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
 import { Portal } from '@/shared/ui/portal';
@@ -7,6 +7,7 @@ import {
   Search,
   Download,
   Flag,
+  FileSearch,
   ShieldAlert,
   AlertTriangle,
   AlertCircle,
@@ -17,6 +18,7 @@ import {
   X,
 } from 'lucide-react';
 
+import { Skeleton } from '@/shared/ui/skeleton';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
@@ -116,6 +118,13 @@ export default function Reports() {
     | { report: Report; action: ActionType }
     | null
   >(null);
+
+  // Simulate fetching report data so the page shows its loading (skeleton) state on first load. Swap this for a real query later.
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(id);
+  }, []);
 
   const applyAction = () => {
     if (!confirming) return;
@@ -296,8 +305,17 @@ export default function Reports() {
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
-            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+            {loading ? (
+              <>
+                <Skeleton className="h-7 sm:h-8 w-16 mt-0.5" />
+                <Skeleton className="h-3 w-24 mt-2 sm:mt-3" />
+              </>
+            ) : (
+              <>
+                <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+                <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+              </>
+            )}
           </motion.div>
         ))}
       </div>
@@ -421,10 +439,16 @@ export default function Reports() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--surface-subtle)]">
-              {visible.length === 0 ? (
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => <ReportRowSkeleton key={i} />)
+              ) : visible.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-[var(--text-secondary)]">
-                    {t('No reports match these filters.')}
+                  <td colSpan={8} className="px-6 py-16">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <FileSearch className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{t('No reports found')}</p>
+                      <p className="text-sm text-[var(--text-secondary)] mt-1">{hasActiveFilters ? t('No reports match these filters.') : t('Reports will appear here.')}</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -549,9 +573,15 @@ export default function Reports() {
 
         {/* Mobile: stacked cards (hidden on desktop) */}
         <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
-          {visible.length === 0 ? (
-            <div className="px-6 py-12 text-center text-[var(--text-secondary)]">
-              {t('No reports match these filters.')}
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => <ReportCardSkeleton key={i} />)
+          ) : visible.length === 0 ? (
+            <div className="px-6 py-16">
+              <div className="flex flex-col items-center justify-center text-center">
+                <FileSearch className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                <p className="text-sm font-medium text-[var(--text-primary)]">{t('No reports found')}</p>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">{hasActiveFilters ? t('No reports match these filters.') : t('Reports will appear here.')}</p>
+              </div>
             </div>
           ) : (
             visible.map((r, index) => (
@@ -568,9 +598,13 @@ export default function Reports() {
 
         {/* Pagination */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
-          <span className="text-sm text-[var(--text-secondary)]">
-            {t('Showing')} 1 {t('to')} {visible.length} {t('of')} {counts.total} {t('reports')}
-          </span>
+          {loading ? (
+            <Skeleton className="h-4 w-48" />
+          ) : (
+            <span className="text-sm text-[var(--text-secondary)]">
+              {t('Showing')} 1 {t('to')} {visible.length} {t('of')} {counts.total} {t('reports')}
+            </span>
+          )}
           <div className="flex items-center gap-1">
             <button
               disabled
@@ -662,6 +696,83 @@ export default function Reports() {
       </AnimatePresence>
       </Portal>
     </motion.div>
+  );
+}
+
+/** Placeholder row shown in the desktop table while reports load. */
+function ReportRowSkeleton() {
+  return (
+    <tr>
+      <td className="pl-6 pr-3 py-4">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-9 w-9 rounded-md shrink-0" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4"><Skeleton className="h-5 w-16 rounded-full" /></td>
+      <td className="px-6 py-4">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-20 mt-2" />
+      </td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
+      <td className="px-6 py-4"><Skeleton className="h-5 w-20 rounded-full" /></td>
+      <td className="px-6 py-4">
+        <div className="flex items-center justify-end gap-1.5">
+          <Skeleton className="h-5 w-14 rounded-full" />
+          <Skeleton className="h-5 w-14 rounded-full" />
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+/** Placeholder card shown in the mobile list while reports load. */
+function ReportCardSkeleton() {
+  return (
+    <div className="px-4 py-4">
+      {/* Identity row */}
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-10 w-10 rounded-md shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-3 w-40" />
+        </div>
+        <Skeleton className="h-5 w-16 rounded-full shrink-0" />
+      </div>
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        <div className="space-y-2">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <div className="col-span-2 space-y-2">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-4 w-36" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+      </div>
+      {/* Actions */}
+      <div className="flex items-center gap-1.5 mt-4">
+        <Skeleton className="h-5 w-14 rounded-full" />
+        <Skeleton className="h-5 w-14 rounded-full" />
+      </div>
+    </div>
   );
 }
 

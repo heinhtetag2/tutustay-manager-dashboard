@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search,
+  SearchX,
   Plus,
   BedDouble,
   CheckCircle,
@@ -315,9 +316,13 @@ export default function Rooms() {
           </button>
         </div>
       ) : groups.length === 0 && orphanRooms.length === 0 ? (
-        <div className="bg-white rounded-md border border-[var(--border-default)] shadow-none px-6 py-16 text-center text-[var(--text-secondary)]">
-          {t('No rooms or types match these filters.')}
-          <div className="mt-3"><button onClick={clearFilters} className="text-sm font-medium text-[var(--brand-primary)] hover:underline cursor-pointer">{t('Clear filters')}</button></div>
+        <div className="bg-white rounded-md border border-[var(--border-default)] shadow-none px-6 py-16">
+          <div className="flex flex-col items-center justify-center text-center">
+            <SearchX className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+            <p className="text-sm font-medium text-[var(--text-primary)]">{t('No rooms found')}</p>
+            <p className="text-sm text-[var(--text-secondary)] mt-1">{t('No rooms or types match these filters.')}</p>
+            <button onClick={clearFilters} className="mt-4 text-sm font-medium text-[var(--brand-primary)] hover:underline cursor-pointer">{t('Clear filters')}</button>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -359,12 +364,9 @@ export default function Rooms() {
             </div>
           )}
 
-          {/* Footer count + create-type affordance */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-1 pt-1">
+          {/* Footer count — the "Add room type" header button is the single create affordance. */}
+          <div className="px-1 pt-1">
             <span className="text-sm text-[var(--text-secondary)] tabular-nums">{totalVisibleRooms} {totalVisibleRooms === 1 ? t('room') : t('rooms')} · {groups.length} {groups.length === 1 ? t('type') : t('types')}</span>
-            <button onClick={() => setTypeEditor(newRoomType())} className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-[var(--brand-primary)] bg-white border border-[var(--border-default)] hover:border-[var(--brand-primary)] hover:bg-[var(--brand-tint)] transition-colors cursor-pointer">
-              <Plus className="w-4 h-4" />{t('Create a new room type')}
-            </button>
           </div>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import { motion } from 'motion/react';
@@ -21,6 +21,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 
+import { Skeleton } from '@/shared/ui/skeleton';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
@@ -64,6 +65,13 @@ export default function Reviews() {
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  // Simulate fetching the list so the page shows its loading (skeleton) state on first load. Swap this for a real query later.
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(id);
+  }, []);
 
   const total = reviews.length;
   const replied = reviews.filter((r) => r.reply).length;
@@ -168,11 +176,20 @@ export default function Reviews() {
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</span>
-              {card.title === 'Average rating' && <Stars value={Math.round(avg)} />}
-            </div>
-            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+            {loading ? (
+              <>
+                <Skeleton className="h-7 sm:h-8 w-16 mt-0.5" />
+                <Skeleton className="h-3 w-24 mt-2 sm:mt-3" />
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</span>
+                  {card.title === 'Average rating' && <Stars value={Math.round(avg)} />}
+                </div>
+                <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+              </>
+            )}
           </motion.div>
         ))}
       </div>
@@ -385,7 +402,11 @@ export default function Reviews() {
       </MobileFilterSheet>
 
       {/* Review list */}
-      {visible.length === 0 ? (
+      {loading ? (
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => <ReviewCardSkeleton key={i} />)}
+        </div>
+      ) : visible.length === 0 ? (
         <div className="bg-white border border-[var(--border-default)] rounded-md p-16">
           <div className="flex flex-col items-center justify-center text-center">
             <MessageSquare className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
@@ -413,6 +434,38 @@ export default function Reviews() {
         </div>
       )}
     </motion.div>
+  );
+}
+
+/** Placeholder card shown in the review list while reviews load. */
+function ReviewCardSkeleton() {
+  return (
+    <div className="bg-white border border-[var(--border-default)] rounded-md p-5">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+        {/* Customer identity */}
+        <div className="flex items-center gap-3 min-w-0">
+          <Skeleton className="h-10 w-10 rounded-md shrink-0" />
+          <div className="min-w-0 space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-48" />
+          </div>
+        </div>
+        {/* Status badge + date */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-3 w-20" />
+        </div>
+      </div>
+      {/* Comment body */}
+      <div className="space-y-2 mt-3">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-3/4" />
+      </div>
+      {/* Reply button placeholder */}
+      <div className="mt-4">
+        <Skeleton className="h-7 w-20 rounded-md" />
+      </div>
+    </div>
   );
 }
 

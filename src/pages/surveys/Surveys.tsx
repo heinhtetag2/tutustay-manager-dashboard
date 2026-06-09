@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
@@ -32,6 +32,7 @@ import {
 import type { Survey, SurveyCategory, SurveyStatus } from './survey-data';
 import { DEMO_SURVEYS } from './survey-data';
 import { Portal } from '@/shared/ui/portal';
+import { Skeleton } from '@/shared/ui/skeleton';
 
 function formatMnt(value: number): string {
   return `${value.toLocaleString('en-US')}`;
@@ -64,6 +65,13 @@ export default function Surveys() {
     | { survey: Survey; action: 'pause' | 'resume' | 'reject' | 'reinstate' }
     | null
   >(null);
+
+  // Simulate fetching the list so the page shows its loading (skeleton) state on first load. Swap this for a real query later.
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(id);
+  }, []);
 
   const hasActiveFilters =
     searchQuery !== '' ||
@@ -243,8 +251,17 @@ export default function Surveys() {
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
-            <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+            {loading ? (
+              <>
+                <Skeleton className="h-7 sm:h-8 w-16 mt-0.5" />
+                <Skeleton className="h-3 w-24 mt-2 sm:mt-3" />
+              </>
+            ) : (
+              <>
+                <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
+                <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
+              </>
+            )}
           </motion.div>
         ))}
       </div>
@@ -444,10 +461,16 @@ export default function Surveys() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--surface-subtle)]">
-              {visibleSurveys.length === 0 ? (
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => <SurveyRowSkeleton key={i} />)
+              ) : visibleSurveys.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-[var(--text-secondary)]">
-                    {t('No surveys match these filters.')}
+                  <td colSpan={8} className="px-6 py-16">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <ClipboardList className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{t('No surveys found')}</p>
+                      <p className="text-sm text-[var(--text-secondary)] mt-1">{hasActiveFilters ? t('No surveys match these filters.') : t('Surveys will appear here.')}</p>
+                    </div>
                   </td>
                 </tr>
               ) : visibleSurveys.map((survey, index) => {
@@ -578,9 +601,15 @@ export default function Surveys() {
 
         {/* Mobile: stacked cards (hidden on desktop) */}
         <div className="md:hidden divide-y divide-[var(--surface-subtle)]">
-          {visibleSurveys.length === 0 ? (
-            <div className="px-6 py-12 text-center text-[var(--text-secondary)]">
-              {t('No surveys match these filters.')}
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => <SurveyCardSkeleton key={i} />)
+          ) : visibleSurveys.length === 0 ? (
+            <div className="px-6 py-16">
+              <div className="flex flex-col items-center justify-center text-center">
+                <ClipboardList className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
+                <p className="text-sm font-medium text-[var(--text-primary)]">{t('No surveys found')}</p>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">{hasActiveFilters ? t('No surveys match these filters.') : t('Surveys will appear here.')}</p>
+              </div>
             </div>
           ) : (
             visibleSurveys.map((survey, index) => (
@@ -599,9 +628,13 @@ export default function Surveys() {
 
         {/* Pagination Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
-          <span className="text-sm text-[var(--text-secondary)]">
-            {t('Showing')} 1 {t('to')} {visibleSurveys.length} {t('of')} {surveys.length} {t('surveys')}
-          </span>
+          {loading ? (
+            <Skeleton className="h-4 w-48" />
+          ) : (
+            <span className="text-sm text-[var(--text-secondary)]">
+              {t('Showing')} 1 {t('to')} {visibleSurveys.length} {t('of')} {surveys.length} {t('surveys')}
+            </span>
+          )}
           <div className="flex items-center gap-1">
             <button
               disabled
@@ -690,6 +723,100 @@ export default function Surveys() {
       </AnimatePresence>
       </Portal>
     </motion.div>
+  );
+}
+
+/** Placeholder row shown in the desktop table while surveys load. */
+function SurveyRowSkeleton() {
+  return (
+    <tr>
+      {/* Survey */}
+      <td className="pl-6 pr-3 py-4">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-16 mt-2" />
+      </td>
+      {/* Company */}
+      <td className="px-6 py-4">
+        <Skeleton className="h-4 w-24" />
+      </td>
+      {/* Status */}
+      <td className="px-6 py-4">
+        <Skeleton className="h-5 w-20 rounded-full" />
+      </td>
+      {/* Responses */}
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-1.5 w-24 rounded-full" />
+          <Skeleton className="h-3 w-12" />
+        </div>
+      </td>
+      {/* Reward */}
+      <td className="px-6 py-4">
+        <Skeleton className="h-4 w-16" />
+      </td>
+      {/* Trust req. */}
+      <td className="px-6 py-4">
+        <Skeleton className="h-5 w-20 rounded-full" />
+      </td>
+      {/* Created */}
+      <td className="px-6 py-4">
+        <Skeleton className="h-4 w-24" />
+      </td>
+      {/* Actions */}
+      <td className="px-6 py-4">
+        <div className="flex items-center justify-end gap-1.5">
+          <Skeleton className="h-7 w-7 rounded-md" />
+          <Skeleton className="h-7 w-7 rounded-md" />
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+/** Placeholder card shown in the mobile list while surveys load. */
+function SurveyCardSkeleton() {
+  return (
+    <div className="px-4 py-4">
+      {/* Identity row */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+        <Skeleton className="h-5 w-20 rounded-full shrink-0" />
+      </div>
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4">
+        {/* Company */}
+        <div className="space-y-1.5">
+          <Skeleton className="h-2.5 w-14" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        {/* Reward */}
+        <div className="space-y-1.5">
+          <Skeleton className="h-2.5 w-10" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        {/* Responses */}
+        <div className="space-y-1.5">
+          <Skeleton className="h-2.5 w-16" />
+          <div className="flex items-center gap-2 mt-0.5">
+            <Skeleton className="flex-1 h-1.5 rounded-full" />
+            <Skeleton className="h-3 w-10 shrink-0" />
+          </div>
+        </div>
+        {/* Trust req. */}
+        <div className="space-y-1.5">
+          <Skeleton className="h-2.5 w-14" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
+        {/* Created */}
+        <div className="space-y-1.5">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+      </div>
+    </div>
   );
 }
 
