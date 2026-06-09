@@ -8,3 +8,15 @@
     transform: translateX(100%);
   }
 }
+
+/* Bouncing dots — the brand loading indicator (<BrandDots />). */
+@keyframes dot-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.7);
+    opacity: 0.45;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

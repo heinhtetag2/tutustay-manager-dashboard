@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, Bell } from 'lucide-react';
 import { Sidebar } from '@/widgets/sidebar';
+import { BrandDots } from '@/shared/ui/brand-dots';
 import { BookingToastHost, useBookingSimulator } from '@/shared/ui/booking-toasts';
 import { OnboardingHost, DemoDataRibbon } from '@/widgets/onboarding';
 import { useHotel } from '@/pages/hotel/use-hotel';
@@ -19,6 +20,19 @@ export default function Layout() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileNotifOpen, setIsMobileNotifOpen] = useState(false);
   const location = useLocation();
+
+  // Brief loading indicator on page navigation (the boot splash covers first load).
+  const [routeLoading, setRouteLoading] = useState(false);
+  const firstRoute = useRef(true);
+  useEffect(() => {
+    if (firstRoute.current) {
+      firstRoute.current = false;
+      return;
+    }
+    setRouteLoading(true);
+    const id = setTimeout(() => setRouteLoading(false), 450);
+    return () => clearTimeout(id);
+  }, [location.pathname]);
 
   // Close mobile sidebar + notifications when the route changes
   useEffect(() => {
@@ -52,6 +66,21 @@ export default function Layout() {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-hidden flex flex-col relative min-w-0">
+        {/* Route-transition indicator — a small floating dots pill */}
+        <AnimatePresence>
+          {routeLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
+              className="absolute top-3 left-1/2 -translate-x-1/2 z-40 px-3 py-2 rounded-full bg-white border border-[var(--border-default)] shadow-[0_2px_10px_rgba(44,38,39,0.1)] pointer-events-none"
+            >
+              <BrandDots size="w-1.5 h-1.5" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Mobile top bar */}
         <div className="md:hidden h-14 flex items-center justify-between px-4 border-b border-[var(--border-default)] bg-white shrink-0">
           <button
