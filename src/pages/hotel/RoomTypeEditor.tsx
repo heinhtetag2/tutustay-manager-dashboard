@@ -16,6 +16,8 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
   const { t } = useTranslation();
   const navigate = useNavigate();
   const sessionHoursDefault = useHotel((s) => s.property.defaultSessionHours);
+  // Only collect a separate foreigner rate when the property actually accepts foreign guests.
+  const acceptsForeigners = useHotel((s) => s.property.foreignPolicy === 'Foreigners welcome');
   const goToPricingDefaults = () => { onClose(); navigate('/settings?section=Booking defaults'); };
   const [d, setD] = useState<RoomType>(initial);
   const [priceTab, setPriceTab] = useState<PriceTab>('regular');
@@ -95,12 +97,22 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
                 {priceTab === 'session' && t('Optional — sell the room by the hour for day-use guests, instead of overnight.')}
                 {priceTab === 'weekend' && t('Optional — add an uplift on top of the night and session rates on the days you pick.')}
               </p>
-              {priceTab === 'regular' && <Field label={t('Base Price (per night)')} required><Money value={d.regularPrice} onChange={(v) => set({ regularPrice: v })} /></Field>}
+              {priceTab === 'regular' && (
+                acceptsForeigners ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field label={t('Local price (per night)')} required><Money value={d.regularPrice} onChange={(v) => set({ regularPrice: v })} wide /></Field>
+                    <Field label={t('Foreigner price (per night)')} required><Money value={d.foreignerPrice ?? 0} onChange={(v) => set({ foreignerPrice: v })} wide /></Field>
+                  </div>
+                ) : (
+                  <Field label={t('Base Price (per night)')} required><Money value={d.regularPrice} onChange={(v) => set({ regularPrice: v })} /></Field>
+                )
+              )}
               {priceTab === 'session' && (
                 <div className="space-y-4">
                   <Toggle checked={d.sessionEnabled} onChange={(v) => set({ sessionEnabled: v })} label={t('Enable session use')} hint={t('Sell the room in short blocks of hours')} />
                   <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${d.sessionEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
-                    <Field label={t('Base price (per session)')}><Money value={d.sessionPrice} onChange={(v) => set({ sessionPrice: v })} /></Field>
+                    <Field label={t(acceptsForeigners ? 'Local price (per session)' : 'Base price (per session)')}><Money value={d.sessionPrice} onChange={(v) => set({ sessionPrice: v })} /></Field>
+                    {acceptsForeigners && <Field label={t('Foreigner price (per session)')}><Money value={d.foreignerSessionPrice ?? 0} onChange={(v) => set({ foreignerSessionPrice: v })} /></Field>}
                     <Field label={t('Session length (hours)')}>
                       <div className="relative">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
@@ -131,54 +143,70 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
                     </Field>
                     <Field label={t('Weekend uplift')}>
                       <div className="space-y-3">
-                        {/* How the uplift is set */}
-                        <div className="grid grid-cols-2 gap-2">
-                          {([['percent', t('% over base')], ['amount', t('+ Amount')]] as const).map(([m, label]) => {
-                            const on = weekendMode === m;
-                            return (
-                              <button
-                                key={m}
-                                type="button"
-                                onClick={() => set({ weekendMode: m })}
-                                className={`px-2 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer ${on ? 'border-[var(--brand-primary)] bg-[var(--brand-tint)] text-[var(--brand-primary)]' : 'border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)]'}`}
-                              >
-                                {label}
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        {/* The uplift value */}
-                        {weekendMode === 'percent' ? (
-                          <div className="relative">
+                        {/* Value and unit toggle as two separate controls on one row. */}
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1 min-w-0">
+                            {weekendMode === 'amount' && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-secondary)] pointer-events-none select-none">MMK</span>}
                             <input
-                              type="number"
-                              min={0}
-                              className={`${fieldInput} pr-9 tabular-nums`}
-                              value={weekendSurcharge}
-                              onChange={(e) => set({ weekendSurcharge: Number(e.target.value) })}
+                              type="text"
+                              inputMode="numeric"
+                              value={weekendSurcharge ? weekendSurcharge.toLocaleString('en-US') : ''}
+                              onChange={(e) => set({ weekendSurcharge: Number(e.target.value.replace(/[^\d]/g, '')) })}
+                              placeholder="0"
+                              className={`w-full py-2 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] transition-colors tabular-nums placeholder:text-[var(--text-secondary)] ${weekendMode === 'amount' ? 'pl-14 pr-3' : 'pl-3 pr-9'}`}
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-secondary)] pointer-events-none">%</span>
+                            {weekendMode === 'percent' && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-secondary)] pointer-events-none select-none">%</span>}
                           </div>
-                        ) : (
-                          <Money value={weekendSurcharge} onChange={(v) => set({ weekendSurcharge: v })} wide />
-                        )}
+                          <div className="flex items-center gap-0.5 shrink-0 p-0.5 bg-[var(--surface-subtle)] rounded-lg">
+                            {([['percent', '%'], ['amount', 'MMK']] as const).map(([m, label]) => {
+                              const on = weekendMode === m;
+                              return (
+                                <button
+                                  key={m}
+                                  type="button"
+                                  onClick={() => set({ weekendMode: m })}
+                                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${on ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
 
                         {/* Live preview — the uplift applies to both rates on selected days */}
                         <div className="rounded-md bg-white border border-[var(--border-default)] divide-y divide-[var(--surface-subtle)]">
                           <div className="flex items-center justify-between px-3 py-2">
-                            <span className="text-xs text-[var(--text-secondary)]">{t('Weekend night rate')}</span>
+                            <span className="text-xs text-[var(--text-secondary)]">{acceptsForeigners ? t('Weekend night rate (local)') : t('Weekend night rate')}</span>
                             <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
                               <span className="text-xs text-[var(--text-muted)] font-normal line-through mr-1.5">{formatPrice(d.regularPrice)}</span>
                               {formatPrice(d.weekendPrice)}
                             </span>
                           </div>
+                          {acceptsForeigners && (
+                            <div className="flex items-center justify-between px-3 py-2">
+                              <span className="text-xs text-[var(--text-secondary)]">{t('Weekend night rate (foreigner)')}</span>
+                              <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
+                                <span className="text-xs text-[var(--text-muted)] font-normal line-through mr-1.5">{formatPrice(d.foreignerPrice ?? 0)}</span>
+                                {formatPrice(computeWeekendPrice(d.foreignerPrice ?? 0, weekendMode, weekendSurcharge))}
+                              </span>
+                            </div>
+                          )}
                           {d.sessionEnabled && (
                             <div className="flex items-center justify-between px-3 py-2">
-                              <span className="text-xs text-[var(--text-secondary)]">{t('Weekend session rate')}</span>
+                              <span className="text-xs text-[var(--text-secondary)]">{acceptsForeigners ? t('Weekend session rate (local)') : t('Weekend session rate')}</span>
                               <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
                                 <span className="text-xs text-[var(--text-muted)] font-normal line-through mr-1.5">{formatPrice(d.sessionPrice)}</span>
                                 {formatPrice(computeWeekendPrice(d.sessionPrice, weekendMode, weekendSurcharge))}
+                              </span>
+                            </div>
+                          )}
+                          {d.sessionEnabled && acceptsForeigners && (
+                            <div className="flex items-center justify-between px-3 py-2">
+                              <span className="text-xs text-[var(--text-secondary)]">{t('Weekend session rate (foreigner)')}</span>
+                              <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
+                                <span className="text-xs text-[var(--text-muted)] font-normal line-through mr-1.5">{formatPrice(d.foreignerSessionPrice ?? 0)}</span>
+                                {formatPrice(computeWeekendPrice(d.foreignerSessionPrice ?? 0, weekendMode, weekendSurcharge))}
                               </span>
                             </div>
                           )}

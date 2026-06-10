@@ -178,8 +178,12 @@ export interface RoomType {
   occupancy: number;
   // Pricing
   regularPrice: number;
+  /** Optional separate nightly rate for foreign (non-local) guests. Only used when the property accepts foreigners. */
+  foreignerPrice?: number;
   sessionEnabled: boolean;
   sessionPrice: number;
+  /** Optional separate session rate for foreign (non-local) guests. */
+  foreignerSessionPrice?: number;
   sessionHours: number;
   weekendEnabled: boolean;
   /** Effective absolute weekend rate (derived from the mode + surcharge). */
@@ -220,8 +224,10 @@ export function emptyRoomType(): RoomType {
     amenities: [],
     occupancy: 2,
     regularPrice: 0,
+    foreignerPrice: undefined,
     sessionEnabled: false,
     sessionPrice: 0,
+    foreignerSessionPrice: undefined,
     sessionHours: 3,
     weekendEnabled: false,
     weekendPrice: 0,
