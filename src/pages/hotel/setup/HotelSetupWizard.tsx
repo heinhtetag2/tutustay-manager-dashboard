@@ -318,7 +318,7 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
                         </span>
                       </button>
                       {!isLast && (
-                        <span className={`flex-1 h-px mx-3 transition-colors ${i < step ? 'bg-[var(--text-primary)]/20' : 'bg-[var(--border-default)]'}`} />
+                        <span className={`flex-1 h-px mx-1.5 md:mx-3 transition-colors ${i < step ? 'bg-[var(--text-primary)]/20' : 'bg-[var(--border-default)]'}`} />
                       )}
                     </li>
                   );
@@ -348,13 +348,13 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
               {step === 7 && <AgreementStep {...stepProps} />}
             </motion.div>
 
-            {/* Action */}
-            <div className="mt-10 flex items-center gap-3">
+            {/* Action — stacks full-width on mobile (primary on top), inline on desktop. */}
+            <div className="mt-10 flex flex-col sm:flex-row sm:items-center gap-3">
               {step > 0 && (
                 <button
                   type="button"
                   onClick={goBack}
-                  className="inline-flex items-center justify-center gap-1.5 px-6 py-3 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                  className="order-2 sm:order-none w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-6 py-3 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer whitespace-nowrap"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   {t('Previous')}
@@ -363,7 +363,7 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
               <button
                 type="button"
                 onClick={goNext}
-                className="inline-flex items-center justify-center px-12 py-3 text-sm font-medium text-white bg-[var(--text-primary)] rounded-md hover:bg-[var(--text-primary)]/90 transition-colors cursor-pointer"
+                className="order-1 sm:order-none w-full sm:w-auto inline-flex items-center justify-center px-12 py-3 text-sm font-medium text-white bg-[var(--text-primary)] rounded-md hover:bg-[var(--text-primary)]/90 transition-colors cursor-pointer whitespace-nowrap"
               >
                 {isLast ? t('Finish setup') : t('Continue')}
               </button>
@@ -371,7 +371,7 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
                 <button
                   type="button"
                   onClick={goSkip}
-                  className="inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                  className="order-3 sm:order-none w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer whitespace-nowrap"
                 >
                   {t('Skip for now')}
                 </button>

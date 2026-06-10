@@ -26,11 +26,14 @@ import {
   Flag,
   CalendarCheck,
   CalendarDays,
+  TicketPercent,
 } from 'lucide-react';
 
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { useCustomers } from '@/pages/customers/use-customers';
 import { formatMoney } from '@/pages/customers/customers-data';
+import { CouponBadge, discountLabel, originalAmount } from '@/shared/ui/coupon-badge';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { formatAmount, type RequestStatus, type RateType } from './booking-requests-data';
 import { useBookingRequests } from './use-booking-requests';
 
@@ -85,10 +88,10 @@ export default function BookingRequestDetail() {
   const age = dob ? differenceInYears(NOW, dob) : null;
 
   const stats = [
-    { title: 'Nights', Icon: CloudMoon, value: String(request.nights), subtitle: `${formatDateTime(request.checkIn)} → ${formatDateTime(request.checkOut)}` },
-    { title: 'Guests', Icon: Users, value: String(request.guests), subtitle: t('In this booking') },
-    { title: 'Amount', Icon: CreditCard, value: formatAmount(request.amount), subtitle: `${t(request.rateType)} ${t('rate')}` },
-    { title: 'Requested', Icon: Clock, value: formatDate(request.requestedAt), subtitle: t('Request received') },
+    { title: 'Nights', Icon: CloudMoon, value: String(request.nights), subtitle: `${formatDateTime(request.checkIn)} → ${formatDateTime(request.checkOut)}`, tone: 'purple' as const },
+    { title: 'Guests', Icon: Users, value: String(request.guests), subtitle: t('In this booking'), tone: 'pink' as const },
+    { title: 'Amount', Icon: CreditCard, value: formatAmount(request.amount), subtitle: request.coupon ? `${t('Saved')} ${formatAmount(request.coupon.amountSaved)} · ${request.coupon.code}` : `${t(request.rateType)} ${t('rate')}`, tone: 'success' as const },
+    { title: 'Requested', Icon: Clock, value: formatDate(request.requestedAt), subtitle: t('Request received'), tone: 'brand' as const },
   ];
 
   const events = [
@@ -152,7 +155,7 @@ export default function BookingRequestDetail() {
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
@@ -177,7 +180,20 @@ export default function BookingRequestDetail() {
               <InfoRow Icon={CalendarRange} label={t('Check-out')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(request.checkOut)}</span></InfoRow>
               <InfoRow Icon={CloudMoon} label={t('Nights')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{request.nights}</span></InfoRow>
               <InfoRow Icon={Users} label={t('Guests')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{request.guests}</span></InfoRow>
-              <InfoRow Icon={CreditCard} label={t('Amount')}><span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatAmount(request.amount)}</span></InfoRow>
+              <InfoRow Icon={CreditCard} label={t('Amount')}>
+                <span className="flex items-center gap-2 flex-wrap">
+                  {request.coupon && <span className="text-sm text-[var(--text-tertiary)] line-through tabular-nums">{formatAmount(originalAmount(request.amount, request.coupon))}</span>}
+                  <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatAmount(request.amount)}</span>
+                </span>
+              </InfoRow>
+              {request.coupon && (
+                <InfoRow Icon={TicketPercent} label={t('Coupon')}>
+                  <span className="flex items-center gap-2 flex-wrap">
+                    <CouponBadge coupon={request.coupon} />
+                    <span className="text-sm text-[var(--text-secondary)] tabular-nums">{discountLabel(request.coupon)} · −{formatAmount(request.coupon.amountSaved)}</span>
+                  </span>
+                </InfoRow>
+              )}
               <InfoRow Icon={Clock} label={t('Requested at')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(request.requestedAt)}</span></InfoRow>
             </div>
           </section>

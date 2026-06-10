@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 
 import { Portal } from '@/shared/ui/portal';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import type { Employee, EmployeeStatus } from './agents-data';
 import { useEmployees } from './use-employees';
 import { EmployeeEditor } from './EmployeeEditor';
@@ -76,24 +77,27 @@ export default function AgentDetail() {
   const hired = employee.hireDate ? new Date(employee.hireDate) : null;
 
   const stats = [
-    { title: 'Role', Icon: ShieldCheck, value: t(employee.role), subtitle: t('Position') },
+    { title: 'Role', Icon: ShieldCheck, value: t(employee.role), subtitle: t('Position'), tone: 'brand' as const },
     {
       title: 'Status',
       Icon: BadgeCheck,
       value: t(employee.status),
       subtitle: employee.status === 'Active' ? t('Currently employed') : t('Deactivated account'),
+      tone: employee.status === 'Active' ? ('success' as const) : ('danger' as const),
     },
     {
       title: 'Tenure',
       Icon: Clock,
       value: hired ? formatDistanceToNow(hired) : '—',
       subtitle: hired ? t('Since hire date') : t('Hire date not set'),
+      tone: 'info' as const,
     },
     {
       title: 'Hire date',
       Icon: CalendarIcon,
       value: hired ? format(hired, 'MMM yyyy') : '—',
       subtitle: hired ? formatDistanceToNow(hired, { addSuffix: true }) : t('Not set'),
+      tone: 'purple' as const,
     },
   ];
 
@@ -185,7 +189,7 @@ export default function AgentDetail() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

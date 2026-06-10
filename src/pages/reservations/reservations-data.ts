@@ -1,3 +1,5 @@
+import type { AppliedCoupon } from '@/shared/ui/coupon-badge';
+
 export type ReservationStatus = 'Confirmed' | 'Checked-in' | 'Checked-out' | 'Cancelled' | 'No-show';
 
 export const RESERVATION_STATUSES: ReservationStatus[] = ['Confirmed', 'Checked-in', 'Checked-out', 'Cancelled', 'No-show'];
@@ -34,8 +36,10 @@ export interface Reservation {
   /** Number of nights; 0 for day-use (Session) bookings. */
   nights: number;
   guests: number;
-  /** Total amount for the stay. */
+  /** Total amount for the stay (final price, after any coupon). */
   amount: number;
+  /** Coupon redeemed on this booking, if any. */
+  coupon?: AppliedCoupon;
   /** Booking/pricing type. Omitted = Regular (per night). */
   rateType?: RateType;
   status: ReservationStatus;
@@ -76,6 +80,7 @@ export const DEMO_RESERVATIONS: Reservation[] = [
   {
     id: 'rsv5', code: 'RSV-1009', customerId: 'c5', guestName: 'Aiko Tanaka', guestEmail: 'aiko.tanaka@example.com',
     roomType: 'Deluxe', roomNo: '301', checkIn: '2026-05-12T14:00:00', checkOut: '2026-05-15T12:00:00', nights: 3, guests: 2, amount: 240000,
+    coupon: { code: 'WELCOME10', discountType: 'Percentage', value: 10, amountSaved: 26000 },
     status: 'Checked-out', createdAt: '2026-05-02T09:40:00',
   },
   {
@@ -98,6 +103,7 @@ export const DEMO_RESERVATIONS: Reservation[] = [
   {
     id: 'rsv9', code: 'RSV-1056', customerId: 'c7', guestName: 'Elena Rossi', guestEmail: 'elena.rossi@example.com',
     roomType: 'Suite', roomNo: '501', checkIn: '2026-06-02T14:00:00', checkOut: '2026-06-05T12:00:00', nights: 3, guests: 2, amount: 540000,
+    coupon: { code: 'FLASH30', discountType: 'Percentage', value: 30, amountSaved: 180000 },
     status: 'Confirmed', createdAt: '2026-05-28T13:00:00',
   },
   {
@@ -238,11 +244,13 @@ export const DEMO_RESERVATIONS: Reservation[] = [
   {
     id: 'rsv37', code: 'RSV-1084', guestName: 'Clara Hoffmann', guestEmail: 'clara.hoffmann@example.com',
     roomType: 'Suite', roomNo: '504', checkIn: '2026-06-26T14:00:00', checkOut: '2026-06-29T12:00:00', nights: 3, guests: 2, amount: 540000,
+    coupon: { code: 'VIP100K', discountType: 'Fixed', value: 100000, amountSaved: 100000 },
     status: 'Confirmed', createdAt: '2026-06-08T10:15:00',
   },
   {
     id: 'rsv38', code: 'RSV-1085', guestName: 'Victor Nguyen', guestEmail: 'victor.nguyen@example.com',
     roomType: 'Deluxe', roomNo: '305', checkIn: '2026-06-26T14:00:00', checkOut: '2026-06-28T12:00:00', nights: 2, guests: 2, amount: 170000,
+    coupon: { code: 'WEEKEND15', discountType: 'Percentage', value: 15, amountSaved: 30000 },
     status: 'Confirmed', createdAt: '2026-06-08T12:40:00',
   },
   {
@@ -258,6 +266,7 @@ export const DEMO_RESERVATIONS: Reservation[] = [
   {
     id: 'rsv41', code: 'RSV-1088', guestName: 'Sara Lindqvist', guestEmail: 'sara.lindqvist@example.com',
     roomType: 'Deluxe', roomNo: '308', checkIn: '2026-06-29T14:00:00', checkOut: '2026-07-02T12:00:00', nights: 3, guests: 2, amount: 255000,
+    coupon: { code: 'STAY50K', discountType: 'Fixed', value: 50000, amountSaved: 50000 },
     status: 'Confirmed', createdAt: '2026-06-09T10:50:00',
   },
   {
@@ -268,6 +277,7 @@ export const DEMO_RESERVATIONS: Reservation[] = [
   {
     id: 'rsv43', code: 'RSV-1090', guestName: 'Beatrice Conti', guestEmail: 'beatrice.conti@example.com',
     roomType: 'Family', roomNo: '413', checkIn: '2026-06-30T14:00:00', checkOut: '2026-07-03T12:00:00', nights: 3, guests: 4, amount: 420000,
+    coupon: { code: 'SUMMER25', discountType: 'Percentage', value: 25, amountSaved: 140000 },
     status: 'Confirmed', createdAt: '2026-06-10T09:00:00',
   },
 ];

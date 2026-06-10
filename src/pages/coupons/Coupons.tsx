@@ -23,6 +23,7 @@ import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { Portal } from '@/shared/ui/portal';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { formatAmount } from '@/pages/reservations/reservations-data';
 import {
   couponStatus,
@@ -97,10 +98,10 @@ export default function Coupons() {
   };
 
   const stats = [
-    { title: 'Total coupons', Icon: TicketPercent, value: String(counts.total), subtitle: t('All coupons') },
-    { title: 'Active', Icon: CheckCircle2, value: String(counts.active), subtitle: t('Redeemable now') },
-    { title: 'Redemptions', Icon: Coins, value: formatAmount(counts.redemptions), subtitle: t('Total times used') },
-    { title: 'Expiring soon', Icon: Clock, value: String(counts.expiringSoon), subtitle: t('Within 14 days') },
+    { title: 'Total coupons', Icon: TicketPercent, value: String(counts.total), subtitle: t('All coupons'), tone: 'brand' as const },
+    { title: 'Active', Icon: CheckCircle2, value: String(counts.active), subtitle: t('Redeemable now'), tone: 'success' as const },
+    { title: 'Redemptions', Icon: Coins, value: formatAmount(counts.redemptions), subtitle: t('Total times used'), tone: 'info' as const },
+    { title: 'Expiring soon', Icon: Clock, value: String(counts.expiringSoon), subtitle: t('Within 14 days'), tone: 'warning' as const },
   ];
 
   const query = search.trim().toLowerCase();
@@ -191,7 +192,7 @@ export default function Coupons() {
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

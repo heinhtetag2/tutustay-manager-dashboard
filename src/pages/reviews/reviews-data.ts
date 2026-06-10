@@ -1,3 +1,10 @@
+/** Moderation lifecycle for hiding a review from public listings.
+ *  'none'    — visible to guests (default).
+ *  'pending' — the manager has requested a hide; awaiting super-admin approval.
+ *              The review stays public until approved.
+ *  'hidden'  — approved by the super-admin and hidden from public listings. */
+export type HideStatus = 'none' | 'pending' | 'hidden';
+
 export interface Review {
   id: string;
   /** Links to a Customer record (customers store) for cross-navigation. */
@@ -15,8 +22,22 @@ export interface Review {
   /** Manager reply, if any. */
   reply?: string;
   replyAt?: string;
-  /** Hidden by an admin — kept in the dashboard but not shown publicly. */
-  hidden?: boolean;
+  /** Where this review sits in the hide-from-public moderation flow. Omitted = 'none'. */
+  hideStatus?: HideStatus;
+  /** ISO datetime the manager submitted the hide request (for 'pending' / 'hidden'). */
+  hideRequestedAt?: string;
+  /** The manager's message to the super-admin explaining why the review should be hidden. */
+  hideReason?: string;
+}
+
+/** Approved-and-hidden from public listings. */
+export function isHidden(r: Review): boolean {
+  return r.hideStatus === 'hidden';
+}
+
+/** Manager has requested a hide that the super-admin hasn't actioned yet. */
+export function isHidePending(r: Review): boolean {
+  return r.hideStatus === 'pending';
 }
 
 export function averageRating(reviews: Review[]): number {
@@ -75,6 +96,9 @@ export const DEMO_REVIEWS: Review[] = [
     roomType: 'Superior',
     stayDate: '2026-04-28',
     createdAt: '2026-04-30T18:00:00',
+    hideStatus: 'hidden',
+    hideRequestedAt: '2026-05-02T10:00:00',
+    hideReason: 'This review names a former staff member and the AC issue was fixed the same week — it no longer reflects the room.',
   },
   {
     id: 'rv5',
@@ -85,6 +109,9 @@ export const DEMO_REVIEWS: Review[] = [
     roomType: 'Deluxe',
     stayDate: '2026-03-10',
     createdAt: '2026-03-12T11:25:00',
+    hideStatus: 'pending',
+    hideRequestedAt: '2026-03-13T08:30:00',
+    hideReason: 'Guest booked the wrong dates and the room was in fact ready on time — the complaint is factually inaccurate.',
   },
   {
     id: 'rv6',

@@ -22,6 +22,7 @@ import { Skeleton } from '@/shared/ui/skeleton';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import type {
   Report,
   ReportReason,
@@ -242,24 +243,28 @@ export default function Reports() {
   const stats = [
     {
       title: 'Total reports',
+      tone: 'brand' as const,
       Icon: Flag,
       value: String(counts.total),
       subtitle: `${counts.open} ${t('open')} · ${counts.reviewing} ${t('reviewing')}`,
     },
     {
       title: 'Open reports',
+      tone: 'warning' as const,
       Icon: AlertTriangle,
       value: String(counts.open),
       subtitle: t('Awaiting moderation'),
     },
     {
       title: 'High severity',
+      tone: 'danger' as const,
       Icon: ShieldAlert,
       value: String(counts.highSeverity),
       subtitle: t('High or critical'),
     },
     {
       title: 'Resolved',
+      tone: 'success' as const,
       Icon: CheckCircle,
       value: String(counts.resolved),
       subtitle: t('Closed this period'),
@@ -301,7 +306,7 @@ export default function Reports() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

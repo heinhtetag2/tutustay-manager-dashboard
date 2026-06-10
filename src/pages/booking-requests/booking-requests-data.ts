@@ -1,3 +1,5 @@
+import type { AppliedCoupon } from '@/shared/ui/coupon-badge';
+
 export type RequestStatus = 'Pending' | 'Approved' | 'Declined';
 /** Which pricing applied to this booking — affects the amount. */
 export type RateType = 'Regular' | 'Session' | 'Weekend';
@@ -16,8 +18,10 @@ export interface BookingRequest {
   checkOut: string;
   nights: number;
   guests: number;
-  /** Total amount for the stay. */
+  /** Total amount for the stay (final price, after any coupon). */
   amount: number;
+  /** Coupon redeemed on this request, if any. */
+  coupon?: AppliedCoupon;
   /** ISO datetime the request came in. */
   requestedAt: string;
   status: RequestStatus;
@@ -41,6 +45,7 @@ export const DEMO_REQUESTS: BookingRequest[] = [
     nights: 3,
     guests: 1,
     amount: 270000,
+    coupon: { code: 'STAY50K', discountType: 'Fixed', value: 50000, amountSaved: 50000 },
     requestedAt: '2026-06-01T08:10:00',
     status: 'Pending',
     note: 'Late arrival, around 11 PM.',
@@ -71,6 +76,7 @@ export const DEMO_REQUESTS: BookingRequest[] = [
     nights: 2,
     guests: 2,
     amount: 180000,
+    coupon: { code: 'WELCOME10', discountType: 'Percentage', value: 10, amountSaved: 20000 },
     requestedAt: '2026-05-31T19:45:00',
     status: 'Pending',
     note: 'Requesting a twin-bed setup.',
@@ -117,6 +123,7 @@ export const DEMO_REQUESTS: BookingRequest[] = [
     nights: 3,
     guests: 2,
     amount: 270000,
+    coupon: { code: 'SUMMER25', discountType: 'Percentage', value: 25, amountSaved: 90000 },
     requestedAt: '2026-05-30T10:00:00',
     status: 'Pending',
   },

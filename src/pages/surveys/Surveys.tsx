@@ -33,6 +33,7 @@ import type { Survey, SurveyCategory, SurveyStatus } from './survey-data';
 import { DEMO_SURVEYS } from './survey-data';
 import { Portal } from '@/shared/ui/portal';
 import { Skeleton } from '@/shared/ui/skeleton';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 
 function formatMnt(value: number): string {
   return `${value.toLocaleString('en-US')}`;
@@ -218,24 +219,28 @@ export default function Surveys() {
             Icon: ClipboardList,
             value: String(totalActive),
             subtitle: `${surveys.length} ${t('total across platform')}`,
+            tone: 'brand' as const,
           },
           {
             title: 'Total responses',
             Icon: Users,
             value: totalResponses.toLocaleString(),
             subtitle: t('Collected to date'),
+            tone: 'info' as const,
           },
           {
             title: 'Reward paid',
             Icon: Wallet,
             value: formatMnt(totalSpent),
             subtitle: t('Across active campaigns'),
+            tone: 'success' as const,
           },
           {
             title: 'Awaiting review',
             Icon: Clock,
             value: String(surveys.filter((s) => s.status === 'Draft').length),
             subtitle: t('Drafts from companies'),
+            tone: 'warning' as const,
           },
         ].map((card, i) => (
           <motion.div
@@ -247,7 +252,7 @@ export default function Surveys() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

@@ -31,6 +31,8 @@ import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } 
 import { formatAmount, countsAsRevenue, rateLabel, RESERVATION_STATUSES, type Reservation, type ReservationStatus, type RateType } from './reservations-data';
 import { useReservations } from './use-reservations';
 import { InfoTooltip } from '@/shared/ui/info-tooltip';
+import { CouponBadge } from '@/shared/ui/coupon-badge';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { GLOSSARY } from '@/widgets/onboarding/glossary';
 
 type StatusFilter = 'All' | ReservationStatus | 'Overdue';
@@ -221,10 +223,10 @@ export default function Reservations() {
   };
 
   const stats = [
-    { title: 'Total reservations', Icon: CalendarCheck, value: String(counts.total), subtitle: t('All statuses') },
-    { title: 'Overdue', Icon: TriangleAlert, value: String(counts.overdue), subtitle: t('Past checkout, not closed') },
-    { title: 'Upcoming', Icon: BedSingle, value: String(counts.upcoming), subtitle: t('Confirmed arrivals') },
-    { title: 'Revenue', Icon: CreditCard, value: formatAmount(counts.revenue), subtitle: t('Excludes cancellations') },
+    { title: 'Total reservations', Icon: CalendarCheck, value: String(counts.total), subtitle: t('All statuses'), tone: 'brand' as const },
+    { title: 'Overdue', Icon: TriangleAlert, value: String(counts.overdue), subtitle: t('Past checkout, not closed'), tone: 'danger' as const },
+    { title: 'Upcoming', Icon: BedSingle, value: String(counts.upcoming), subtitle: t('Confirmed arrivals'), tone: 'purple' as const },
+    { title: 'Revenue', Icon: CreditCard, value: formatAmount(counts.revenue), subtitle: t('Excludes cancellations'), tone: 'success' as const },
   ];
 
   const colLabel: Record<string, string> = {
@@ -250,7 +252,7 @@ export default function Reservations() {
                 {t(card.title)}
                 {GLOSSARY[card.title] && <InfoTooltip label={GLOSSARY[card.title]} />}
               </span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
@@ -615,7 +617,10 @@ function ReservationRow({ reservation: r, index, selected, onToggle, formatDateT
           ? <span className="text-[var(--text-secondary)]">{t('Day use')}</span>
           : `${r.nights} ${r.nights === 1 ? t('night') : t('nights')}`}
       </td>
-      <td className="px-6 py-4 text-[var(--text-primary)] font-medium tabular-nums">{formatAmount(r.amount)}</td>
+      <td className="px-6 py-4 text-[var(--text-primary)] font-medium tabular-nums">
+        <div>{formatAmount(r.amount)}</div>
+        {r.coupon && <CouponBadge coupon={r.coupon} className="mt-1" />}
+      </td>
       <td className="px-6 py-4">
         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusStyle(ds)}`}>
           {ds === 'Overdue' && <TriangleAlert className="w-3 h-3" />}
@@ -740,7 +745,10 @@ function ReservationCard({ reservation: r, index, selected, onToggle, onOpen, t 
         </div>
         <div>
           <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Amount')}</div>
-          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatAmount(r.amount)}</div>
+          <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5 flex items-center gap-1.5 flex-wrap">
+            {formatAmount(r.amount)}
+            {r.coupon && <CouponBadge coupon={r.coupon} />}
+          </div>
         </div>
       </div>
     </motion.div>

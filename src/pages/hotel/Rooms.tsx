@@ -25,6 +25,7 @@ import { Portal } from '@/shared/ui/portal';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MultiSelect } from '@/shared/ui/multi-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { useHotel } from './use-hotel';
 import { AMENITIES, formatPrice, totalBeds, emptyRoomType, type Room, type RoomType, type RoomStatus } from './hotel-data';
 import { RoomEditor, AmenityIcon } from './room-editors';
@@ -164,10 +165,10 @@ export default function Rooms() {
   };
 
   const stats = [
-    { title: 'Total rooms', Icon: BedDouble, value: String(counts.total), subtitle: `${counts.active} ${t('active')} · ${counts.inactive} ${t('inactive')}` },
-    { title: 'Active rooms', Icon: CheckCircle, value: String(counts.active), subtitle: t('Bookable now') },
-    { title: 'Inactive rooms', Icon: XCircle, value: String(counts.inactive), subtitle: t('Not bookable') },
-    { title: 'Room types', Icon: Layers, value: String(counts.types), subtitle: t('Pricing tiers') },
+    { title: 'Total rooms', Icon: BedDouble, value: String(counts.total), subtitle: `${counts.active} ${t('active')} · ${counts.inactive} ${t('inactive')}`, tone: 'brand' as const },
+    { title: 'Active rooms', Icon: CheckCircle, value: String(counts.active), subtitle: t('Bookable now'), tone: 'success' as const },
+    { title: 'Inactive rooms', Icon: XCircle, value: String(counts.inactive), subtitle: t('Not bookable'), tone: 'danger' as const },
+    { title: 'Room types', Icon: Layers, value: String(counts.types), subtitle: t('Pricing tiers'), tone: 'info' as const },
   ];
 
   const emptyRoom = (): Room => ({ id: '', floor: 1, number: '', typeName: roomTypes[0]?.name ?? '', beds: 1, occupancy: 2, amenities: [], price: roomTypes[0]?.regularPrice ?? 0, status: 'Active' });
@@ -224,7 +225,7 @@ export default function Rooms() {
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors"><card.Icon className="w-4 h-4" /></div>
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}><card.Icon className="w-4 h-4" /></div>
             </div>
             <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
             <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
@@ -459,7 +460,7 @@ function RoomTypeGroup({
               <span className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--brand-primary)] transition-colors">{rt.name}</span>
               <span className="text-[11px] font-normal text-[var(--text-tertiary)] tabular-nums">· {rooms.length} {rooms.length === 1 ? t('room') : t('rooms')}</span>
             </div>
-            <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5 tabular-nums">
+            <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums leading-snug sm:truncate">
               {formatPrice(rt.regularPrice)}
               {acceptsForeigners && (rt.foreignerPrice ?? 0) > 0 && <span className="text-[var(--text-tertiary)]"> · {t('Foreigner')} {formatPrice(rt.foreignerPrice ?? 0)}</span>}
               <span className="text-[var(--text-tertiary)]"> · {totalBeds(rt)} {totalBeds(rt) === 1 ? t('bed') : t('beds')} · {rt.occupancy} {t('guests')}</span>

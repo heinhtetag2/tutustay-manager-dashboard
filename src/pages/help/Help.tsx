@@ -20,6 +20,7 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from '@/shared/ui/drawer';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import {
   HELP_CATEGORIES,
   HELP_ARTICLES,
@@ -34,6 +35,9 @@ import { HELP_ICONS } from './icon-map';
 type DrawerView =
   | { kind: 'category'; slug: string }
   | { kind: 'article'; slug: string; backToCategory?: string };
+
+// Rotate accent hues so each browse-by-topic category chip reads distinctly.
+const CATEGORY_TONES = ['info', 'purple', 'pink', 'amber', 'brand'] as const;
 
 function ArticleBody({ article }: { article: HelpArticleMeta }) {
   return (
@@ -212,7 +216,7 @@ export default function Help() {
                     className="text-left bg-white border border-[var(--border-default)] rounded-md p-5 hover:border-[var(--brand-border)] hover:bg-[var(--surface-muted)] transition-colors group cursor-pointer"
                   >
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+                      <div className={`p-2 rounded-md transition-colors ${STAT_TONE[CATEGORY_TONES[i % CATEGORY_TONES.length]]}`}>
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">

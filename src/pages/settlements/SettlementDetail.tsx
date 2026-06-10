@@ -21,6 +21,7 @@ import {
   settlementStatusClass,
 } from './settlements-data';
 import { useSettlements } from './use-settlements';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 
 export default function SettlementDetail() {
   const { t } = useTranslation();
@@ -47,10 +48,10 @@ export default function SettlementDetail() {
   const period = `${format(new Date(settlement.periodStart), 'MMM d')} – ${format(new Date(settlement.periodEnd), 'MMM d, yyyy')}`;
 
   const stats = [
-    { title: 'Gross revenue', Icon: Coins, value: formatAmount(settlement.grossAmount), subtitle: `${settlement.bookingsCount} ${t('bookings')}` },
-    { title: 'Commission', Icon: Percent, value: `−${formatAmount(commission)}`, subtitle: `${Math.round(settlement.commissionRate * 100)}% ${t('platform fee')}` },
-    { title: 'Adjustments', Icon: Receipt, value: settlement.adjustments > 0 ? `−${formatAmount(settlement.adjustments)}` : '—', subtitle: t('Refunds & cancellations') },
-    { title: 'Net payout', Icon: Banknote, value: formatAmount(net), subtitle: t('Amount transferred') },
+    { title: 'Gross revenue', tone: 'info' as const, Icon: Coins, value: formatAmount(settlement.grossAmount), subtitle: `${settlement.bookingsCount} ${t('bookings')}` },
+    { title: 'Commission', tone: 'amber' as const, Icon: Percent, value: `−${formatAmount(commission)}`, subtitle: `${Math.round(settlement.commissionRate * 100)}% ${t('platform fee')}` },
+    { title: 'Adjustments', tone: 'warning' as const, Icon: Receipt, value: settlement.adjustments > 0 ? `−${formatAmount(settlement.adjustments)}` : '—', subtitle: t('Refunds & cancellations') },
+    { title: 'Net payout', tone: 'success' as const, Icon: Banknote, value: formatAmount(net), subtitle: t('Amount transferred') },
   ];
 
   return (
@@ -94,7 +95,7 @@ export default function SettlementDetail() {
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

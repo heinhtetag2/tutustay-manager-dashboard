@@ -23,6 +23,7 @@ import {
 
 import { Skeleton } from '@/shared/ui/skeleton';
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import type { Company, CompanyPlan, CompanyStatus } from './company-data';
 import { DEMO_COMPANIES } from './company-data';
@@ -211,18 +212,21 @@ export default function Companies() {
             Icon: Building2,
             value: String(counts.All),
             subtitle: `${counts.Approved} ${t('approved')} · ${counts.Suspended} ${t('suspended')}`,
+            tone: 'brand' as const,
           },
           {
             title: 'Awaiting review',
             Icon: Clock,
             value: String(counts.Pending),
             subtitle: t('Pending approval'),
+            tone: 'warning' as const,
           },
           {
             title: 'Active accounts',
             Icon: UserCheck,
             value: String(counts.Approved),
             subtitle: t('With platform access'),
+            tone: 'purple' as const,
           },
           {
             title: 'Total spent',
@@ -231,6 +235,7 @@ export default function Companies() {
               companies.reduce((acc, c) => acc + c.totalSpentMnt, 0),
             ),
             subtitle: t('Lifetime across all plans'),
+            tone: 'success' as const,
           },
         ].map((card, i) => (
           <motion.div
@@ -242,7 +247,7 @@ export default function Companies() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

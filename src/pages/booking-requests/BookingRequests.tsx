@@ -28,6 +28,8 @@ import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
+import { CouponBadge } from '@/shared/ui/coupon-badge';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { formatAmount, type BookingRequest, type RequestStatus, type RateType } from './booking-requests-data';
 import { useBookingRequests } from './use-booking-requests';
 
@@ -121,10 +123,10 @@ export default function BookingRequests() {
     });
 
   const stats = [
-    { title: 'Pending requests', Icon: Clock, value: String(counts.pending), subtitle: t('Awaiting decision') },
-    { title: 'Approved', Icon: CheckCircle2, value: String(counts.approved), subtitle: t('Confirmed bookings') },
-    { title: 'Declined', Icon: XCircle, value: String(counts.declined), subtitle: t('Not accepted') },
-    { title: 'Pending value', Icon: CreditCard, value: formatAmount(counts.pendingValue), subtitle: t('If all approved') },
+    { title: 'Pending requests', Icon: Clock, value: String(counts.pending), subtitle: t('Awaiting decision'), tone: 'warning' as const },
+    { title: 'Approved', Icon: CheckCircle2, value: String(counts.approved), subtitle: t('Confirmed bookings'), tone: 'success' as const },
+    { title: 'Declined', Icon: XCircle, value: String(counts.declined), subtitle: t('Not accepted'), tone: 'danger' as const },
+    { title: 'Pending value', Icon: CreditCard, value: formatAmount(counts.pendingValue), subtitle: t('If all approved'), tone: 'brand' as const },
   ];
 
   return (
@@ -154,7 +156,7 @@ export default function BookingRequests() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
@@ -527,6 +529,7 @@ function RequestCard({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatAmount(r.amount)}</span>
             <RateChip rate={r.rateType} t={t} />
+            {r.coupon && <CouponBadge coupon={r.coupon} />}
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 import { countsAsRevenue, formatAmount, type Reservation, type ReservationStatus } from '@/pages/reservations/reservations-data';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { useReservations } from '@/pages/reservations/use-reservations';
 import { SalesDayDetailSheet, dotColor, statusChipStyle } from './SalesDayDetailSheet';
 
@@ -68,10 +69,10 @@ export default function SalesCalendar() {
   };
 
   const stats = [
-    { title: 'Bookings', Icon: CalendarCheck, value: String(counts.bookings), subtitle: t('This month') },
-    { title: 'Revenue', Icon: CreditCard, value: formatAmount(counts.revenue), subtitle: t('Excludes cancellations') },
-    { title: 'Room-nights', Icon: CloudMoon, value: String(counts.nights), subtitle: t('Sold this month') },
-    { title: 'Arrivals', Icon: CalendarDays, value: String(counts.arrivals), subtitle: t('Confirmed & in-house') },
+    { title: 'Bookings', Icon: CalendarCheck, value: String(counts.bookings), subtitle: t('This month'), tone: 'brand' as const },
+    { title: 'Revenue', Icon: CreditCard, value: formatAmount(counts.revenue), subtitle: t('Excludes cancellations'), tone: 'success' as const },
+    { title: 'Room-nights', Icon: CloudMoon, value: String(counts.nights), subtitle: t('Sold this month'), tone: 'purple' as const },
+    { title: 'Arrivals', Icon: CalendarDays, value: String(counts.arrivals), subtitle: t('Confirmed & in-house'), tone: 'info' as const },
   ];
 
   const dayList = selectedDay ? (byDay.get(format(selectedDay, 'yyyy-MM-dd')) ?? []) : [];
@@ -104,7 +105,7 @@ export default function SalesCalendar() {
           <div key={card.title} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 shadow-none">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)]"><card.Icon className="w-4 h-4" /></div>
+              <div className={`p-2 rounded-md ${STAT_TONE[card.tone]}`}><card.Icon className="w-4 h-4" /></div>
             </div>
             <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>
             <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>

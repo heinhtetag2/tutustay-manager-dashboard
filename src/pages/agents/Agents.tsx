@@ -29,6 +29,7 @@ import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import type { Employee, EmployeeRole, EmployeeStatus } from './agents-data';
 import { EMPLOYEE_ROLES } from './agents-data';
 import { useEmployees } from './use-employees';
@@ -142,10 +143,10 @@ export default function Agents() {
     });
 
   const stats = [
-    { title: 'Total employees', Icon: Users, value: String(counts.total), subtitle: `${counts.active} ${t('active')} · ${counts.inactive} ${t('inactive')}` },
-    { title: 'Active', Icon: UserCheck, value: String(counts.active), subtitle: t('Currently employed') },
-    { title: 'Managers', Icon: UserCog, value: String(counts.managers), subtitle: t('Manager & sub-manager') },
-    { title: 'Inactive', Icon: UserX, value: String(counts.inactive), subtitle: t('Deactivated accounts') },
+    { title: 'Total employees', Icon: Users, value: String(counts.total), subtitle: `${counts.active} ${t('active')} · ${counts.inactive} ${t('inactive')}`, tone: 'brand' as const },
+    { title: 'Active', Icon: UserCheck, value: String(counts.active), subtitle: t('Currently employed'), tone: 'success' as const },
+    { title: 'Managers', Icon: UserCog, value: String(counts.managers), subtitle: t('Manager & sub-manager'), tone: 'purple' as const },
+    { title: 'Inactive', Icon: UserX, value: String(counts.inactive), subtitle: t('Deactivated accounts'), tone: 'danger' as const },
   ];
 
   const colLabel: Record<string, string> = {
@@ -226,7 +227,7 @@ export default function Agents() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

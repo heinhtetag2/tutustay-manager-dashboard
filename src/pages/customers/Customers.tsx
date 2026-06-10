@@ -28,6 +28,7 @@ import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { formatMoney, type Customer } from './customers-data';
 import { useCustomers } from './use-customers';
 
@@ -160,10 +161,10 @@ export default function Customers() {
   };
 
   const stats = [
-    { title: 'Total customers', Icon: Users, value: String(counts.total), subtitle: `${counts.repeat} ${t('repeat guests')}` },
-    { title: 'Total bookings', Icon: CalendarCheck, value: counts.bookings.toLocaleString('en-US'), subtitle: t('Across all customers') },
-    { title: 'Total revenue', Icon: CreditCard, value: formatMoney(counts.revenue), subtitle: t('Lifetime payments') },
-    { title: 'Repeat customers', Icon: Repeat, value: String(counts.repeat), subtitle: t('More than one booking') },
+    { title: 'Total customers', Icon: Users, value: String(counts.total), subtitle: `${counts.repeat} ${t('repeat guests')}`, tone: 'brand' as const },
+    { title: 'Total bookings', Icon: CalendarCheck, value: counts.bookings.toLocaleString('en-US'), subtitle: t('Across all customers'), tone: 'purple' as const },
+    { title: 'Total revenue', Icon: CreditCard, value: formatMoney(counts.revenue), subtitle: t('Lifetime payments'), tone: 'success' as const },
+    { title: 'Repeat customers', Icon: Repeat, value: String(counts.repeat), subtitle: t('More than one booking'), tone: 'pink' as const },
   ];
 
   const colLabel: Record<string, string> = {
@@ -203,7 +204,7 @@ export default function Customers() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

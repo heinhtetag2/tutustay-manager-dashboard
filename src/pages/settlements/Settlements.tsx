@@ -38,6 +38,7 @@ import {
 } from './settlements-data';
 import { useSettlements } from './use-settlements';
 import { InfoTooltip } from '@/shared/ui/info-tooltip';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { GLOSSARY } from '@/widgets/onboarding/glossary';
 
 const NOW = new Date('2026-06-02T10:00:00');
@@ -87,10 +88,10 @@ export default function Settlements() {
   }, [settlements]);
 
   const stats = [
-    { title: 'Paid out', Icon: CheckCircle2, value: formatAmount(counts.paidOut), subtitle: t('Settled to date') },
-    { title: 'Pending payout', Icon: Clock, value: formatAmount(counts.pendingPayout), subtitle: `${counts.pendingCount} ${counts.pendingCount === 1 ? t('settlement') : t('settlements')}` },
-    { title: 'This month gross', Icon: Coins, value: formatAmount(counts.monthGross), subtitle: t('Booking revenue') },
-    { title: 'Platform fees', Icon: Percent, value: formatAmount(counts.commission), subtitle: t('Commission to date') },
+    { title: 'Paid out', tone: 'success' as const, Icon: CheckCircle2, value: formatAmount(counts.paidOut), subtitle: t('Settled to date') },
+    { title: 'Pending payout', tone: 'warning' as const, Icon: Clock, value: formatAmount(counts.pendingPayout), subtitle: `${counts.pendingCount} ${counts.pendingCount === 1 ? t('settlement') : t('settlements')}` },
+    { title: 'This month gross', tone: 'info' as const, Icon: Coins, value: formatAmount(counts.monthGross), subtitle: t('Booking revenue') },
+    { title: 'Platform fees', tone: 'amber' as const, Icon: Percent, value: formatAmount(counts.commission), subtitle: t('Commission to date') },
   ];
 
   const query = search.trim().toLowerCase();
@@ -251,7 +252,7 @@ export default function Settlements() {
                 {t(card.title)}
                 {GLOSSARY[card.title] && <InfoTooltip label={GLOSSARY[card.title]} />}
               </span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

@@ -17,20 +17,23 @@ import {
   Send,
   X,
   Pencil,
+  Trash2,
   Eye,
   EyeOff,
+  RotateCcw,
 } from 'lucide-react';
 
 import { Skeleton } from '@/shared/ui/skeleton';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
-import { averageRating, type Review } from './reviews-data';
+import { averageRating, isHidden, isHidePending, type Review } from './reviews-data';
 import { useReviews } from './use-reviews';
 
 type RatingFilter = 'All' | '5' | '4' | '3' | '2' | '1';
-type StatusFilter = 'All' | 'Replied' | 'Awaiting' | 'Hidden';
+type StatusFilter = 'All' | 'Replied' | 'Awaiting' | 'Pending' | 'Hidden';
 type Sort = 'recent' | 'highest' | 'lowest';
 
 function initialOf(name: string): string {
@@ -53,7 +56,7 @@ export default function Reviews() {
   const reviews = useReviews((s) => s.reviews);
   const setReply = useReviews((s) => s.setReply);
   const removeReply = useReviews((s) => s.removeReply);
-  const setHidden = useReviews((s) => s.setHidden);
+  const setHideStatus = useReviews((s) => s.setHideStatus);
   const { formatDate } = useDateFormat();
   const [params] = useSearchParams();
 
@@ -75,6 +78,7 @@ export default function Reviews() {
 
   const total = reviews.length;
   const replied = reviews.filter((r) => r.reply).length;
+  const pendingHides = reviews.filter(isHidePending).length;
   const avg = averageRating(reviews);
 
   const hasActiveFilters = search !== '' || ratingFilter !== 'All' || statusFilter !== 'All' || !!dateRange?.from;
@@ -101,6 +105,7 @@ export default function Reviews() {
     { value: 'All', label: t('All reviews') },
     { value: 'Replied', label: t('Replied') },
     { value: 'Awaiting', label: t('Awaiting reply') },
+    { value: 'Pending', label: t('Hide pending') },
     { value: 'Hidden', label: t('Hidden') },
   ];
   const sortOptions = [
@@ -123,7 +128,8 @@ export default function Reviews() {
       if (ratingFilter !== 'All' && r.rating !== Number(ratingFilter)) return false;
       if (statusFilter === 'Replied' && !r.reply) return false;
       if (statusFilter === 'Awaiting' && r.reply) return false;
-      if (statusFilter === 'Hidden' && !r.hidden) return false;
+      if (statusFilter === 'Hidden' && !isHidden(r)) return false;
+      if (statusFilter === 'Pending' && !isHidePending(r)) return false;
       if (dateRange?.from) {
         const posted = new Date(r.createdAt);
         if (isBefore(posted, dateRange.from)) return false;
@@ -139,10 +145,10 @@ export default function Reviews() {
     });
 
   const stats = [
-    { title: 'Average rating', Icon: Star, value: avg.toFixed(1), subtitle: `${t('from')} ${total} ${t('reviews')}` },
-    { title: 'Total reviews', Icon: MessageSquare, value: String(total), subtitle: t('All time') },
-    { title: 'Awaiting reply', Icon: Clock, value: String(total - replied), subtitle: t('Need a response') },
-    { title: 'Response rate', Icon: CheckCircle2, value: total ? `${Math.round((replied / total) * 100)}%` : '—', subtitle: `${replied} ${t('replied')}` },
+    { title: 'Average rating', Icon: Star, value: avg.toFixed(1), subtitle: `${t('from')} ${total} ${t('reviews')}`, tone: 'amber' as const },
+    { title: 'Total reviews', Icon: MessageSquare, value: String(total), subtitle: t('All time'), tone: 'brand' as const },
+    { title: 'Awaiting reply', Icon: Clock, value: String(total - replied), subtitle: t('Need a response'), tone: 'warning' as const },
+    { title: 'Response rate', Icon: CheckCircle2, value: total ? `${Math.round((replied / total) * 100)}%` : '—', subtitle: `${replied} ${t('replied')}`, tone: 'success' as const },
   ];
 
   return (
@@ -172,7 +178,7 @@ export default function Reviews() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
@@ -230,6 +236,7 @@ export default function Reviews() {
               { value: 'All', label: t('All reviews') },
               { value: 'Replied', label: t('Replied') },
               { value: 'Awaiting', label: t('Awaiting reply') },
+              { value: 'Pending', label: t('Hide pending') },
               { value: 'Hidden', label: t('Hidden') },
             ]}
           />
@@ -401,6 +408,22 @@ export default function Reviews() {
         </FilterField>
       </MobileFilterSheet>
 
+      {/* Pending hide-requests notice — surfaces requests awaiting super-admin approval. */}
+      {!loading && pendingHides > 0 && statusFilter !== 'Pending' && (
+        <button
+          type="button"
+          onClick={() => setStatusFilter('Pending')}
+          className="w-full flex items-center gap-2.5 px-4 py-2.5 mb-4 text-left bg-[var(--color-data-orange-10)] border border-[var(--color-data-orange-20)] rounded-md hover:brightness-[0.98] transition-all cursor-pointer"
+        >
+          <EyeOff className="w-4 h-4 text-[var(--color-data-orange-50)] shrink-0" />
+          <span className="text-sm text-[var(--text-primary)] flex-1 min-w-0">
+            <span className="font-medium tabular-nums">{pendingHides}</span>{' '}
+            {pendingHides === 1 ? t('hide request is awaiting super-admin approval.') : t('hide requests are awaiting super-admin approval.')}
+          </span>
+          <span className="text-xs font-medium text-[var(--color-data-orange-50)] shrink-0">{t('Review')}</span>
+        </button>
+      )}
+
       {/* Review list */}
       {loading ? (
         <div className="space-y-4">
@@ -426,7 +449,8 @@ export default function Reviews() {
               formatDate={formatDate}
               onReply={(text) => setReply(r.id, text, new Date().toISOString())}
               onRemoveReply={() => removeReply(r.id)}
-              onToggleHidden={() => setHidden(r.id, !r.hidden)}
+              onRequestHide={(reason) => setHideStatus(r.id, 'pending', new Date().toISOString(), reason)}
+              onClearHide={() => setHideStatus(r.id, 'none')}
               onOpenCustomer={r.customerId ? () => navigate(`/customers/${r.customerId}`) : undefined}
               t={t}
             />
@@ -475,7 +499,8 @@ function ReviewCard({
   formatDate,
   onReply,
   onRemoveReply,
-  onToggleHidden,
+  onRequestHide,
+  onClearHide,
   onOpenCustomer,
   t,
 }: {
@@ -484,12 +509,24 @@ function ReviewCard({
   formatDate: (v: string) => string;
   onReply: (text: string) => void;
   onRemoveReply: () => void;
-  onToggleHidden: () => void;
+  onRequestHide: (reason: string) => void;
+  onClearHide: () => void;
   onOpenCustomer?: () => void;
   t: (k: string) => string;
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(r.reply ?? '');
+  const [hideOpen, setHideOpen] = useState(false);
+  const [hideDraft, setHideDraft] = useState('');
+  const hidden = isHidden(r);
+  const hidePending = isHidePending(r);
+
+  const submitHide = () => {
+    if (!hideDraft.trim()) return;
+    onRequestHide(hideDraft.trim());
+    setHideOpen(false);
+    setHideDraft('');
+  };
 
   const submit = () => {
     if (!draft.trim()) return;
@@ -502,7 +539,7 @@ function ReviewCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index * 0.03 }}
-      className={`bg-white border rounded-md p-5 shadow-none transition-colors ${r.hidden ? 'border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)]/40' : 'border-[var(--border-default)]'}`}
+      className={`bg-white border rounded-md p-5 shadow-none transition-colors ${hidden ? 'border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)]/40' : hidePending ? 'border-[var(--color-data-orange-20)]' : 'border-[var(--border-default)]'}`}
     >
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
         <button
@@ -525,10 +562,15 @@ function ReviewCard({
           </div>
         </button>
         <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-          {r.hidden ? (
+          {hidden ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-[var(--surface-subtle)] text-[var(--text-secondary)] border border-[var(--border-default)]">
               <EyeOff className="w-3 h-3" />
               {t('Hidden')}
+            </span>
+          ) : hidePending ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-[var(--color-data-orange-10)] text-[var(--color-data-orange-50)]">
+              <EyeOff className="w-3 h-3" />
+              {t('Hide pending')}
             </span>
           ) : r.reply ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full bg-[var(--success-tint)] text-[var(--success)]">
@@ -543,18 +585,69 @@ function ReviewCard({
           )}
           <span className="text-xs text-[var(--text-secondary)] tabular-nums whitespace-nowrap">{formatDate(r.createdAt)}</span>
           <button
-            onClick={onToggleHidden}
+            onClick={() => {
+              if (hidden || hidePending) onClearHide();
+              else { setHideDraft(''); setHideOpen((v) => !v); }
+            }}
             className="p-1.5 -mr-1 ml-auto sm:ml-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer"
-            title={r.hidden ? t('Show review') : t('Hide review')}
-            aria-label={r.hidden ? t('Show review') : t('Hide review')}
+            title={hidden ? t('Show review') : hidePending ? t('Cancel hide request') : t('Request to hide review')}
+            aria-label={hidden ? t('Show review') : hidePending ? t('Cancel hide request') : t('Request to hide review')}
           >
-            {r.hidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            {hidden ? <Eye className="w-4 h-4" /> : hidePending ? <RotateCcw className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
           </button>
         </div>
       </div>
 
-      <p className={`text-sm leading-relaxed mt-3 ${r.hidden ? 'text-[var(--text-secondary)] italic' : 'text-[var(--text-primary)]'}`}>{r.comment}</p>
-      {r.hidden && <p className="text-xs text-[var(--text-muted)] mt-2">{t('This review is hidden from public listings.')}</p>}
+      <p className={`text-sm leading-relaxed mt-3 ${hidden ? 'text-[var(--text-secondary)] italic' : 'text-[var(--text-primary)]'}`}>{r.comment}</p>
+      {hidden && <p className="text-xs text-[var(--text-muted)] mt-2">{t('This review is hidden from public listings.')}</p>}
+      {hidePending && (
+        <p className="text-xs text-[var(--color-data-orange-50)] mt-2 flex items-start gap-1.5">
+          <Clock className="w-3.5 h-3.5 shrink-0 mt-px" />
+          <span>{t('Hide requested — awaiting super-admin approval. Still visible to guests until then.')}</span>
+        </p>
+      )}
+
+      {/* The manager's note to the super-admin explaining the hide request. */}
+      {(hidePending || hidden) && r.hideReason && (
+        <div className={`mt-3 pl-3 border-l-2 ${hidePending ? 'border-[var(--color-data-orange-20)]' : 'border-[var(--border-strong)]'}`}>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <EyeOff className={`w-3 h-3 ${hidePending ? 'text-[var(--color-data-orange-50)]' : 'text-[var(--text-tertiary)]'}`} />
+            <span className={`text-xs font-medium ${hidePending ? 'text-[var(--color-data-orange-50)]' : 'text-[var(--text-tertiary)]'}`}>{t('Note to super-admin')}</span>
+          </div>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{r.hideReason}</p>
+          {r.hideRequestedAt && <span className="text-xs text-[var(--text-muted)] mt-1 block tabular-nums">{t('Requested')} {formatDate(r.hideRequestedAt)}</span>}
+        </div>
+      )}
+
+      {/* Hide-request composer — manager explains why before sending to the super-admin. */}
+      {hideOpen && !hidden && !hidePending && (
+        <div className="mt-4 p-3 bg-[var(--color-data-orange-10)]/60 border border-[var(--color-data-orange-20)] rounded-md">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-primary)] mb-2">
+            <EyeOff className="w-3.5 h-3.5 text-[var(--color-data-orange-50)]" />
+            {t('Request to hide this review')}
+          </label>
+          <textarea
+            value={hideDraft}
+            onChange={(e) => setHideDraft(e.target.value)}
+            rows={2}
+            autoFocus
+            placeholder={t('Tell the super-admin why this review should be hidden…')}
+            className="w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm resize-none focus:outline-none focus:border-[var(--color-data-orange-50)] focus:ring-1 focus:ring-[var(--color-data-orange-50)] placeholder:text-[var(--text-secondary)]"
+          />
+          <div className="flex items-center justify-between gap-2 mt-2">
+            <span className="text-[11px] text-[var(--text-tertiary)]">{t('The review stays public until the super-admin approves.')}</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <button onClick={() => { setHideOpen(false); setHideDraft(''); }} className="px-3 py-1.5 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
+                {t('Cancel')}
+              </button>
+              <button onClick={submitHide} disabled={!hideDraft.trim()} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-[var(--color-data-orange-50)] rounded-md hover:brightness-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                <Send className="w-3.5 h-3.5" />
+                {t('Send request')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Existing reply */}
       {r.reply && !open && (
@@ -562,11 +655,14 @@ function ReviewCard({
           <div className="flex items-center justify-between gap-3 mb-1">
             <span className="text-xs font-medium text-[var(--brand-primary)]">{t('Manager reply')}</span>
             <div className="flex items-center gap-2">
-              <button onClick={() => { setDraft(r.reply ?? ''); setOpen(true); }} className="inline-flex items-center gap-1 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer">
-                <Pencil className="w-3 h-3" />
+              <button onClick={() => { setDraft(r.reply ?? ''); setOpen(true); }} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer">
+                <Pencil className="w-3.5 h-3.5" />
                 {t('Edit')}
               </button>
-              <button onClick={onRemoveReply} className="text-xs font-medium text-[var(--danger)] hover:underline cursor-pointer">{t('Remove')}</button>
+              <button onClick={onRemoveReply} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer">
+                <Trash2 className="w-3.5 h-3.5" />
+                {t('Remove')}
+              </button>
             </div>
           </div>
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{r.reply}</p>

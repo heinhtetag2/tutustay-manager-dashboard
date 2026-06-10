@@ -26,6 +26,7 @@ import {
 import { Skeleton } from '@/shared/ui/skeleton';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import type { Payout, PayoutGateway, PayoutStatus } from './payout-data';
 import { DEMO_PAYOUTS } from './payout-data';
 
@@ -252,24 +253,28 @@ export default function Payouts() {
         {[
           {
             title: 'Pending requests',
+            tone: 'warning' as const,
             Icon: Clock,
             value: String(counts.pending),
             subtitle: formatMnt(counts.pendingAmount) + ' ' + t('awaiting release'),
           },
           {
             title: 'Pending amount',
+            tone: 'amber' as const,
             Icon: Wallet,
             value: formatMnt(counts.pendingAmount),
             subtitle: `${counts.pending} ${t('requests')}`,
           },
           {
             title: 'Released today',
+            tone: 'success' as const,
             Icon: CheckCircle2,
             value: String(counts.completedToday),
             subtitle: formatMnt(counts.completedTodayAmount) + ' ' + t('paid out'),
           },
           {
             title: "Today's volume",
+            tone: 'purple' as const,
             Icon: TrendingUp,
             value: formatMnt(counts.completedTodayAmount),
             subtitle: t('Across all gateways'),
@@ -284,7 +289,7 @@ export default function Payouts() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

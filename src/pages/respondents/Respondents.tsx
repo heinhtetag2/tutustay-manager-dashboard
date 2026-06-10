@@ -24,6 +24,7 @@ import {
 import { Skeleton } from '@/shared/ui/skeleton';
 import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import type { Respondent, RespondentStatus, TrustLevel } from './respondent-data';
 import { DEMO_RESPONDENTS } from './respondent-data';
 
@@ -231,24 +232,28 @@ export default function Respondents() {
       Icon: Users,
       value: String(counts.total),
       subtitle: `${counts.active} ${t('active')} · ${counts.warned} ${t('warned')}`,
+      tone: 'brand' as const,
     },
     {
       title: 'Active accounts',
       Icon: UserCheck,
       value: String(counts.active),
       subtitle: t('Eligible for surveys'),
+      tone: 'purple' as const,
     },
     {
       title: 'Avg. quality score',
       Icon: TrendingUp,
       value: `${counts.avgQuality}%`,
       subtitle: t('Across all respondents'),
+      tone: 'pink' as const,
     },
     {
       title: 'Total earnings',
       Icon: Wallet,
       value: formatMnt(counts.totalEarned),
       subtitle: t('Lifetime payout volume'),
+      tone: 'success' as const,
     },
   ];
 
@@ -287,7 +292,7 @@ export default function Respondents() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

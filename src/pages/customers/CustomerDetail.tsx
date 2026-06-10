@@ -24,6 +24,7 @@ import {
   XCircle,
 } from 'lucide-react';
 
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { formatMoney, maskResidentId, type CustomerStatus } from './customers-data';
 import { useCustomers } from './use-customers';
 import { useReviews } from '@/pages/reviews/use-reviews';
@@ -79,10 +80,10 @@ export default function CustomerDetail() {
   const noteDirty = noteDraft !== customer.notes;
 
   const stats = [
-    { title: 'Total bookings', Icon: CalendarCheck, value: String(customer.totalBookings), subtitle: t('Lifetime') },
-    { title: 'Total payment', Icon: CreditCard, value: formatMoney(customer.totalPayment), subtitle: t('Lifetime spend') },
-    { title: 'Last booking', Icon: Clock, value: last ? format(last, 'MMM yyyy') : '—', subtitle: last ? formatDistanceToNow(last, { addSuffix: true }) : t('No bookings yet') },
-    { title: 'Member since', Icon: CalendarDays, value: joined ? format(joined, 'MMM yyyy') : '—', subtitle: joined ? formatDistanceToNow(joined, { addSuffix: true }) : t('Not set') },
+    { title: 'Total bookings', Icon: CalendarCheck, value: String(customer.totalBookings), subtitle: t('Lifetime'), tone: 'brand' as const },
+    { title: 'Total payment', Icon: CreditCard, value: formatMoney(customer.totalPayment), subtitle: t('Lifetime spend'), tone: 'success' as const },
+    { title: 'Last booking', Icon: Clock, value: last ? format(last, 'MMM yyyy') : '—', subtitle: last ? formatDistanceToNow(last, { addSuffix: true }) : t('No bookings yet'), tone: 'info' as const },
+    { title: 'Member since', Icon: CalendarDays, value: joined ? format(joined, 'MMM yyyy') : '—', subtitle: joined ? formatDistanceToNow(joined, { addSuffix: true }) : t('Not set'), tone: 'purple' as const },
   ];
 
   // Recent booking history derived from the customer's aggregate data.
@@ -167,7 +168,7 @@ export default function CustomerDetail() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

@@ -22,6 +22,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { Portal } from '@/shared/ui/portal';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { formatAmount } from '@/pages/reservations/reservations-data';
 import {
   couponStatus,
@@ -68,24 +69,28 @@ export default function CouponDetail() {
       Icon: Percent,
       value: coupon.discountType === 'Percentage' ? `${coupon.value}%` : formatAmount(coupon.value),
       subtitle: coupon.discountType === 'Percentage' ? t('Percentage off') : t('Fixed amount off'),
+      tone: 'info' as const,
     },
     {
       title: 'Redemptions',
       Icon: Coins,
       value: String(coupon.usedCount),
       subtitle: coupon.usageLimit > 0 ? `${t('of')} ${coupon.usageLimit} ${t('limit')}` : t('Unlimited'),
+      tone: 'purple' as const,
     },
     {
       title: 'Minimum spend',
       Icon: CreditCard,
       value: coupon.minSpend > 0 ? formatAmount(coupon.minSpend) : '—',
       subtitle: coupon.minSpend > 0 ? t('To qualify') : t('No minimum'),
+      tone: 'success' as const,
     },
     {
       title: 'Expires in',
       Icon: CalendarIcon,
       value: status === 'Expired' ? t('Ended') : `${Math.max(0, daysLeft)} ${t('days')}`,
       subtitle: format(new Date(coupon.expiresAt), 'MMM d, yyyy'),
+      tone: 'warning' as const,
     },
   ];
 
@@ -169,7 +174,7 @@ export default function CouponDetail() {
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

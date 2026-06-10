@@ -48,6 +48,7 @@ import {
 } from '@/pages/companies/company-data';
 import { DEMO_SURVEYS, type Survey, type SurveyStatus } from '@/pages/surveys/survey-data';
 import { Portal } from '@/shared/ui/portal';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 
 function formatMnt(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
@@ -197,24 +198,28 @@ export default function CompanyDetail() {
       Icon: ClipboardList,
       value: String(company.surveys),
       subtitle: `${companySurveys.filter((s) => s.status === 'Active').length} ${t('currently active')}`,
+      tone: 'brand' as const,
     },
     {
       title: 'Total spent',
       Icon: Wallet,
       value: formatMnt(company.totalSpentMnt),
       subtitle: t('Lifetime on the platform'),
+      tone: 'success' as const,
     },
     {
       title: 'Total responses',
       Icon: Users,
       value: company.responses.toLocaleString(),
       subtitle: t('Collected across surveys'),
+      tone: 'info' as const,
     },
     {
       title: 'Member since',
       Icon: CalendarDays,
       value: format(new Date(company.joined), 'MMM yyyy'),
       subtitle: formatDistanceToNow(new Date(company.joined), { addSuffix: true }),
+      tone: 'purple' as const,
     },
   ];
 
@@ -351,7 +356,7 @@ export default function CompanyDetail() {
               >
                 <div className="flex justify-between items-start mb-1.5 sm:mb-4">
                   <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-                  <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+                  <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                     <card.Icon className="w-4 h-4" />
                   </div>
                 </div>

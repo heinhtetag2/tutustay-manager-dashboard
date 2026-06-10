@@ -25,11 +25,14 @@ import {
   TriangleAlert,
   CheckCircle2,
   Tag,
+  TicketPercent,
 } from 'lucide-react';
 
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { useCustomers } from '@/pages/customers/use-customers';
 import { formatMoney } from '@/pages/customers/customers-data';
+import { CouponBadge, discountLabel, originalAmount } from '@/shared/ui/coupon-badge';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { formatAmount, rateLabel, type ReservationStatus } from './reservations-data';
 import { useReservations } from './use-reservations';
 
@@ -89,11 +92,11 @@ export default function ReservationDetail() {
   const dayUse = r.rateType === 'Session';
   const stats = [
     dayUse
-      ? { title: 'Booking type', Icon: CloudMoon, value: t('Day use'), subtitle: `${formatDateTime(r.checkIn)} → ${formatDateTime(r.checkOut)}` }
-      : { title: 'Nights', Icon: CloudMoon, value: String(r.nights), subtitle: `${formatDateTime(r.checkIn)} → ${formatDateTime(r.checkOut)}` },
-    { title: 'Guests', Icon: Users, value: String(r.guests), subtitle: t('In this reservation') },
-    { title: 'Amount', Icon: CreditCard, value: formatAmount(r.amount), subtitle: t('Total for the stay') },
-    { title: 'Booked on', Icon: Clock, value: formatDate(r.createdAt), subtitle: r.code },
+      ? { title: 'Booking type', Icon: CloudMoon, value: t('Day use'), subtitle: `${formatDateTime(r.checkIn)} → ${formatDateTime(r.checkOut)}`, tone: 'purple' as const }
+      : { title: 'Nights', Icon: CloudMoon, value: String(r.nights), subtitle: `${formatDateTime(r.checkIn)} → ${formatDateTime(r.checkOut)}`, tone: 'purple' as const },
+    { title: 'Guests', Icon: Users, value: String(r.guests), subtitle: t('In this reservation'), tone: 'pink' as const },
+    { title: 'Amount', Icon: CreditCard, value: formatAmount(r.amount), subtitle: r.coupon ? `${t('Saved')} ${formatAmount(r.coupon.amountSaved)} · ${r.coupon.code}` : t('Total for the stay'), tone: 'success' as const },
+    { title: 'Booked on', Icon: Clock, value: formatDate(r.createdAt), subtitle: r.code, tone: 'brand' as const },
   ];
 
   return (
@@ -168,7 +171,7 @@ export default function ReservationDetail() {
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>
@@ -198,7 +201,20 @@ export default function ReservationDetail() {
               <InfoRow Icon={CalendarRange} label={t('Check-out')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(r.checkOut)}</span></InfoRow>
               <InfoRow Icon={CloudMoon} label={t('Duration')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{dayUse ? t('Day use') : `${r.nights} ${r.nights === 1 ? t('night') : t('nights')}`}</span></InfoRow>
               <InfoRow Icon={Users} label={t('Guests')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{r.guests}</span></InfoRow>
-              <InfoRow Icon={CreditCard} label={t('Amount')}><span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatAmount(r.amount)}</span></InfoRow>
+              <InfoRow Icon={CreditCard} label={t('Amount')}>
+                <span className="flex items-center gap-2 flex-wrap">
+                  {r.coupon && <span className="text-sm text-[var(--text-tertiary)] line-through tabular-nums">{formatAmount(originalAmount(r.amount, r.coupon))}</span>}
+                  <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatAmount(r.amount)}</span>
+                </span>
+              </InfoRow>
+              {r.coupon && (
+                <InfoRow Icon={TicketPercent} label={t('Coupon')}>
+                  <span className="flex items-center gap-2 flex-wrap">
+                    <CouponBadge coupon={r.coupon} />
+                    <span className="text-sm text-[var(--text-secondary)] tabular-nums">{discountLabel(r.coupon)} · −{formatAmount(r.coupon.amountSaved)}</span>
+                  </span>
+                </InfoRow>
+              )}
               <InfoRow Icon={Clock} label={t('Booked on')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(r.createdAt)}</span></InfoRow>
             </div>
           </section>

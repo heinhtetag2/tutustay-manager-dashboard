@@ -25,6 +25,7 @@ import {
   TicketPercent,
   Landmark,
   X,
+  ChevronUp,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/cn';
 import { Portal } from '@/shared/ui/portal';
@@ -67,7 +68,7 @@ function useNavTooltip(label: string, enabled: boolean) {
 /** User profile chip + dropdown. The menu is rendered in a Portal (fixed
  *  position) so it isn't clipped by the sidebar's overflow-hidden; a short
  *  close delay lets the pointer travel from the chip into the menu. */
-function ProfileMenu({ collapsed }: { collapsed: boolean }) {
+function ProfileMenu({ collapsed, isDesktop }: { collapsed: boolean; isDesktop: boolean }) {
   const navigate = useNavigate();
   const propertyName = useHotel((s) => s.property.name);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -94,6 +95,78 @@ function ProfileMenu({ collapsed }: { collapsed: boolean }) {
     timer.current = setTimeout(() => setOpen(false), 140);
   };
 
+  // Mobile: dismiss the inline menu on an outside tap (no hover to rely on).
+  React.useEffect(() => {
+    if (isDesktop || !open) return;
+    const onDown = (e: PointerEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [isDesktop, open]);
+
+  // Shared menu body (account header + actions) for both layouts.
+  const menuBody = (
+    <>
+      <div className="px-2.5 py-2 mb-1">
+        <span className="block text-sm font-medium text-[var(--text-primary)] truncate">Hein Htet</span>
+        <span className="block text-xs text-[var(--text-secondary)] truncate">heincise@gmail.com</span>
+      </div>
+      <div className="h-px bg-[var(--border-default)] mx-1 mb-1" />
+      <button onClick={() => go('/settings')} className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
+        <Settings className="w-4 h-4 text-[var(--text-secondary)]" />
+        Account Settings
+      </button>
+      <button onClick={() => go('/help')} className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
+        <HelpCircle className="w-4 h-4 text-[var(--text-secondary)]" />
+        Support
+      </button>
+      <div className="h-px bg-[var(--border-default)] mx-1 my-1" />
+      <button onClick={() => go('/login')} className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
+        <LogOut className="w-4 h-4" />
+        Log out
+      </button>
+    </>
+  );
+
+  // --- Mobile: tap to toggle, menu expands upward inline within the sidebar. ---
+  if (!isDesktop) {
+    return (
+      <div ref={ref} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-haspopup="menu"
+          className="mt-4 flex items-center gap-3 px-2 py-2 hover:bg-[var(--surface-subtle)] rounded-md cursor-pointer transition-colors w-full"
+        >
+          <div className="w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center text-xs font-medium shrink-0">H</div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-sm font-medium text-[var(--text-primary)] truncate text-left">Hein Htet</span>
+            <span className="text-xs text-[var(--text-secondary)] truncate text-left">Manager · {propertyName}</span>
+          </div>
+          <ChevronUp className={cn("w-4 h-4 text-[var(--text-secondary)] shrink-0 transition-transform", !open && "rotate-180")} />
+        </button>
+
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              role="menu"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute bottom-full left-0 right-0 mb-2 z-50 bg-white border border-[var(--border-default)] rounded-md p-1.5 flex flex-col gap-0.5 shadow-[0_8px_28px_rgba(44,38,39,0.16)]"
+            >
+              {menuBody}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  // --- Desktop: hover to open, fixed portal popover beside the chip. ---
   return (
     <div ref={ref} onMouseEnter={show} onMouseLeave={hide}>
       <div className={cn(
@@ -117,24 +190,7 @@ function ProfileMenu({ collapsed }: { collapsed: boolean }) {
             style={{ position: 'fixed', left: pos.left, bottom: pos.bottom }}
             className="z-[100] w-56 bg-white border border-[var(--border-default)] rounded-md p-1.5 flex flex-col gap-0.5 shadow-[0_8px_28px_rgba(44,38,39,0.16)]"
           >
-            <div className="px-2.5 py-2 mb-1">
-              <span className="block text-sm font-medium text-[var(--text-primary)] truncate">Hein Htet</span>
-              <span className="block text-xs text-[var(--text-secondary)] truncate">heincise@gmail.com</span>
-            </div>
-            <div className="h-px bg-[var(--border-default)] mx-1 mb-1" />
-            <button onClick={() => go('/settings')} className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
-              <Settings className="w-4 h-4 text-[var(--text-secondary)]" />
-              Account Settings
-            </button>
-            <button onClick={() => go('/help')} className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
-              <HelpCircle className="w-4 h-4 text-[var(--text-secondary)]" />
-              Support
-            </button>
-            <div className="h-px bg-[var(--border-default)] mx-1 my-1" />
-            <button onClick={() => go('/login')} className="w-full text-left px-2.5 py-1.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] rounded-sm transition-colors flex items-center gap-2.5 cursor-pointer">
-              <LogOut className="w-4 h-4" />
-              Log out
-            </button>
+            {menuBody}
           </div>
         </Portal>
       )}
@@ -432,7 +488,7 @@ export function Sidebar({
         />
 
         {/* User Profile */}
-        <ProfileMenu collapsed={effectiveCollapsed} />
+        <ProfileMenu collapsed={effectiveCollapsed} isDesktop={isDesktop} />
       </div>
     </motion.aside>
 

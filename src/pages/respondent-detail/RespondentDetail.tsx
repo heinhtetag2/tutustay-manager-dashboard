@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Portal } from '@/shared/ui/portal';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import {
   ArrowLeft,
   UserCircle2,
@@ -205,24 +206,28 @@ export default function RespondentDetail() {
       Icon: ClipboardList,
       value: String(respondent.surveys),
       subtitle: `${respondent.rejectedResponses} ${t('rejected')}`,
+      tone: 'brand' as const,
     },
     {
       title: 'Quality score',
       Icon: TrendingUp,
       value: `${respondent.qualityScore}%`,
       subtitle: t('Average across surveys'),
+      tone: 'pink' as const,
     },
     {
       title: 'Total earned',
       Icon: Wallet,
       value: formatMnt(respondent.earnedMnt),
       subtitle: t('Lifetime on the platform'),
+      tone: 'success' as const,
     },
     {
       title: 'Member since',
       Icon: CalendarDays,
       value: format(new Date(respondent.joined), 'MMM yyyy'),
       subtitle: formatDistanceToNow(new Date(respondent.joined), { addSuffix: true }),
+      tone: 'purple' as const,
     },
   ];
 
@@ -346,7 +351,7 @@ export default function RespondentDetail() {
               >
                 <div className="flex justify-between items-start mb-1.5 sm:mb-4">
                   <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-                  <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+                  <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                     <card.Icon className="w-4 h-4" />
                   </div>
                 </div>

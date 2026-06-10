@@ -29,6 +29,7 @@ import {
 import { DEMO_WALLET, type WalletTx } from './wallet-data';
 import { useCurrency } from '@/shared/hooks/useCurrency';
 import { CURRENCIES, formatMoney, readStoredCurrency } from '@/shared/lib/currency';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 
 function formatMnt(value: number): string {
   return formatMoney(value, readStoredCurrency());
@@ -98,18 +99,21 @@ export default function Wallet() {
   const stats = [
     {
       label: t('Pending'),
+      tone: 'warning' as const,
       value: formatMntCompact(w.pendingMnt),
       hint: `${t('Held 24h')}`,
       Icon: Clock,
     },
     {
       label: t('This month'),
+      tone: 'success' as const,
       value: formatMntCompact(w.thisMonthMnt),
       hint: t('Earned in April'),
       Icon: ArrowUpRight,
     },
     {
       label: t('Lifetime'),
+      tone: 'purple' as const,
       value: formatMntCompact(w.lifetimeMnt),
       hint: t('All-time earnings'),
       Icon: Sparkles,
@@ -214,7 +218,7 @@ export default function Wallet() {
           >
             <div className="flex justify-between items-start mb-4">
               <span className="text-sm font-medium text-[var(--text-secondary)]">{s.label}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[s.tone]}`}>
                 <s.Icon className="w-4 h-4" />
               </div>
             </div>

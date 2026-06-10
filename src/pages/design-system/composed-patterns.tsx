@@ -16,6 +16,7 @@ import { MonthRangePicker } from '@/shared/ui/month-range-picker';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { Portal } from '@/shared/ui/portal';
 import { InfoTooltip } from '@/shared/ui/info-tooltip';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { Section, ComponentEntry, DemoLabel } from './_doc';
 
 /** Fixed "today" for the date-filter demos, so presets land on real-looking ranges. */
@@ -142,10 +143,10 @@ function LayoutSection() {
 
 function CardsSection() {
   const kpis = [
-    { title: 'Revenue this month', value: '9,745,000', subtitle: 'Confirmed stays in June', delta: 2336.3, Icon: CreditCard },
-    { title: 'Arrivals today', value: '1', subtitle: 'Guests checking in', delta: null, Icon: LogIn },
-    { title: 'Pending requests', value: '25', subtitle: 'Awaiting your decision', delta: null, Icon: ClipboardList },
-    { title: 'Occupancy', value: '25%', subtitle: '1/4 rooms tonight', delta: -4, Icon: KeyRound },
+    { title: 'Revenue this month', value: '9,745,000', subtitle: 'Confirmed stays in June', delta: 2336.3, Icon: CreditCard, tone: 'success' as const },
+    { title: 'Arrivals today', value: '1', subtitle: 'Guests checking in', delta: null, Icon: LogIn, tone: 'info' as const },
+    { title: 'Pending requests', value: '25', subtitle: 'Awaiting your decision', delta: null, Icon: ClipboardList, tone: 'warning' as const },
+    { title: 'Occupancy', value: '25%', subtitle: '1/4 rooms tonight', delta: -4, Icon: KeyRound, tone: 'purple' as const },
   ];
   const metrics = [
     { title: 'Occupancy', value: '25%', subtitle: '1/4 rooms tonight', glossary: 'The share of your bookable rooms that are filled tonight.' },
@@ -162,7 +163,7 @@ function CardsSection() {
             <div key={c.title} className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
               <div className="flex justify-between items-start mb-4">
                 <span className="text-sm font-medium text-[var(--text-secondary)]">{c.title}</span>
-                <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+                <div className={`p-2 rounded-md transition-colors ${STAT_TONE[c.tone]}`}>
                   <c.Icon className="w-4 h-4" />
                 </div>
               </div>

@@ -33,6 +33,7 @@ import {
   subMonths,
 } from 'date-fns';
 import { BrandSelect } from '@/shared/ui/brand-select';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import {
   AreaChart,
   Area,
@@ -225,6 +226,7 @@ export default function Dashboard() {
       delta: revenueMoM,
       deltaLabel: t('vs last month'),
       href: '/reservations',
+      tone: 'success' as const,
     },
     {
       title: 'Arrivals today',
@@ -235,6 +237,7 @@ export default function Dashboard() {
       deltaLabel: t('vs yesterday'),
       deltaUnit: 'count' as const,
       href: '/reservations',
+      tone: 'info' as const,
     },
     {
       title: 'Departures today',
@@ -245,6 +248,7 @@ export default function Dashboard() {
       deltaLabel: t('vs yesterday'),
       deltaUnit: 'count' as const,
       href: '/reservations',
+      tone: 'purple' as const,
     },
     {
       title: 'Pending requests',
@@ -254,6 +258,7 @@ export default function Dashboard() {
       delta: null,
       deltaLabel: '',
       href: '/booking-requests',
+      tone: 'warning' as const,
     },
   ];
 
@@ -361,7 +366,7 @@ export default function Dashboard() {
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors">
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
             </div>

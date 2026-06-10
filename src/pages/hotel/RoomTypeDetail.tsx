@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ChevronRight, Pencil, Trash2, AlertCircle, BedDouble, Users, Tag, Layers, CalendarClock, Sun, Maximize2 } from 'lucide-react';
 import { Portal } from '@/shared/ui/portal';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { useHotel } from './use-hotel';
 import { formatPrice, totalBeds, computeWeekendPrice } from './hotel-data';
 import { RoomTypeEditor } from './RoomTypeEditor';
@@ -34,10 +35,10 @@ export default function RoomTypeDetail() {
   const typeRooms = rooms.filter((r) => r.typeName === rt.name);
   const roomCount = typeRooms.length;
   const stats = [
-    { title: 'Regular price', Icon: Tag, value: formatPrice(rt.regularPrice), subtitle: t('Per night') },
-    { title: 'Occupancy', Icon: Users, value: `${rt.occupancy} ${t('guests')}`, subtitle: `${totalBeds(rt)} ${totalBeds(rt) === 1 ? t('bed') : t('beds')}` },
-    { title: 'Rooms', Icon: BedDouble, value: String(roomCount), subtitle: t('Of this type') },
-    { title: 'Session price', Icon: CalendarClock, value: rt.sessionEnabled ? formatPrice(rt.sessionPrice) : '—', subtitle: rt.sessionEnabled ? `${rt.sessionHours}h ${t('session')}` : t('Disabled') },
+    { title: 'Regular price', Icon: Tag, value: formatPrice(rt.regularPrice), subtitle: t('Per night'), tone: 'success' as const },
+    { title: 'Occupancy', Icon: Users, value: `${rt.occupancy} ${t('guests')}`, subtitle: `${totalBeds(rt)} ${totalBeds(rt) === 1 ? t('bed') : t('beds')}`, tone: 'info' as const },
+    { title: 'Rooms', Icon: BedDouble, value: String(roomCount), subtitle: t('Of this type'), tone: 'brand' as const },
+    { title: 'Session price', Icon: CalendarClock, value: rt.sessionEnabled ? formatPrice(rt.sessionPrice) : '—', subtitle: rt.sessionEnabled ? `${rt.sessionHours}h ${t('session')}` : t('Disabled'), tone: 'success' as const },
   ];
   const fields = [
     { label: t('Beds'), value: rt.beds.map((b) => `${b.count} ${t(b.type)}`).join(', ') || '—', Icon: BedDouble },
@@ -81,7 +82,7 @@ export default function RoomTypeDetail() {
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors"><card.Icon className="w-4 h-4" /></div>
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}><card.Icon className="w-4 h-4" /></div>
             </div>
             <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
             <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>

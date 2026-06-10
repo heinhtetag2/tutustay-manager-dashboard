@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ChevronRight, Pencil, Trash2, AlertCircle, X, BedDouble, Layers, Users, Hash, Building, BadgeCheck, Tag } from 'lucide-react';
 import { Portal } from '@/shared/ui/portal';
+import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { useHotel } from './use-hotel';
 import { formatPrice, type RoomStatus } from './hotel-data';
 import { RoomEditor } from './room-editors';
@@ -35,10 +36,10 @@ export default function RoomDetail() {
   }
 
   const stats = [
-    { title: 'Type', Icon: Layers, value: room.typeName, subtitle: t('Room type') },
-    { title: 'Floor', Icon: Building, value: String(room.floor), subtitle: t('Location') },
-    { title: 'Occupancy', Icon: Users, value: `${room.occupancy} ${t('guests')}`, subtitle: `${room.beds} ${room.beds === 1 ? t('bed') : t('beds')}` },
-    { title: 'Price', Icon: Tag, value: formatPrice(room.price), subtitle: t('Per night') },
+    { title: 'Type', Icon: Layers, value: room.typeName, subtitle: t('Room type'), tone: 'info' as const },
+    { title: 'Floor', Icon: Building, value: String(room.floor), subtitle: t('Location'), tone: 'purple' as const },
+    { title: 'Occupancy', Icon: Users, value: `${room.occupancy} ${t('guests')}`, subtitle: `${room.beds} ${room.beds === 1 ? t('bed') : t('beds')}`, tone: 'pink' as const },
+    { title: 'Price', Icon: Tag, value: formatPrice(room.price), subtitle: t('Per night'), tone: 'success' as const },
   ];
   const fields = [
     { label: t('Floor'), value: String(room.floor), Icon: Building },
@@ -85,7 +86,7 @@ export default function RoomDetail() {
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
               <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
-              <div className="p-2 bg-[var(--surface-subtle)] rounded-md text-[var(--text-tertiary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-colors"><card.Icon className="w-4 h-4" /></div>
+              <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}><card.Icon className="w-4 h-4" /></div>
             </div>
             <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)]">{card.value}</div>
             <div className="text-[11px] sm:text-xs text-[var(--text-tertiary)] mt-1 sm:mt-2 truncate">{card.subtitle}</div>
