@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import {
-  CreditCard, CloudMoon, Users, X, ChevronRight as ArrowR, ArrowRight, Search, ListFilter,
+  CreditCard, CloudMoon, Users, X, ChevronRight as ArrowR, ArrowRight, Search, ListFilter, CalendarCheck,
 } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
@@ -69,8 +69,15 @@ export function SalesDayDetailSheet({
     <SideSheet onClose={onClose} widthClass="max-w-md">
       <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--surface-subtle)] shrink-0">
         <div>
-          <h2 className="text-base font-medium text-[var(--text-primary)]">{formatDate(day)}</h2>
-          <p className="text-xs text-[var(--text-secondary)] mt-0.5">{bookings.length} {bookings.length === 1 ? t('booking') : t('bookings')} · {formatAmount(dayTotal)}</p>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] leading-tight">{formatDate(day)}</h2>
+          {bookings.length > 0 ? (
+            <span className="inline-flex items-center gap-1.5 mt-1.5 px-2 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-primary)] text-xs font-medium tabular-nums">
+              <CalendarCheck className="w-3 h-3" />
+              {bookings.length} {bookings.length === 1 ? t('booking') : t('bookings')}
+            </span>
+          ) : (
+            <p className="text-xs text-[var(--text-secondary)] mt-1">{t('No bookings')}</p>
+          )}
         </div>
         <button onClick={onClose} className="p-1.5 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer"><X className="w-4 h-4" /></button>
       </div>
