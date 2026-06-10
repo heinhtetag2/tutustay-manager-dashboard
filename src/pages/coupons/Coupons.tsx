@@ -177,13 +177,7 @@ export default function Coupons() {
           <h1 className="text-3xl font-serif text-[var(--text-primary)]">{t('Coupon Management')}</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">{t('Create discounts that attract new guests and bring past ones back.')}</p>
         </div>
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="self-start inline-flex items-center gap-2 px-4 py-2 bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white text-sm font-medium rounded-md transition-colors cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          {t('New coupon')}
-        </button>
+        {/* Create coupon hidden for now — coupon creation handled by super-admin. */}
       </div>
 
       {/* Summary cards */}
@@ -369,9 +363,6 @@ export default function Coupons() {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
               <tr className="border-b border-[var(--border-default)] text-[var(--text-tertiary)]">
-                <th className="pl-6 pr-3 py-4 w-10">
-                  <input type="checkbox" checked={allSelected} onChange={toggleAll} className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer align-middle" aria-label={t('Select all')} />
-                </th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Code')}</th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Discount')}</th>
                 <th className="px-6 py-4 font-medium text-[11px] tracking-wider uppercase">{t('Applies to')}</th>
@@ -385,8 +376,7 @@ export default function Coupons() {
                 Array.from({ length: 8 }).map((_, i) => <CouponRowSkeleton key={i} />)
               ) : filtered.length === 0 ? (
                 <tr>
-                  {/* colSpan accounts for the select column + 6 data columns */}
-                  <td colSpan={7} className="px-6 py-16">
+                  <td colSpan={6} className="px-6 py-16">
                     <div className="flex flex-col items-center justify-center text-center">
                       <TicketPercent className="w-8 h-8 text-[var(--text-secondary)] mb-3" strokeWidth={1.5} />
                       <p className="text-sm font-medium text-[var(--text-primary)]">{t('No coupons found')}</p>
@@ -401,11 +391,8 @@ export default function Coupons() {
                     <tr
                       key={c.id}
                       onClick={() => navigate(`/coupons/${c.id}`)}
-                      className={`border-b border-[var(--surface-subtle)] last:border-0 transition-colors cursor-pointer group ${selected.has(c.id) ? 'bg-[var(--brand-tint)]/40' : 'hover:bg-[var(--surface-muted)]'}`}
+                      className="border-b border-[var(--surface-subtle)] last:border-0 transition-colors cursor-pointer group hover:bg-[var(--surface-muted)]"
                     >
-                      <td className="pl-6 pr-3 py-4" onClick={(e) => e.stopPropagation()}>
-                        <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggleOne(c.id)} className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer align-middle" aria-label={t('Select row')} />
-                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center shrink-0">
@@ -594,18 +581,10 @@ function CouponCard({ coupon: c, status, index, selected, onToggle, onOpen, t }:
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.02 }}
       onClick={onOpen}
-      className={`px-4 py-4 transition-colors cursor-pointer ${selected ? 'bg-[var(--brand-tint)]/40' : 'hover:bg-[var(--surface-muted)]'}`}
+      className="px-4 py-4 transition-colors cursor-pointer hover:bg-[var(--surface-muted)]"
     >
       {/* Identity row */}
       <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          checked={selected}
-          onChange={onToggle}
-          onClick={(e) => e.stopPropagation()}
-          className="w-4 h-4 rounded border-[var(--border-strong)] accent-[var(--brand-primary)] cursor-pointer shrink-0"
-          aria-label={t('Select row')}
-        />
         <div className="w-8 h-8 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center shrink-0">
           <BadgePercent className="w-4 h-4" />
         </div>
@@ -617,7 +596,7 @@ function CouponCard({ coupon: c, status, index, selected, onToggle, onOpen, t }:
       </div>
 
       {/* Detail grid */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-7">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-4 pl-11">
         <div>
           <div className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-medium">{t('Discount')}</div>
           <div className="text-sm text-[var(--text-primary)] font-medium tabular-nums mt-0.5">{formatDiscount(c)}</div>

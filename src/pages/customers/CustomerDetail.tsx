@@ -47,10 +47,13 @@ export default function CustomerDetail() {
   const navigate = useNavigate();
   const { id = '' } = useParams();
   const customer = useCustomers((s) => s.customers.find((c) => c.id === id));
-  const setNote = useCustomers((s) => s.setNote);
   const review = useReviews((s) => s.reviews.find((r) => r.customerId === id));
   const { formatDate, formatDateTime, formatDateTimeLong } = useDateFormat();
-  const [noteDraft, setNoteDraft] = useState(customer?.notes ?? '');
+  const [noteDraft, setNoteDraft] = useState('');
+  // Running feed of admin notes — seeded from the customer's saved note.
+  const [notes, setNotes] = useState<{ id: number; text: string; date: string }[]>(() =>
+    customer?.notes ? [{ id: 1, text: customer.notes, date: customer.joinedDate ?? NOW.toISOString() }] : [],
+  );
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<{ id: number; text: string; at: string }[]>([]);
 
@@ -77,7 +80,13 @@ export default function CustomerDetail() {
   const dob = customer.dateOfBirth ? new Date(customer.dateOfBirth) : null;
   const age = dob ? differenceInYears(NOW, dob) : null;
   const rating = review?.rating ?? customer.rating ?? 0;
-  const noteDirty = noteDraft !== customer.notes;
+
+  const addNote = () => {
+    const text = noteDraft.trim();
+    if (!text) return;
+    setNotes((prev) => [{ id: Date.now(), text, date: new Date().toISOString() }, ...prev]);
+    setNoteDraft('');
+  };
 
   const stats = [
     { title: 'Total bookings', Icon: CalendarCheck, value: String(customer.totalBookings), subtitle: t('Lifetime'), tone: 'brand' as const },
@@ -203,28 +212,52 @@ export default function CustomerDetail() {
             </div>
           </section>
 
-          {/* Notes */}
+          {/* Admin notes — running feed of internal notes, admins only. */}
           <section className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
-            <div className="px-6 py-4 border-b border-[var(--surface-subtle)]">
-              <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Notes')}</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Internal notes for this customer')}</p>
+            <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Admin notes')}</h2>
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Internal notes visible to admins only')}</p>
+              </div>
+              <span className="text-xs text-[var(--text-secondary)] tabular-nums">{notes.length}</span>
             </div>
             <div className="px-6 py-5">
-              <textarea
-                value={noteDraft}
-                onChange={(e) => setNoteDraft(e.target.value)}
-                placeholder={t('Add a note about this customer…')}
-                rows={3}
-                className="w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm resize-none focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
-              />
-              <div className="flex justify-end mt-3">
-                <button
-                  onClick={() => setNote(customer.id, noteDraft)}
-                  disabled={!noteDirty}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {t('Save note')}
-                </button>
+              {notes.length > 0 && (
+                <ul className="space-y-3 mb-4">
+                  {notes.map((n) => (
+                    <li key={n.id} className="flex gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center text-xs font-medium shrink-0">H</div>
+                      <div className="flex-1 min-w-0 bg-[var(--surface-subtle)] rounded-md px-3 py-2">
+                        <p className="text-sm text-[var(--text-primary)] break-words">{n.text}</p>
+                        <span className="text-xs text-[var(--text-secondary)] mt-1 block tabular-nums">{formatDateTime(n.date)}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-[var(--brand-primary)] text-white flex items-center justify-center text-xs font-medium shrink-0">H</div>
+                <div className="flex-1">
+                  <textarea
+                    value={noteDraft}
+                    onChange={(e) => setNoteDraft(e.target.value)}
+                    onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') addNote(); }}
+                    placeholder={t('Add a note for your team...')}
+                    rows={2}
+                    className="w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm resize-none focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]"
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-[var(--text-secondary)]">⌘ + Enter {t('to save')}</span>
+                    <button
+                      onClick={addNote}
+                      disabled={!noteDraft.trim()}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      {t('Save note')}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </section>

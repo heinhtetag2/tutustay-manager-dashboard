@@ -2,6 +2,12 @@ import type { AppliedCoupon } from '@/shared/ui/coupon-badge';
 
 export type ReservationStatus = 'Confirmed' | 'Checked-in' | 'Checked-out' | 'Cancelled' | 'No-show';
 
+/** Whether the stay has been paid for yet. Online bookings are paid up-front;
+ *  walk-ins are billed at the property and stay 'Unpaid' until settled. */
+export type PaymentStatus = 'Paid' | 'Unpaid';
+/** How the booking came in / how it's billed. */
+export type PaymentMethod = 'Online' | 'Walk-in';
+
 export const RESERVATION_STATUSES: ReservationStatus[] = ['Confirmed', 'Checked-in', 'Checked-out', 'Cancelled', 'No-show'];
 
 /** How the stay is priced/booked: per-night (Regular), short day-use block
@@ -42,13 +48,33 @@ export interface Reservation {
   coupon?: AppliedCoupon;
   /** Booking/pricing type. Omitted = Regular (per night). */
   rateType?: RateType;
+  /** Payment state. Omitted = 'Paid' (online bookings are paid up-front). */
+  paymentStatus?: PaymentStatus;
+  /** Booking channel / billing method. Omitted = 'Online'. */
+  paymentMethod?: PaymentMethod;
   status: ReservationStatus;
   /** ISO datetime the reservation was created. */
   createdAt: string;
+  /** A request/note the guest left at booking (special requests, arrival time, etc.). */
+  guestNote?: string;
+  /** Internal manager note for this reservation (not shown to the guest). */
+  managerNote?: string;
+  /** ISO datetime the manager note was last saved. */
+  managerNoteAt?: string;
 }
 
 export function formatAmount(value: number): string {
   return value.toLocaleString('en-US');
+}
+
+/** Paid unless explicitly marked 'Unpaid' (walk-ins awaiting payment). */
+export function isPaid(r: { paymentStatus?: PaymentStatus }): boolean {
+  return r.paymentStatus !== 'Unpaid';
+}
+
+/** Display label for how the booking is billed. */
+export function paymentMethodLabel(r: { paymentMethod?: PaymentMethod }): string {
+  return r.paymentMethod === 'Walk-in' ? 'Walk-in' : 'Online';
 }
 
 /** Amounts that count toward revenue (exclude cancellations / no-shows). */
@@ -61,10 +87,14 @@ export const DEMO_RESERVATIONS: Reservation[] = [
     id: 'rsv1', code: 'RSV-1042', customerId: 'c1', guestName: 'Daniel Foster', guestEmail: 'daniel.foster@example.com',
     roomType: 'Deluxe', roomNo: '305', checkIn: '2026-05-29T14:00:00', checkOut: '2026-05-31T12:00:00', nights: 2, guests: 2, amount: 160000,
     status: 'Checked-in', createdAt: '2026-05-20T10:15:00',
+    guestNote: 'High-floor room if possible, away from the elevator. Arriving around 9 PM.',
+    managerNote: 'Repeat corporate guest — upgrade when availability allows.',
+    managerNoteAt: '2026-05-21T09:30:00',
   },
   {
     id: 'rsv2', code: 'RSV-1051', customerId: 'c2', guestName: 'Grace Park', guestEmail: 'grace.park@example.com',
     roomType: 'Superior', roomNo: '210', checkIn: '2026-06-04T14:00:00', checkOut: '2026-06-07T12:00:00', nights: 3, guests: 1, amount: 270000,
+    guestNote: 'Celebrating an anniversary — would appreciate a quiet room with a view.',
     rateType: 'Weekend', status: 'Confirmed', createdAt: '2026-06-01T08:10:00',
   },
   {
@@ -229,7 +259,9 @@ export const DEMO_RESERVATIONS: Reservation[] = [
   {
     id: 'rsv34', code: 'RSV-1081', guestName: 'Robert Hayes', guestEmail: 'robert.hayes@example.com',
     roomType: 'Superior', roomNo: '213', checkIn: '2026-06-23T14:00:00', checkOut: '2026-06-25T12:00:00', nights: 2, guests: 2, amount: 180000,
+    paymentMethod: 'Walk-in', paymentStatus: 'Unpaid',
     status: 'Confirmed', createdAt: '2026-06-06T13:20:00',
+    guestNote: 'Travelling with a toddler — an extra bed or crib would be appreciated.',
   },
   {
     id: 'rsv35', code: 'RSV-1082', guestName: 'Nadia Petrova', guestEmail: 'nadia.petrova@example.com',
@@ -272,7 +304,9 @@ export const DEMO_RESERVATIONS: Reservation[] = [
   {
     id: 'rsv42', code: 'RSV-1089', guestName: 'Tariq Aziz', guestEmail: 'tariq.aziz@example.com',
     roomType: 'Superior', roomNo: '220', checkIn: '2026-06-29T14:00:00', checkOut: '2026-06-30T12:00:00', nights: 1, guests: 1, amount: 90000,
+    paymentMethod: 'Walk-in', paymentStatus: 'Unpaid',
     status: 'Confirmed', createdAt: '2026-06-09T13:15:00',
+    guestNote: 'Late check-in expected, around 11 PM. Please hold the room.',
   },
   {
     id: 'rsv43', code: 'RSV-1090', guestName: 'Beatrice Conti', guestEmail: 'beatrice.conti@example.com',

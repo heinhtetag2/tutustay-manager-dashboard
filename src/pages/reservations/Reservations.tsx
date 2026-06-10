@@ -28,7 +28,7 @@ import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { useResizableColumns, ColResizeHandle, ColLeftDivider, type ColumnDef } from '@/shared/ui/resizable-columns';
-import { formatAmount, countsAsRevenue, rateLabel, RESERVATION_STATUSES, type Reservation, type ReservationStatus, type RateType } from './reservations-data';
+import { formatAmount, countsAsRevenue, rateLabel, isPaid, RESERVATION_STATUSES, type Reservation, type ReservationStatus, type RateType } from './reservations-data';
 import { useReservations } from './use-reservations';
 import { InfoTooltip } from '@/shared/ui/info-tooltip';
 import { CouponBadge } from '@/shared/ui/coupon-badge';
@@ -622,10 +622,15 @@ function ReservationRow({ reservation: r, index, selected, onToggle, formatDateT
         {r.coupon && <CouponBadge coupon={r.coupon} className="mt-1" />}
       </td>
       <td className="px-6 py-4">
-        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusStyle(ds)}`}>
-          {ds === 'Overdue' && <TriangleAlert className="w-3 h-3" />}
-          {t(ds)}
-        </span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusStyle(ds)}`}>
+            {ds === 'Overdue' && <TriangleAlert className="w-3 h-3" />}
+            {t(ds)}
+          </span>
+          {!isPaid(r) && (
+            <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full bg-[var(--color-data-orange-10)] text-[var(--color-data-orange-50)]">{t('Unpaid')}</span>
+          )}
+        </div>
       </td>
     </motion.tr>
   );
@@ -708,10 +713,15 @@ function ReservationCard({ reservation: r, index, selected, onToggle, onOpen, t 
           <div className="font-medium text-[var(--text-primary)] truncate">{r.guestName}</div>
           <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5"><span className="tabular-nums">{r.code}</span> · {r.guestEmail}</div>
         </div>
-        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${statusStyle(ds)}`}>
-          {ds === 'Overdue' && <TriangleAlert className="w-3 h-3" />}
-          {t(ds)}
-        </span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {!isPaid(r) && (
+            <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-full bg-[var(--color-data-orange-10)] text-[var(--color-data-orange-50)]">{t('Unpaid')}</span>
+          )}
+          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${statusStyle(ds)}`}>
+            {ds === 'Overdue' && <TriangleAlert className="w-3 h-3" />}
+            {t(ds)}
+          </span>
+        </div>
       </div>
 
       {/* Detail grid */}

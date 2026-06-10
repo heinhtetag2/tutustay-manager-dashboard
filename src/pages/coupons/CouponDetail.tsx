@@ -119,10 +119,7 @@ export default function CouponDetail() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button onClick={() => setIsEditOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
-            <Pencil className="w-4 h-4" />
-            {t('Edit')}
-          </button>
+          {/* Edit / Delete hidden for now — coupon control handled by super-admin. */}
           {/* Enable/disable only applies once the super-admin has approved the coupon. */}
           {coupon.approval === 'Approved' && (
             coupon.enabled ? (
@@ -137,10 +134,6 @@ export default function CouponDetail() {
               </button>
             )
           )}
-          <button onClick={() => setIsDeleteOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer">
-            <Trash2 className="w-4 h-4" />
-            {t('Delete')}
-          </button>
         </div>
       </div>
 
