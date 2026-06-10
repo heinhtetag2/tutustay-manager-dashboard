@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, ChevronRight, Pencil, Trash2, AlertCircle, BedDouble, Users, Tag, Layers, CalendarClock, Sun, Maximize2 } from 'lucide-react';
 import { Portal } from '@/shared/ui/portal';
 import { useHotel } from './use-hotel';
-import { formatPrice, totalBeds } from './hotel-data';
+import { formatPrice, totalBeds, computeWeekendPrice } from './hotel-data';
 import { RoomTypeEditor } from './RoomTypeEditor';
 
 export default function RoomTypeDetail() {
@@ -14,6 +14,7 @@ export default function RoomTypeDetail() {
   const { id = '' } = useParams();
   const rt = useHotel((s) => s.roomTypes.find((x) => x.id === id));
   const rooms = useHotel((s) => s.rooms);
+  const acceptsForeigners = useHotel((s) => s.property.foreignPolicy === 'Foreigners welcome');
   const upsertRoomType = useHotel((s) => s.upsertRoomType);
   const removeRoomType = useHotel((s) => s.removeRoomType);
   const [editing, setEditing] = useState(false);
@@ -42,9 +43,12 @@ export default function RoomTypeDetail() {
     { label: t('Beds'), value: rt.beds.map((b) => `${b.count} ${t(b.type)}`).join(', ') || '—', Icon: BedDouble },
     { label: t('Occupancy'), value: String(rt.occupancy), Icon: Users },
     { label: t('Room size'), value: rt.roomSize ? `${rt.roomSize} ${rt.sizeUnit}` : '—', Icon: Maximize2 },
-    { label: t('Regular price'), value: formatPrice(rt.regularPrice), Icon: Tag },
-    { label: t('Weekend price'), value: rt.weekendEnabled ? formatPrice(rt.weekendPrice) : '—', Icon: Sun },
-    { label: t('Session price'), value: rt.sessionEnabled ? formatPrice(rt.sessionPrice) : '—', Icon: CalendarClock },
+    { label: t(acceptsForeigners ? 'Regular price (local)' : 'Regular price'), value: formatPrice(rt.regularPrice), Icon: Tag },
+    ...(acceptsForeigners ? [{ label: t('Regular price (foreigner)'), value: formatPrice(rt.foreignerPrice ?? 0), Icon: Tag }] : []),
+    { label: t(acceptsForeigners ? 'Weekend price (local)' : 'Weekend price'), value: rt.weekendEnabled ? formatPrice(rt.weekendPrice) : '—', Icon: Sun },
+    ...(acceptsForeigners ? [{ label: t('Weekend price (foreigner)'), value: rt.weekendEnabled ? formatPrice(computeWeekendPrice(rt.foreignerPrice ?? 0, rt.weekendMode ?? 'percent', rt.weekendSurcharge ?? 0)) : '—', Icon: Sun }] : []),
+    { label: t(acceptsForeigners ? 'Session price (local)' : 'Session price'), value: rt.sessionEnabled ? formatPrice(rt.sessionPrice) : '—', Icon: CalendarClock },
+    ...(acceptsForeigners ? [{ label: t('Session price (foreigner)'), value: rt.sessionEnabled ? formatPrice(rt.foreignerSessionPrice ?? 0) : '—', Icon: CalendarClock }] : []),
   ];
 
   return (

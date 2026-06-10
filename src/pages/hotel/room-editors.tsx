@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { X, Wifi, Utensils, Car, Waves, Dumbbell, Flower2, Banknote, Plane, Coffee, Tag, CloudMoon, Users, Info } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { BrandSelect } from '@/shared/ui/brand-select';
-import { AMENITIES, totalBeds, type Room, type RoomType, type RoomStatus } from './hotel-data';
+import { AMENITIES, totalBeds, computeWeekendPrice, type Room, type RoomType, type RoomStatus, type WeekendMode } from './hotel-data';
+import { useHotel } from './use-hotel';
 
 /** Maps each amenity to a representative icon. */
 export const amenityIcon: Record<string, React.ElementType> = {
@@ -75,6 +76,7 @@ function ModalShell({ title, onClose, onSave, saveLabel, children, hideBackdrop 
 
 export function RoomEditor({ initial, roomTypes, onClose, onSave, hideBackdrop }: { initial: Room; roomTypes: RoomType[]; onClose: () => void; onSave: (r: Room) => void; hideBackdrop?: boolean }) {
   const { t } = useTranslation();
+  const acceptsForeigners = useHotel((s) => s.property.foreignPolicy === 'Foreigners welcome');
   const fromType = (name: string) => {
     const rt = roomTypes.find((r) => r.name === name);
     return rt ? { amenities: rt.amenities, beds: totalBeds(rt), occupancy: rt.occupancy, price: rt.regularPrice } : {};
@@ -139,17 +141,24 @@ export function RoomEditor({ initial, roomTypes, onClose, onSave, hideBackdrop }
                   );
                 })}
               </div>
-              <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
-                {priceTab === 'regular' && <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Base price (per night)')}</span><span>{fmt(rt.regularPrice)}</span></div>}
+              <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums space-y-2">
+                {priceTab === 'regular' && (
+                  <>
+                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t(acceptsForeigners ? 'Local price (per night)' : 'Base price (per night)')}</span><span>{fmt(rt.regularPrice)}</span></div>
+                    {acceptsForeigners && <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Foreigner price (per night)')}</span><span>{fmt(rt.foreignerPrice ?? 0)}</span></div>}
+                  </>
+                )}
                 {priceTab === 'session' && rt.sessionEnabled && (
                   <div className="space-y-2">
-                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Base price (per session)')}</span><span>{fmt(rt.sessionPrice)}</span></div>
+                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t(acceptsForeigners ? 'Local price (per session)' : 'Base price (per session)')}</span><span>{fmt(rt.sessionPrice)}</span></div>
+                    {acceptsForeigners && <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Foreigner price (per session)')}</span><span>{fmt(rt.foreignerSessionPrice ?? 0)}</span></div>}
                     <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Session length')}</span><span className="text-sm">{rt.sessionHours} {t('hrs')}</span></div>
                   </div>
                 )}
                 {priceTab === 'weekend' && rt.weekendEnabled && (
                   <div className="space-y-2">
-                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Weekend rate (per night)')}</span><span>{fmt(rt.weekendPrice)}</span></div>
+                    <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t(acceptsForeigners ? 'Weekend rate — local (per night)' : 'Weekend rate (per night)')}</span><span>{fmt(rt.weekendPrice)}</span></div>
+                    {acceptsForeigners && <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Weekend rate — foreigner (per night)')}</span><span>{fmt(computeWeekendPrice(rt.foreignerPrice ?? 0, (rt.weekendMode ?? 'percent') as WeekendMode, rt.weekendSurcharge ?? 0))}</span></div>}
                     <div className="flex justify-between"><span className="text-xs text-[var(--text-secondary)]">{t('Days')}</span><span className="text-sm">{rt.weekendDays.join(', ')}</span></div>
                   </div>
                 )}

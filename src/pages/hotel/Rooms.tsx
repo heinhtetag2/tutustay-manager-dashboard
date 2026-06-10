@@ -424,6 +424,7 @@ function RoomTypeGroup({
   t: (k: string) => string;
 }) {
   const [open, setOpen] = useState(true);
+  const acceptsForeigners = useHotel((s) => s.property.foreignPolicy === 'Foreigners welcome');
   return (
     <motion.section
       initial={{ opacity: 0, y: 8 }}
@@ -460,6 +461,7 @@ function RoomTypeGroup({
             </div>
             <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5 tabular-nums">
               {formatPrice(rt.regularPrice)}
+              {acceptsForeigners && (rt.foreignerPrice ?? 0) > 0 && <span className="text-[var(--text-tertiary)]"> · {t('Foreigner')} {formatPrice(rt.foreignerPrice ?? 0)}</span>}
               <span className="text-[var(--text-tertiary)]"> · {totalBeds(rt)} {totalBeds(rt) === 1 ? t('bed') : t('beds')} · {rt.occupancy} {t('guests')}</span>
             </div>
           </div>

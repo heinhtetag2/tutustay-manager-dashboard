@@ -136,10 +136,7 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
                           return <span key={day} className={`px-3 py-1.5 text-xs font-medium rounded-full border select-none ${on ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]' : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)]'}`}>{t(day)}</span>;
                         })}
                       </div>
-                      <p className="inline-flex items-center gap-1.5 mt-2.5 text-[11px] font-medium text-[var(--text-tertiary)]">
-                        <SettingsIcon className="w-3 h-3 shrink-0" />
-                        {t('Weekend days are configured in Settings')}
-                      </p>
+                      <DefaultsHint onManage={goToPricingDefaults} label={t('Weekend days are configured in Settings')} />
                     </Field>
                     <Field label={t('Weekend uplift')}>
                       <div className="space-y-3">
