@@ -244,9 +244,20 @@ export function useBookingSimulator() {
         amount: `${b.amount.toLocaleString('en-US')}`,
       });
     };
-    // Quick burst on load so the stacked deck is visible, then a gentle drip.
-    const burst = [setTimeout(fire, 1500), setTimeout(fire, 2300), setTimeout(fire, 3100)];
-    const interval = setInterval(fire, 45000);
-    return () => { burst.forEach(clearTimeout); clearInterval(interval); };
+    // Hold off incoming-booking toasts for the first ~2 minutes after the
+    // dashboard loads — let the manager settle in. Then a quick burst makes the
+    // stacked deck visible, followed by a gentle drip every 45s.
+    const HOLD_MS = 120_000; // ~2 minutes
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    let interval: ReturnType<typeof setInterval> | undefined;
+    timeouts.push(
+      setTimeout(() => {
+        fire();
+        timeouts.push(setTimeout(fire, 800));
+        timeouts.push(setTimeout(fire, 1600));
+        interval = setInterval(fire, 45000);
+      }, HOLD_MS),
+    );
+    return () => { timeouts.forEach(clearTimeout); if (interval) clearInterval(interval); };
   }, [push, addRequest]);
 }

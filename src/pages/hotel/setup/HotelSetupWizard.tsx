@@ -22,6 +22,7 @@ import {
   Trash2,
   Pencil,
   ChevronDown,
+  Globe,
   Wifi,
   Croissant,
   SquareParking,
@@ -241,11 +242,12 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
+            <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-secondary)] pointer-events-none" />
             <select
               value={i18n.language}
               onChange={(e) => i18n.changeLanguage(e.target.value)}
               aria-label={t('Display language')}
-              className="appearance-none bg-white border border-[var(--border-default)] rounded-md pl-3 pr-7 py-1.5 text-xs font-medium text-[var(--text-secondary)] focus:outline-none focus:border-[var(--brand-primary)] cursor-pointer"
+              className="appearance-none bg-white border border-[var(--border-default)] rounded-md pl-8 pr-7 py-1.5 text-xs font-medium text-[var(--text-secondary)] focus:outline-none focus:border-[var(--brand-primary)] cursor-pointer"
             >
               <option value="en">EN</option>
               <option value="ko">KO</option>

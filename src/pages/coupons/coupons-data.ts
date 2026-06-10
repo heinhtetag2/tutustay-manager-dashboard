@@ -38,6 +38,8 @@ export interface Coupon {
   submittedAt?: string;
   /** Super-admin note, e.g. the reason for a rejection. */
   reviewNote?: string;
+  /** Optional promo image (data URL), uploaded from the coupon form. */
+  image?: string;
   createdAt: string;
 }
 

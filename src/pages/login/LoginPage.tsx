@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { Mail, Lock, Eye, EyeOff, Check, Building2, CalendarCheck, Wallet } from 'lucide-react';
+import { useSession } from '@/shared/state/use-session';
 
 /* ============================================================================
    LOGIN  —  route: /login  (full page, outside the app shell)
@@ -16,6 +17,7 @@ const fieldInput =
 export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const signIn = useSession((s) => s.signIn);
   const [email, setEmail] = useState('manager@auroragrand.mn');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -26,7 +28,9 @@ export default function LoginPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!valid) return;
-    navigate('/');
+    // Sign in, then walk the manager through onboarding before the dashboard.
+    signIn();
+    navigate('/hotel/setup?from=/');
   };
 
   return (
@@ -42,12 +46,12 @@ export default function LoginPage() {
           style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.10), transparent 70%)' }}
         />
 
-        {/* Wordmark */}
-        <div className="relative flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">
-            <Building2 className="w-5 h-5" strokeWidth={1.75} />
-          </div>
-          <span className="text-lg font-medium tracking-tight">TutuStay</span>
+        {/* Logo placeholder */}
+        <div
+          aria-label="Logo placeholder"
+          className="relative h-9 w-24 border border-dashed border-white/35 bg-white/5 rounded-md flex items-center justify-center text-[10px] font-medium tracking-wide text-white/70 select-none"
+        >
+          LOGO
         </div>
 
         {/* Value prop */}
@@ -96,14 +100,6 @@ export default function LoginPage() {
           transition={{ duration: 0.35 }}
           className="w-full max-w-sm"
         >
-          {/* Mobile wordmark */}
-          <div className="lg:hidden flex items-center gap-2.5 mb-8">
-            <div className="w-9 h-9 rounded-lg bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center">
-              <Building2 className="w-5 h-5" strokeWidth={1.75} />
-            </div>
-            <span className="text-lg font-medium text-[var(--text-primary)]">TutuStay</span>
-          </div>
-
           <h2 className="text-3xl font-serif text-[var(--text-primary)]">{t('Welcome back')}</h2>
           <p className="text-sm text-[var(--text-secondary)] mt-2">{t('Sign in to your manager dashboard.')}</p>
 
@@ -129,7 +125,7 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="password" className="block text-sm font-medium text-[var(--text-primary)]">{t('Password')}</label>
-                <button type="button" className="text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer">
+                <button type="button" onClick={() => navigate('/forgot-password')} className="text-xs font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer">
                   {t('Forgot password?')}
                 </button>
               </div>
@@ -181,10 +177,10 @@ export default function LoginPage() {
           </form>
 
           <p className="text-sm text-[var(--text-secondary)] text-center mt-8">
-            {t('New to TutuStay?')}{' '}
-            <button onClick={() => navigate('/hotel/setup')} className="font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer">
-              {t('Set up your property')}
-            </button>
+            {t('Trouble signing in?')}{' '}
+            <a href="mailto:support@tutustay.com" className="font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer">
+              {t('Contact support')}
+            </a>
           </p>
         </motion.div>
       </div>

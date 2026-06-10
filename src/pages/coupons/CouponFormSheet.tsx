@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { X, Send, ShieldCheck, Calendar as CalendarIcon } from 'lucide-react';
+import { X, Send, ShieldCheck, Calendar as CalendarIcon, Upload } from 'lucide-react';
 import { SideSheet } from '@/shared/ui/side-sheet';
 import { Portal } from '@/shared/ui/portal';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
@@ -21,6 +21,7 @@ interface Draft {
   expiresAt: string;
   roomTypes: string[];
   usageLimit: string;
+  image?: string;
 }
 
 const EMPTY_DRAFT: Draft = {
@@ -33,6 +34,7 @@ const EMPTY_DRAFT: Draft = {
   expiresAt: '2026-07-02',
   roomTypes: [],
   usageLimit: '',
+  image: undefined,
 };
 
 function draftFromCoupon(c: Coupon): Draft {
@@ -46,6 +48,7 @@ function draftFromCoupon(c: Coupon): Draft {
     expiresAt: c.expiresAt.slice(0, 10),
     roomTypes: c.roomTypes,
     usageLimit: c.usageLimit ? String(c.usageLimit) : '',
+    image: c.image,
   };
 }
 
@@ -68,6 +71,15 @@ export function CouponFormSheet({ coupon, onClose }: { coupon: Coupon | null; on
       roomTypes: d.roomTypes.includes(rt) ? d.roomTypes.filter((x) => x !== rt) : [...d.roomTypes, rt],
     }));
 
+  const onImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) return;
+    const r = new FileReader();
+    r.onload = () => setDraft((d) => ({ ...d, image: typeof r.result === 'string' ? r.result : undefined }));
+    r.readAsDataURL(file);
+  };
+
   const save = () => {
     if (!canSave) return;
     const payload = {
@@ -80,6 +92,7 @@ export function CouponFormSheet({ coupon, onClose }: { coupon: Coupon | null; on
       expiresAt: draft.expiresAt,
       roomTypes: draft.roomTypes,
       usageLimit: Number(draft.usageLimit) || 0,
+      image: draft.image,
       // Hotel-created/edited coupons go to the super-admin for review before going live.
       approval: 'Pending' as const,
       submittedAt: new Date().toISOString(),
@@ -101,6 +114,31 @@ export function CouponFormSheet({ coupon, onClose }: { coupon: Coupon | null; on
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <Field label={t('Coupon image')} hint={t('Optional. Shown to guests on the promotion.')}>
+          {draft.image ? (
+            <div className="relative w-full h-40 rounded-md overflow-hidden border border-[var(--border-default)] group">
+              <img src={draft.image} alt="" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => setDraft((d) => ({ ...d, image: undefined }))}
+                aria-label={t('Remove')}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/55 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 hover:bg-black/85 transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" strokeWidth={2.5} />
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center gap-1.5 rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)]/30 px-4 py-7 text-center cursor-pointer hover:border-[var(--brand-primary)] hover:bg-[var(--surface-subtle)]/60 transition-colors">
+              <input type="file" accept="image/png,image/jpeg" className="sr-only" onChange={onImage} />
+              <span className="w-9 h-9 rounded-full bg-white border border-[var(--border-default)] flex items-center justify-center text-[var(--text-secondary)]">
+                <Upload className="w-4 h-4" />
+              </span>
+              <span className="text-sm font-medium text-[var(--text-primary)]">{t('Upload an image')}</span>
+              <span className="text-xs text-[var(--text-tertiary)]">{t('JPG or PNG up to 5MB each.')}</span>
+            </label>
+          )}
+        </Field>
+
         <Field label={t('Coupon code')}>
           <input
             type="text"

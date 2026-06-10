@@ -1,5 +1,7 @@
+import { createElement } from 'react';
 import { createBrowserRouter } from 'react-router';
 import Layout from './Layout';
+import RequireAuth from './RequireAuth';
 import Dashboard from '@/pages/dashboard';
 import Companies from '@/pages/companies';
 import CompanyDetail from '@/pages/company-detail';
@@ -26,6 +28,7 @@ import Help from '@/pages/help';
 import Settings from '@/pages/settings';
 import HotelSetupPage from '@/pages/hotel/setup/HotelSetupPage';
 import LoginPage from '@/pages/login/LoginPage';
+import ForgotPasswordPage from '@/pages/login/ForgotPasswordPage';
 import SetupHub from '@/pages/setup-hub/SetupHub';
 import DesignSystemPage from '@/pages/design-system/DesignSystemPage';
 import NotFound from '@/pages/not-found';
@@ -33,10 +36,12 @@ import NotFound from '@/pages/not-found';
 export const router = createBrowserRouter([
   // Full-page flows — outside the app shell (no sidebar).
   { path: '/login', Component: LoginPage },
-  { path: '/hotel/setup', Component: HotelSetupPage },
+  { path: '/forgot-password', Component: ForgotPasswordPage },
+  // Onboarding wizard — requires sign-in (manager arrives here from Login).
+  { path: '/hotel/setup', element: createElement(RequireAuth, null, createElement(HotelSetupPage)) },
   {
     path: '/',
-    Component: Layout,
+    element: createElement(RequireAuth, null, createElement(Layout)),
     children: [
       { index: true, Component: Dashboard },
       { path: 'dashboard', Component: Dashboard },
