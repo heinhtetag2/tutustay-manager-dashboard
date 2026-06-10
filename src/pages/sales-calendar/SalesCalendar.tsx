@@ -7,7 +7,7 @@ import {
   addMonths, isSameMonth, isSameDay, format,
 } from 'date-fns';
 import {
-  ChevronLeft, ChevronRight, CalendarDays, CreditCard, CloudMoon, CalendarCheck,
+  ChevronLeft, ChevronRight, ChevronDown, CalendarDays, CreditCard, CloudMoon, CalendarCheck,
 } from 'lucide-react';
 
 import { countsAsRevenue, formatAmount, type Reservation, type ReservationStatus } from '@/pages/reservations/reservations-data';
@@ -32,8 +32,20 @@ export default function SalesCalendar() {
 
   const [month, setMonth] = useState(() => startOfMonth(TODAY));
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  // Month/year jump picker — the year being browsed is independent of the
+  // calendar until a month is chosen. The popover has two modes: a month grid
+  // and a year grid (for jumping across years quickly).
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerMode, setPickerMode] = useState<'month' | 'year'>('month');
+  const [pickerYear, setPickerYear] = useState(() => TODAY.getFullYear());
+  const [yearViewStart, setYearViewStart] = useState(() => TODAY.getFullYear() - 6);
 
   const openDay = (day: Date) => setSelectedDay(day);
+
+  const openPicker = () => { setPickerYear(month.getFullYear()); setPickerMode('month'); setPickerOpen(true); };
+  const pickMonth = (mi: number) => { setMonth(startOfMonth(new Date(pickerYear, mi, 1))); setPickerOpen(false); };
+  const openYearMode = () => { setYearViewStart(pickerYear - 6); setPickerMode('year'); };
+  const pickYear = (y: number) => { setPickerYear(y); setPickerMode('month'); };
 
   // Bookings keyed by their check-in day.
   const byDay = useMemo(() => {
@@ -89,7 +101,109 @@ export default function SalesCalendar() {
           <button onClick={() => setMonth((m) => addMonths(m, -1))} className="w-9 h-9 inline-flex items-center justify-center border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer" aria-label={t('Previous month')}>
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <div className="min-w-[140px] text-center text-sm font-medium text-[var(--text-primary)] tabular-nums">{format(month, 'MMMM yyyy')}</div>
+          <div className="relative">
+            <button
+              onClick={() => (pickerOpen ? setPickerOpen(false) : openPicker())}
+              aria-haspopup="dialog"
+              aria-expanded={pickerOpen}
+              className="min-w-[150px] h-9 px-3 inline-flex items-center justify-center gap-1.5 text-sm font-medium text-[var(--text-primary)] tabular-nums rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+            >
+              {format(month, 'MMMM yyyy')}
+              <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-secondary)] transition-transform ${pickerOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {pickerOpen && (
+                <>
+                  {/* Click-away backdrop */}
+                  <div className="fixed inset-0 z-30" onClick={() => setPickerOpen(false)} />
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                    role="dialog"
+                    aria-label={t('Jump to month')}
+                    className="absolute z-40 top-full mt-2 left-1/2 -translate-x-1/2 w-64 bg-white border border-[var(--border-default)] rounded-md shadow-[0_8px_28px_rgba(44,38,39,0.16)] p-3"
+                  >
+                    {/* Stepper — steps the year (month mode) or the 12-year block (year mode).
+                        The center label toggles into / out of the year grid. */}
+                    <div className="flex items-center justify-between mb-2.5">
+                      <button
+                        onClick={() => (pickerMode === 'month' ? setPickerYear((y) => y - 1) : setYearViewStart((s) => s - 12))}
+                        className="w-7 h-7 inline-flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                        aria-label={pickerMode === 'month' ? t('Previous year') : t('Previous years')}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => (pickerMode === 'month' ? openYearMode() : setPickerMode('month'))}
+                        className="px-2 h-7 inline-flex items-center rounded-md text-sm font-semibold text-[var(--text-primary)] tabular-nums hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                      >
+                        {pickerMode === 'month' ? pickerYear : `${yearViewStart} – ${yearViewStart + 11}`}
+                      </button>
+                      <button
+                        onClick={() => (pickerMode === 'month' ? setPickerYear((y) => y + 1) : setYearViewStart((s) => s + 12))}
+                        className="w-7 h-7 inline-flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                        aria-label={pickerMode === 'month' ? t('Next year') : t('Next years')}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {pickerMode === 'month' ? (
+                      /* Month grid */
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {Array.from({ length: 12 }).map((_, mi) => {
+                          const isCurrent = month.getFullYear() === pickerYear && month.getMonth() === mi;
+                          const isToday = TODAY.getFullYear() === pickerYear && TODAY.getMonth() === mi;
+                          return (
+                            <button
+                              key={mi}
+                              onClick={() => pickMonth(mi)}
+                              className={`h-9 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                                isCurrent
+                                  ? 'bg-[var(--brand-primary)] text-white'
+                                  : isToday
+                                    ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] hover:bg-[var(--brand-tint)]/70'
+                                    : 'text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)]'
+                              }`}
+                            >
+                              {format(new Date(2000, mi, 1), 'MMM')}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      /* Year grid */
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {Array.from({ length: 12 }).map((_, i) => {
+                          const y = yearViewStart + i;
+                          const isCurrent = month.getFullYear() === y;
+                          const isToday = TODAY.getFullYear() === y;
+                          return (
+                            <button
+                              key={y}
+                              onClick={() => pickYear(y)}
+                              className={`h-9 rounded-md text-sm font-medium tabular-nums transition-colors cursor-pointer ${
+                                isCurrent
+                                  ? 'bg-[var(--brand-primary)] text-white'
+                                  : isToday
+                                    ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] hover:bg-[var(--brand-tint)]/70'
+                                    : 'text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)]'
+                              }`}
+                            >
+                              {y}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
           <button onClick={() => setMonth((m) => addMonths(m, 1))} className="w-9 h-9 inline-flex items-center justify-center border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer" aria-label={t('Next month')}>
             <ChevronRight className="w-4 h-4" />
           </button>
