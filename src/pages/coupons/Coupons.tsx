@@ -589,7 +589,7 @@ function CouponCard({ coupon: c, status, index, selected, onToggle, onOpen, t }:
           <BadgePercent className="w-4 h-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="font-medium text-[var(--text-primary)] truncate">{c.code}</div>
+          <div className="text-sm font-medium text-[var(--text-primary)] truncate">{c.code}</div>
           <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{c.description}</div>
         </div>
         <span className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full shrink-0 ${couponStatusClass(status)}`}>{t(status)}</span>

@@ -248,9 +248,9 @@ export default function Settlements() {
         {stats.map((card, i) => (
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
-              <span className="flex items-center gap-1 text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
                 {t(card.title)}
-                {GLOSSARY[card.title] && <InfoTooltip label={GLOSSARY[card.title]} />}
+                {GLOSSARY[card.title] && <InfoTooltip label={GLOSSARY[card.title]} className="ml-1" />}
               </span>
               <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
@@ -601,25 +601,29 @@ export default function Settlements() {
         </div>
 
         {filtered.length > 0 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--surface-subtle)] bg-white">
+          <div className="flex flex-col gap-3 px-4 py-4 border-t border-[var(--surface-subtle)] bg-white sm:flex-row sm:items-center sm:justify-between sm:px-6">
             {loading ? (
               <Skeleton className="h-4 w-48" />
             ) : (
-              <span className="text-sm text-[var(--text-secondary)] tabular-nums">{t('Showing')} {rangeStart} {t('to')} {rangeEnd} {t('of')} {filtered.length} {t('settlements')}</span>
+              <span className="text-xs sm:text-sm text-[var(--text-secondary)] tabular-nums">{t('Showing')} {rangeStart} {t('to')} {rangeEnd} {t('of')} {filtered.length} {t('settlements')}</span>
             )}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center justify-between gap-1 sm:justify-end">
               <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 px-3 inline-flex items-center gap-1 text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-secondary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
                 <ChevronLeft className="w-4 h-4" />{t('Previous')}
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={`h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border rounded-md tabular-nums transition-colors cursor-pointer ${p === currentPage ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-[var(--border-default)] bg-white text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}
-                >
-                  {p}
-                </button>
-              ))}
+              {/* Compact page indicator on mobile; full numbered list on larger screens. */}
+              <span className="sm:hidden text-sm text-[var(--text-secondary)] tabular-nums px-1">{currentPage} / {totalPages}</span>
+              <div className="hidden sm:flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`h-8 min-w-8 px-2 inline-flex items-center justify-center text-sm font-medium border rounded-md tabular-nums transition-colors cursor-pointer ${p === currentPage ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white' : 'border-[var(--border-default)] bg-white text-[var(--text-tertiary)] hover:bg-[var(--surface-subtle)]'}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
               <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-8 px-3 inline-flex items-center gap-1 text-sm font-normal border border-[var(--border-default)] rounded-md bg-white text-[var(--text-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">
                 {t('Next')}<ChevronRight className="w-4 h-4" />
               </button>
@@ -792,7 +796,7 @@ function SettlementCard({
             aria-label={t('Select row')}
           />
           <div className="min-w-0">
-            <div className="font-medium text-[var(--text-primary)] tabular-nums truncate">{s.reference}</div>
+            <div className="text-sm font-medium text-[var(--text-primary)] tabular-nums truncate">{s.reference}</div>
             <div className="text-xs text-[var(--text-secondary)] tabular-nums mt-0.5 flex items-center gap-1.5">
               <CalendarIcon className="w-3.5 h-3.5 text-[var(--text-tertiary)] shrink-0" />
               <span className="truncate">{format(new Date(s.periodStart), 'MMM d')} – {format(new Date(s.periodEnd), 'MMM d, yyyy')}</span>

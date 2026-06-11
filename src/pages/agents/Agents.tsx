@@ -766,7 +766,7 @@ function AgentCard({ employee: e, index, selected, onToggle, onOpen, t }: { empl
           {e.avatarUrl ? <img src={e.avatarUrl} alt="" className="w-full h-full object-cover" /> : initialOf(e.fullName)}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="font-medium text-[var(--text-primary)] truncate">{e.fullName}</div>
+          <div className="text-sm font-medium text-[var(--text-primary)] truncate">{e.fullName}</div>
           <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5">{e.employeeId} · {e.email}</div>
         </div>
       </div>

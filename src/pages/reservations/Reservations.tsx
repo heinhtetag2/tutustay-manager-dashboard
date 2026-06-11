@@ -710,7 +710,7 @@ function ReservationCard({ reservation: r, index, selected, onToggle, onOpen, t 
         />
         <div className="w-10 h-10 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center text-sm font-medium shrink-0">{initialOf(r.guestName)}</div>
         <div className="min-w-0 flex-1">
-          <div className="font-medium text-[var(--text-primary)] truncate">{r.guestName}</div>
+          <div className="text-sm font-medium text-[var(--text-primary)] truncate">{r.guestName}</div>
           <div className="text-xs text-[var(--text-secondary)] truncate mt-0.5"><span className="tabular-nums">{r.code}</span> · {r.guestEmail}</div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">

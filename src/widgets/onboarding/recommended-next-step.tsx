@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import type { NextStep } from './use-onboarding-progress';
 
 /** The single highest-value action, shown as a hero CTA atop the checklist. */
@@ -9,10 +9,7 @@ export function RecommendedNextStep({ next }: { next: NextStep }) {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center gap-3 rounded-lg bg-[var(--brand-primary)] px-4 py-3.5 text-white">
-      <div className="w-8 h-8 rounded-md bg-white/15 flex items-center justify-center shrink-0">
-        <Sparkles className="w-4 h-4" />
-      </div>
+    <div className="flex flex-col items-start gap-3 rounded-lg bg-[var(--brand-primary)] px-4 py-3.5 text-white sm:flex-row sm:items-center">
       <div className="min-w-0 flex-1">
         <div className="text-[11px] uppercase tracking-wide text-white/70 font-medium">
           {t('Recommended next step')}
@@ -23,7 +20,7 @@ export function RecommendedNextStep({ next }: { next: NextStep }) {
       <button
         type="button"
         onClick={() => navigate(next.href)}
-        className="shrink-0 inline-flex items-center gap-1.5 rounded-md bg-white px-3 h-9 text-sm font-medium text-[var(--brand-primary)] hover:bg-white/90 transition-colors"
+        className="w-full justify-center sm:w-auto sm:justify-start shrink-0 inline-flex items-center gap-1.5 rounded-md bg-white px-3 h-9 text-sm font-medium text-[var(--brand-primary)] hover:bg-white/90 transition-colors"
       >
         {t(next.cta)}
         <ArrowRight className="w-4 h-4" />

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { differenceInYears, addDays } from 'date-fns';
+import { differenceInYears, addDays, addHours, differenceInHours, isSameDay } from 'date-fns';
 import {
   ChevronRight,
   LogIn,
@@ -38,6 +38,7 @@ import {
   Plus,
   Send,
   Wallet,
+  Lock,
 } from 'lucide-react';
 
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
@@ -48,7 +49,7 @@ import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { Portal } from '@/shared/ui/portal';
 import { useHotel } from '@/pages/hotel/use-hotel';
 import { type Room } from '@/pages/hotel/hotel-data';
-import { formatAmount, rateLabel, isPaid, paymentMethodLabel, type Reservation, type ReservationStatus } from './reservations-data';
+import { formatAmount, rateLabel, isPaid, isDayUse, paymentMethodLabel, type Reservation, type ReservationStatus, type RateType } from './reservations-data';
 import { useReservations } from './use-reservations';
 
 const TODAY = new Date('2026-06-01T00:00:00');
@@ -157,8 +158,52 @@ export default function ReservationDetail() {
     { Icon: CalendarPlus, tone: 'bg-[var(--surface-subtle)] text-[var(--text-secondary)]', label: t('Reservation created'), detail: r.code, date: r.createdAt },
   ];
 
+  // Status actions — rendered inline in the header on desktop and in a sticky
+  // bottom bar on mobile, so the primary action is always within thumb reach.
+  const hasStatusActions = r.status === 'Confirmed' || r.status === 'Checked-in';
+  const statusActions = (
+    <>
+      {r.status === 'Confirmed' && (
+        <>
+          <button onClick={() => setStatus(r.id, 'Cancelled')} className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer">
+            <Ban className="w-4 h-4" />
+            {t('Cancel')}
+          </button>
+          {paid ? (
+            /* Already paid (online or settled) — check-in is available. */
+            <button onClick={() => setStatus(r.id, 'Checked-in')} className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--success-strong)] rounded-md hover:bg-[var(--success)] transition-colors cursor-pointer">
+              <LogIn className="w-4 h-4" />
+              {t('Check in')}
+            </button>
+          ) : (
+            /* Walk-in awaiting payment — must settle before check-in. */
+            <button
+              onClick={() => { logAction({ Icon: Wallet, tone: 'bg-[var(--success-tint)] text-[var(--success)]', label: t('Payment received'), detail: `${paymentMethodLabel(r)} · ${formatAmount(r.amount)}` }); setPaid(r.id); }}
+              className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
+            >
+              <Wallet className="w-4 h-4" />
+              {t('Mark as paid')}
+            </button>
+          )}
+        </>
+      )}
+      {r.status === 'Checked-in' && (
+        <button onClick={() => setStatus(r.id, 'Checked-out')} className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--color-data-orange-50)] rounded-md hover:bg-[var(--color-data-orange-60)] transition-colors cursor-pointer">
+          <LogOut className="w-4 h-4" />
+          {t('Check out')}
+        </button>
+      )}
+      {(r.status === 'Checked-out' || r.status === 'Cancelled' || r.status === 'No-show') && (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--text-secondary)] bg-[var(--surface-subtle)] border border-[var(--border-default)] rounded-md">
+          <Lock className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+          {t(r.status)}
+        </span>
+      )}
+    </>
+  );
+
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)] min-h-full">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className={`w-full px-6 md:px-8 xl:px-12 py-8 bg-[var(--surface-muted)] min-h-full ${hasStatusActions ? 'max-lg:pb-28' : ''}`}>
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-[13px] text-[var(--text-secondary)] mb-4">
         <button onClick={() => navigate('/reservations')} className="text-[13px] leading-none font-normal hover:text-[var(--text-primary)] transition-colors cursor-pointer">{t('Reservation Management')}</button>
@@ -188,44 +233,9 @@ export default function ReservationDetail() {
           </div>
         </div>
 
-        {/* Status actions */}
-        <div className="flex items-center gap-2 shrink-0">
-          {r.status === 'Confirmed' && (
-            <>
-              <button onClick={() => setStatus(r.id, 'Cancelled')} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer">
-                <Ban className="w-4 h-4" />
-                {t('Cancel')}
-              </button>
-              {paid ? (
-                /* Already paid (online or settled) — check-in is available. */
-                <button onClick={() => setStatus(r.id, 'Checked-in')} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--success-strong)] rounded-md hover:bg-[var(--success)] transition-colors cursor-pointer">
-                  <LogIn className="w-4 h-4" />
-                  {t('Check in')}
-                </button>
-              ) : (
-                /* Walk-in awaiting payment — must settle before check-in. */
-                <button
-                  onClick={() => { logAction({ Icon: Wallet, tone: 'bg-[var(--success-tint)] text-[var(--success)]', label: t('Payment received'), detail: `${paymentMethodLabel(r)} · ${formatAmount(r.amount)}` }); setPaid(r.id); }}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
-                >
-                  <Wallet className="w-4 h-4" />
-                  {t('Mark as paid')}
-                </button>
-              )}
-            </>
-          )}
-          {r.status === 'Checked-in' && (
-            <button onClick={() => setStatus(r.id, 'Checked-out')} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[var(--color-data-orange-50)] rounded-md hover:bg-[var(--color-data-orange-60)] transition-colors cursor-pointer">
-              <LogOut className="w-4 h-4" />
-              {t('Check out')}
-            </button>
-          )}
-          {(r.status === 'Checked-out' || r.status === 'Cancelled' || r.status === 'No-show') && (
-            <span className="inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
-              <CheckCircle2 className="w-4 h-4" />
-              {t('Closed')}
-            </span>
-          )}
+        {/* Status actions — inline on desktop; a sticky bottom bar on mobile (see below). */}
+        <div className="hidden lg:flex items-center gap-2 shrink-0">
+          {statusActions}
         </div>
       </div>
 
@@ -269,25 +279,23 @@ export default function ReservationDetail() {
         {/* Left: stay details */}
         <div className="lg:col-span-2 space-y-6">
           <section className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
-            <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-start justify-between gap-3">
+            <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Reservation details')}</h2>
                 <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Stay and room information')}</p>
               </div>
               {(r.status === 'Confirmed' || r.status === 'Checked-in') && (
-                <div className="flex items-center gap-2 shrink-0">
-                  {r.rateType !== 'Session' && (
-                    <button
-                      onClick={() => setExtendOpen(true)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--brand-primary)] bg-white border border-[var(--brand-border)] rounded-md hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] transition-colors cursor-pointer"
-                    >
-                      <CalendarClock className="w-4 h-4" />
-                      {t('Extend stay')}
-                    </button>
-                  )}
+                <div className="flex items-center gap-2 shrink-0 max-sm:w-full">
+                  <button
+                    onClick={() => setExtendOpen(true)}
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--brand-primary)] bg-white border border-[var(--brand-border)] rounded-md hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] transition-colors cursor-pointer"
+                  >
+                    <CalendarClock className="w-4 h-4" />
+                    {isDayUse(r.rateType) ? t('Extend session') : t('Extend stay')}
+                  </button>
                   <button
                     onClick={() => setChangeRoomOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--brand-primary)] bg-white border border-[var(--brand-border)] rounded-md hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] transition-colors cursor-pointer"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--brand-primary)] bg-white border border-[var(--brand-border)] rounded-md hover:bg-[var(--brand-primary)] hover:text-white hover:border-[var(--brand-primary)] transition-colors cursor-pointer"
                   >
                     <ArrowLeftRight className="w-4 h-4" />
                     {t('Change room')}
@@ -498,15 +506,26 @@ export default function ReservationDetail() {
             reservation={r}
             formatDateTimeLong={formatDateTimeLong}
             onClose={() => setExtendOpen(false)}
-            onConfirm={(checkOut, nights, amount) => {
-              const added = nights - r.nights;
-              logAction({ Icon: CalendarClock, tone: 'bg-[var(--brand-tint)] text-[var(--brand-primary)]', label: t('Stay extended'), detail: `+${added} ${added === 1 ? t('night') : t('nights')} · ${t('until')} ${formatDateTime(checkOut)}` });
-              extendStay(r.id, checkOut, nights, amount);
+            onConfirm={({ checkOut, nights, amount, rateType, mode, converted, extra }) => {
+              const label = converted ? t('Converted to overnight') : mode === 'session' ? t('Session extended') : t('Stay extended');
+              const unit = mode === 'session' ? (extra === 1 ? t('session') : t('sessions')) : (extra === 1 ? t('night') : t('nights'));
+              const detail = converted
+                ? `${nights} ${nights === 1 ? t('night') : t('nights')} · ${t('until')} ${formatDateTime(checkOut)}`
+                : `+${extra} ${unit} · ${t('until')} ${formatDateTime(checkOut)}`;
+              logAction({ Icon: converted ? ArrowLeftRight : CalendarClock, tone: 'bg-[var(--brand-tint)] text-[var(--brand-primary)]', label, detail });
+              extendStay(r.id, checkOut, nights, amount, rateType);
               setExtendOpen(false);
             }}
           />
         )}
       </AnimatePresence>
+
+      {/* Mobile sticky action bar — keeps the primary action within thumb reach. */}
+      {hasStatusActions && (
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex items-center gap-2 px-4 py-3 bg-white border-t border-[var(--border-default)] shadow-[0_-4px_16px_rgba(44,38,39,0.06)] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          {statusActions}
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -660,16 +679,62 @@ function ExtendStayDialog({
   reservation: Reservation;
   formatDateTimeLong: (v: string) => string;
   onClose: () => void;
-  onConfirm: (checkOut: string, nights: number, amount: number) => void;
+  onConfirm: (payload: { checkOut: string; nights: number; amount: number; rateType?: RateType; mode: 'night' | 'session'; converted: boolean; extra: number }) => void;
 }) {
   const { t } = useTranslation();
+  const roomTypes = useHotel((s) => s.roomTypes);
+  const rt = roomTypes.find((x) => x.name === r.roomType);
+
+  // The booking can be extended by night or by session. The unit defaults to
+  // the booking's own type, but the manager can switch — e.g. add a few hours
+  // (a session) to an overnight stay, or turn a day-use booking into an
+  // overnight one.
+  const bookingIsSession = isDayUse(r.rateType);
+  const [mode, setMode] = useState<'night' | 'session'>(bookingIsSession ? 'session' : 'night');
   const [extra, setExtra] = useState(1);
 
-  const nightly = r.nights > 0 ? Math.round(r.amount / r.nights) : r.amount;
-  const newNights = r.nights + extra;
-  const newCheckOut = addDays(new Date(r.checkOut), extra).toISOString();
-  const added = nightly * extra;
-  const newAmount = r.amount + added;
+  // Rates come from the room type (the current published price), falling back
+  // to values derived from the booking when the room type can't be found.
+  const nightlyRate = rt?.regularPrice || (r.nights > 0 ? Math.round(r.amount / r.nights) : r.amount);
+  const sessionRate = rt?.sessionPrice || r.amount;
+  const sessionLen = rt?.sessionHours || Math.max(1, differenceInHours(new Date(r.checkOut), new Date(r.checkIn)));
+  const bookedHours = Math.max(1, differenceInHours(new Date(r.checkOut), new Date(r.checkIn)));
+
+  // Extending a day-use booking by night converts it into an overnight stay.
+  const converting = bookingIsSession && mode === 'night';
+
+  let newCheckOut: string;
+  let newNights: number;
+  let newAmount: number;
+  let newRateType: RateType | undefined;
+  if (mode === 'session') {
+    // Add session blocks — push the check-out time forward; nights unchanged.
+    newCheckOut = addHours(new Date(r.checkOut), extra * sessionLen).toISOString();
+    newNights = r.nights;
+    newAmount = r.amount + sessionRate * extra;
+    newRateType = undefined;
+  } else if (converting) {
+    // Day-use → overnight: reprice at the nightly rate, standard noon check-out.
+    const noon = new Date(r.checkIn);
+    noon.setHours(12, 0, 0, 0);
+    newCheckOut = addDays(noon, extra).toISOString();
+    newNights = extra;
+    newAmount = nightlyRate * extra;
+    newRateType = 'Regular';
+  } else {
+    // Overnight stay — add nights.
+    newCheckOut = addDays(new Date(r.checkOut), extra).toISOString();
+    newNights = r.nights + extra;
+    newAmount = r.amount + nightlyRate * extra;
+    newRateType = undefined;
+  }
+
+  const delta = newAmount - r.amount;
+  const unitPrice = mode === 'session' ? sessionRate : nightlyRate;
+  const unitLabel = mode === 'session' ? (extra === 1 ? t('session') : t('sessions')) : (extra === 1 ? t('night') : t('nights'));
+  const resultOvernight = newNights > 0;
+  // Session blocks can push the check-out past midnight onto a later day.
+  const crossesMidnight = mode === 'session' && !isSameDay(new Date(r.checkOut), new Date(newCheckOut));
 
   return (
     <Portal>
@@ -692,27 +757,46 @@ function ExtendStayDialog({
           {/* Header */}
           <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-[var(--surface-subtle)]">
             <div>
-              <h3 className="text-base font-medium text-[var(--text-primary)]">{t('Extend stay')}</h3>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Add more nights to')} {r.guestName}{t("'s stay.")}</p>
+              <h3 className="text-base font-medium text-[var(--text-primary)]">{converting ? t('Convert to overnight') : mode === 'session' ? t('Extend session') : t('Extend stay')}</h3>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                {converting
+                  ? <>{t('Turn')} {r.guestName}{t("'s day-use booking into an overnight stay.")}</>
+                  : mode === 'session'
+                    ? <>{t('Add more time to')} {r.guestName}{t("'s booking.")}</>
+                    : <>{t('Add more nights to')} {r.guestName}{t("'s stay.")}</>}
+              </p>
             </div>
             <button onClick={onClose} className="p-1.5 -mr-1 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer" aria-label={t('Close')}><X className="w-4 h-4" /></button>
           </div>
 
           {/* Current */}
           <div className="px-5 py-2.5 bg-[var(--surface-subtle)]/50 border-b border-[var(--surface-subtle)] text-xs text-[var(--text-secondary)]">
-            {t('Current check-out')}: <span className="font-medium text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(r.checkOut)}</span> · {r.nights} {r.nights === 1 ? t('night') : t('nights')}
+            {t('Current check-out')}: <span className="font-medium text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(r.checkOut)}</span> · {bookingIsSession ? `${bookedHours} ${t('hrs')}` : `${r.nights} ${r.nights === 1 ? t('night') : t('nights')}`}
           </div>
 
-          {/* Nights stepper */}
           <div className="px-5 py-5">
+            {/* Unit toggle — extend by night or by session block. */}
+            <div className="inline-flex w-full rounded-md bg-[var(--surface-subtle)] p-0.5 mb-5">
+              {(['night', 'session'] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => { setMode(m); setExtra(1); }}
+                  className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-[5px] transition-colors cursor-pointer ${mode === m ? 'bg-white text-[var(--text-primary)] shadow-[0_1px_2px_rgba(44,38,39,0.08)]' : 'text-[var(--text-tertiary)] hover:text-[var(--text-primary)]'}`}
+                >
+                  {m === 'night' ? t('By night') : t('By session')}
+                </button>
+              ))}
+            </div>
+
+            {/* Stepper */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-[var(--text-primary)]">{t('Add nights')}</span>
+              <span className="text-sm font-medium text-[var(--text-primary)]">{mode === 'session' ? t('Add sessions') : t('Add nights')}</span>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setExtra((n) => Math.max(1, n - 1))}
                   disabled={extra <= 1}
                   className="w-8 h-8 inline-flex items-center justify-center border border-[var(--border-default)] rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label={t('Fewer nights')}
+                  aria-label={mode === 'session' ? t('Fewer sessions') : t('Fewer nights')}
                 >
                   <Minus className="w-4 h-4" />
                 </button>
@@ -721,12 +805,26 @@ function ExtendStayDialog({
                   onClick={() => setExtra((n) => Math.min(30, n + 1))}
                   disabled={extra >= 30}
                   className="w-8 h-8 inline-flex items-center justify-center border border-[var(--border-default)] rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label={t('More nights')}
+                  aria-label={mode === 'session' ? t('More sessions') : t('More nights')}
                 >
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>
+
+            {/* Conversion / midnight notices */}
+            {converting && (
+              <div className="mt-4 flex items-start gap-2 px-3 py-2.5 bg-[var(--brand-tint)] border border-[var(--brand-border)] rounded-md">
+                <ArrowLeftRight className="w-3.5 h-3.5 text-[var(--brand-primary)] shrink-0 mt-0.5" />
+                <p className="text-[11px] text-[var(--text-primary)] leading-relaxed">{t('This converts the day-use booking into an overnight stay, repriced at the nightly rate.')}</p>
+              </div>
+            )}
+            {crossesMidnight && (
+              <div className="mt-4 flex items-start gap-2 px-3 py-2.5 bg-[var(--color-data-orange-10)] border border-[var(--color-data-orange-20)] rounded-md">
+                <TriangleAlert className="w-3.5 h-3.5 text-[var(--color-data-orange-50)] shrink-0 mt-0.5" />
+                <p className="text-[11px] text-[var(--text-primary)] leading-relaxed">{t('This runs past midnight — check-out lands on')} <span className="font-medium tabular-nums">{formatDateTimeLong(newCheckOut)}</span>.</p>
+              </div>
+            )}
 
             {/* Preview */}
             <div className="mt-5 rounded-md border border-[var(--border-default)] divide-y divide-[var(--surface-subtle)]">
@@ -735,28 +833,28 @@ function ExtendStayDialog({
                 <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{formatDateTimeLong(newCheckOut)}</span>
               </div>
               <div className="flex items-center justify-between px-3.5 py-2.5">
-                <span className="text-xs text-[var(--text-secondary)]">{t('Total nights')}</span>
-                <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{newNights} {newNights === 1 ? t('night') : t('nights')}</span>
+                <span className="text-xs text-[var(--text-secondary)]">{resultOvernight ? t('Total nights') : t('Total time')}</span>
+                <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">{resultOvernight ? `${newNights} ${newNights === 1 ? t('night') : t('nights')}` : `${bookedHours + extra * sessionLen} ${t('hrs')}`}</span>
               </div>
               <div className="flex items-center justify-between px-3.5 py-2.5">
                 <span className="text-xs text-[var(--text-secondary)]">{t('New total')}</span>
                 <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
-                  {formatAmount(newAmount)} <span className="text-[var(--success)] font-normal">+{formatAmount(added)}</span>
+                  {formatAmount(newAmount)} <span className={`font-normal ${delta >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{delta >= 0 ? '+' : '−'}{formatAmount(Math.abs(delta))}</span>
                 </span>
               </div>
             </div>
-            <p className="text-[11px] text-[var(--text-tertiary)] mt-2 tabular-nums">{extra} {extra === 1 ? t('night') : t('nights')} × {formatAmount(nightly)}/{t('night')}</p>
+            <p className="text-[11px] text-[var(--text-tertiary)] mt-2 tabular-nums">{converting ? `${extra} ${unitLabel} × ${formatAmount(unitPrice)}/${t('night')}` : `+${extra} ${unitLabel} × ${formatAmount(unitPrice)}/${mode === 'session' ? t('session') : t('night')}`}</p>
           </div>
 
           {/* Footer */}
           <div className="px-5 py-4 border-t border-[var(--surface-subtle)] flex items-center justify-end gap-2">
             <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">{t('Cancel')}</button>
             <button
-              onClick={() => onConfirm(newCheckOut, newNights, newAmount)}
+              onClick={() => onConfirm({ checkOut: newCheckOut, nights: newNights, amount: newAmount, rateType: newRateType, mode, converted: converting, extra })}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer"
             >
               <CalendarClock className="w-3.5 h-3.5" />
-              {t('Confirm extension')}
+              {converting ? t('Convert to overnight') : t('Confirm extension')}
             </button>
           </div>
         </motion.div>

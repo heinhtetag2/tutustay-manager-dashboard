@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { DEMO_RESERVATIONS, type Reservation, type ReservationStatus } from './reservations-data';
+import { DEMO_RESERVATIONS, type Reservation, type ReservationStatus, type RateType } from './reservations-data';
 
 interface ReservationsState {
   reservations: Reservation[];
@@ -8,8 +8,10 @@ interface ReservationsState {
   changeRoom: (id: string, roomType: string, roomNo: string, amount?: number) => void;
   /** Save (or clear) the internal manager note for a reservation. */
   setManagerNote: (id: string, note: string, at?: string) => void;
-  /** Extend a stay: new check-out date, new night count, and repriced total. */
-  extendStay: (id: string, checkOut: string, nights: number, amount: number) => void;
+  /** Extend a stay: new check-out date, new night count, and repriced total.
+   *  Pass `rateType` to also switch the booking type (e.g. converting a
+   *  day-use session into an overnight stay). */
+  extendStay: (id: string, checkOut: string, nights: number, amount: number, rateType?: RateType) => void;
   /** Mark a reservation as paid (e.g. a walk-in settling at the counter). */
   setPaid: (id: string) => void;
   removeReservation: (id: string) => void;
@@ -31,8 +33,8 @@ export const useReservations = create<ReservationsState>((set) => ({
         r.id === id ? { ...r, managerNote: note || undefined, managerNoteAt: note ? (at ?? r.managerNoteAt) : undefined } : r,
       ),
     })),
-  extendStay: (id, checkOut, nights, amount) =>
-    set((s) => ({ reservations: s.reservations.map((r) => (r.id === id ? { ...r, checkOut, nights, amount } : r)) })),
+  extendStay: (id, checkOut, nights, amount, rateType) =>
+    set((s) => ({ reservations: s.reservations.map((r) => (r.id === id ? { ...r, checkOut, nights, amount, ...(rateType ? { rateType } : {}) } : r)) })),
   setPaid: (id) =>
     set((s) => ({ reservations: s.reservations.map((r) => (r.id === id ? { ...r, paymentStatus: 'Paid' } : r)) })),
   removeReservation: (id) =>
