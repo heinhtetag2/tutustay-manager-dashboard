@@ -31,6 +31,7 @@ import { cn } from '@/shared/lib/cn';
 import { Portal } from '@/shared/ui/portal';
 import { useHotel } from '@/pages/hotel/use-hotel';
 import { setupProgress } from '@/pages/setup-hub/setup-progress';
+import { ProductBrand } from './ProductBrand';
 
 /** Hover tooltip for collapsed nav items — rendered in a Portal with fixed
  *  positioning so it isn't clipped by the sidebar's overflow-hidden. */
@@ -489,6 +490,11 @@ export function Sidebar({
 
         {/* User Profile */}
         <ProfileMenu collapsed={effectiveCollapsed} isDesktop={isDesktop} />
+
+        {/* Product brand — "Powered by TutuStay" */}
+        <div className="border-t border-[var(--surface-subtle)] mt-1 pt-1">
+          <ProductBrand collapsed={effectiveCollapsed} />
+        </div>
       </div>
     </motion.aside>
 
