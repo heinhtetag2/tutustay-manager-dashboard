@@ -18,7 +18,6 @@ import {
   CloudMoon,
   Clock,
   ArrowUpRight,
-  BadgeCheck,
   User,
   Cake,
   Flag,
@@ -39,11 +38,12 @@ import {
   Send,
   Wallet,
   Lock,
+  UserPlus,
 } from 'lucide-react';
 
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { useCustomers } from '@/pages/customers/use-customers';
-import { formatMoney } from '@/pages/customers/customers-data';
+import { formatMoney, type Customer, type Gender } from '@/pages/customers/customers-data';
 import { CouponBadge, discountLabel, originalAmount } from '@/shared/ui/coupon-badge';
 import { STAT_TONE } from '@/shared/ui/stat-tone';
 import { Portal } from '@/shared/ui/portal';
@@ -85,10 +85,13 @@ export default function ReservationDetail() {
   const changeRoom = useReservations((s) => s.changeRoom);
   const extendStay = useReservations((s) => s.extendStay);
   const setPaid = useReservations((s) => s.setPaid);
+  const linkCustomer = useReservations((s) => s.linkCustomer);
   const customer = useCustomers((s) => s.customers.find((c) => c.id === reservation?.customerId));
+  const addCustomer = useCustomers((s) => s.addCustomer);
   const { formatDate, formatDateTime, formatDateTimeLong } = useDateFormat();
   const [changeRoomOpen, setChangeRoomOpen] = useState(false);
   const [extendOpen, setExtendOpen] = useState(false);
+  const [addGuestOpen, setAddGuestOpen] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
   // Running feed of internal notes — seeded from the reservation's saved note.
   const [notes, setNotes] = useState<{ id: number; text: string; date: string }[]>(() =>
@@ -422,36 +425,38 @@ export default function ReservationDetail() {
           <section className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
             <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Guest')}</h2>
-                <p className="text-xs text-[var(--text-secondary)] mt-0.5">{customer ? t('Registered customer') : t('Not a registered customer')}</p>
+                <h2 className="text-base font-medium text-[var(--text-primary)]">{t('Guest profile')}</h2>
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5">{customer ? t('Registered customer details') : t('Not a registered customer')}</p>
               </div>
               {customer && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-[var(--success-tint)] text-[var(--success)]">
-                  <BadgeCheck className="w-3.5 h-3.5" />
-                  {t('Verified')}
-                </span>
+                <button onClick={() => navigate(`/customers/${customer.id}`)} className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] transition-colors cursor-pointer shrink-0">
+                  {t('View full profile')}
+                  <ArrowUpRight className="w-4 h-4" />
+                </button>
               )}
             </div>
-            <div className="px-6 py-5 space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 px-6 py-5">
               <InfoRow Icon={Mail} label={t('Email')}><a href={`mailto:${r.guestEmail}`} className="text-sm text-[var(--text-primary)] hover:text-[var(--brand-primary)] transition-colors break-all">{r.guestEmail}</a></InfoRow>
               <InfoRow Icon={Phone} label={t('Phone')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{phone || t('Not registered')}</span></InfoRow>
+              <InfoRow Icon={Hash} label={t('User ID')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{customer?.userId ?? '—'}</span></InfoRow>
               <InfoRow Icon={User} label={t('Gender')}><span className="text-sm text-[var(--text-primary)]">{customer?.gender ? t(customer.gender) : '—'}</span></InfoRow>
               <InfoRow Icon={Cake} label={t('Age')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{age != null ? `${age} ${t('years')}` : '—'}</span></InfoRow>
               <InfoRow Icon={Flag} label={t('Nationality')}><span className="text-sm text-[var(--text-primary)]">{customer?.nationality || '—'}</span></InfoRow>
               <InfoRow Icon={CalendarCheck} label={t('Total bookings')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{customer ? customer.totalBookings : '—'}</span></InfoRow>
               <InfoRow Icon={CreditCard} label={t('Total payment')}><span className="text-sm text-[var(--text-primary)] tabular-nums">{customer ? formatMoney(customer.totalPayment) : '—'}</span></InfoRow>
             </div>
-            {customer ? (
-              <button
-                onClick={() => navigate(`/customers/${customer.id}`)}
-                className="w-full flex items-center justify-center gap-1.5 px-6 py-3.5 border-t border-[var(--surface-subtle)] text-sm font-medium text-[var(--brand-primary)] hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
-              >
-                {t('View full profile')}
-                <ArrowUpRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <div className="px-6 py-3.5 border-t border-[var(--surface-subtle)] text-xs text-[var(--text-secondary)] text-center">
-                {t('This guest booked without an account, so there’s no customer profile yet.')}
+            {!customer && (
+              <div className="border-t border-[var(--surface-subtle)]">
+                <p className="px-6 pt-3.5 text-xs text-[var(--text-secondary)] text-center">
+                  {t('This guest booked without an account, so there’s no customer profile yet.')}
+                </p>
+                <button
+                  onClick={() => setAddGuestOpen(true)}
+                  className="w-full flex items-center justify-center gap-1.5 px-6 pt-2.5 pb-3.5 text-sm font-medium text-[var(--brand-primary)] hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  {t('Create guest profile')}
+                </button>
               </div>
             )}
           </section>
@@ -515,6 +520,44 @@ export default function ReservationDetail() {
               logAction({ Icon: converted ? ArrowLeftRight : CalendarClock, tone: 'bg-[var(--brand-tint)] text-[var(--brand-primary)]', label, detail });
               extendStay(r.id, checkOut, nights, amount, rateType);
               setExtendOpen(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {addGuestOpen && (
+          <AddGuestProfileDialog
+            reservation={r}
+            onClose={() => setAddGuestOpen(false)}
+            onConfirm={(profile) => {
+              const id = `c${Date.now()}`;
+              const newCustomer: Customer = {
+                id,
+                userId: String(Date.now()).slice(-6),
+                fullName: profile.fullName,
+                email: profile.email,
+                phone: profile.phone,
+                lastBookingDate: r.checkIn,
+                totalBookings: 1,
+                totalPayment: r.amount,
+                notes: '',
+                status: 'Active',
+                joinedDate: new Date().toISOString(),
+                gender: profile.gender,
+                dateOfBirth: profile.dateOfBirth || undefined,
+                nationality: profile.nationality || undefined,
+                residentId: profile.residentId || undefined,
+                reservationNumber: r.code,
+                reservationDate: r.createdAt,
+                roomType: r.roomType,
+                lastRoomType: r.roomType,
+              };
+              addCustomer(newCustomer);
+              linkCustomer(r.id, id);
+              logAction({ Icon: UserPlus, tone: 'bg-[var(--brand-tint)] text-[var(--brand-primary)]', label: t('Guest profile created'), detail: profile.fullName });
+              setAddGuestOpen(false);
+              navigate(`/customers/${id}`);
             }}
           />
         )}
@@ -860,6 +903,132 @@ function ExtendStayDialog({
         </motion.div>
       </div>
     </Portal>
+  );
+}
+
+/** Profile fields captured when promoting an unregistered guest into a
+ *  customer record. */
+interface GuestProfileDraft {
+  fullName: string;
+  email: string;
+  phone: string;
+  gender?: Gender;
+  dateOfBirth: string;
+  nationality: string;
+  residentId: string;
+}
+
+/** Modal to create a customer profile for a guest who booked without an
+ *  account — prefilled from the reservation, then linked back to it. */
+function AddGuestProfileDialog({
+  reservation: r,
+  onClose,
+  onConfirm,
+}: {
+  reservation: Reservation;
+  onClose: () => void;
+  onConfirm: (profile: GuestProfileDraft) => void;
+}) {
+  const { t } = useTranslation();
+  const [fullName, setFullName] = useState(r.guestName);
+  const [email, setEmail] = useState(r.guestEmail);
+  const [phone, setPhone] = useState('');
+  const [gender, setGender] = useState<Gender | ''>('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [nationality, setNationality] = useState('');
+  const [residentId, setResidentId] = useState('');
+
+  const canSave = fullName.trim().length > 0 && email.trim().length > 0;
+
+  const fieldClass =
+    'w-full px-3 py-2 bg-white border border-[var(--border-default)] rounded-md text-sm focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] placeholder:text-[var(--text-secondary)]';
+
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-black/40"
+        />
+        <motion.div
+          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 12, scale: 0.98 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="relative w-full max-w-md bg-white rounded-md border border-[var(--border-default)] shadow-[0_16px_48px_rgba(44,38,39,0.22)] flex flex-col max-h-[85vh]"
+        >
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-[var(--surface-subtle)] shrink-0">
+            <div>
+              <h3 className="text-base font-medium text-[var(--text-primary)]">{t('Create guest profile')}</h3>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{t('Register')} {r.guestName} {t('as a customer and link this booking.')}</p>
+            </div>
+            <button onClick={onClose} className="p-1.5 -mr-1 text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] rounded-md transition-colors cursor-pointer" aria-label={t('Close')}><X className="w-4 h-4" /></button>
+          </div>
+
+          {/* Form */}
+          <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+            <Field label={t('Full name')} required>
+              <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t('Guest full name')} className={fieldClass} />
+            </Field>
+            <Field label={t('Email')} required>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className={fieldClass} />
+            </Field>
+            <Field label={t('Phone')}>
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('Phone number')} className={fieldClass} />
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label={t('Gender')}>
+                <select value={gender} onChange={(e) => setGender(e.target.value as Gender | '')} className={`${fieldClass} cursor-pointer`}>
+                  <option value="">{t('Select')}</option>
+                  <option value="Male">{t('Male')}</option>
+                  <option value="Female">{t('Female')}</option>
+                  <option value="Other">{t('Other')}</option>
+                </select>
+              </Field>
+              <Field label={t('Date of birth')}>
+                <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className={`${fieldClass} tabular-nums`} />
+              </Field>
+            </div>
+            <Field label={t('Nationality')}>
+              <input value={nationality} onChange={(e) => setNationality(e.target.value)} placeholder={t('Country')} className={fieldClass} />
+            </Field>
+            <Field label={t('Resident ID')}>
+              <input value={residentId} onChange={(e) => setResidentId(e.target.value)} placeholder={t('National / passport number')} className={fieldClass} />
+            </Field>
+          </div>
+
+          {/* Footer */}
+          <div className="px-5 py-4 border-t border-[var(--surface-subtle)] flex items-center justify-end gap-2 shrink-0">
+            <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--text-tertiary)] bg-white border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer">{t('Cancel')}</button>
+            <button
+              onClick={() => canSave && onConfirm({ fullName: fullName.trim(), email: email.trim(), phone: phone.trim(), gender: gender || undefined, dateOfBirth, nationality: nationality.trim(), residentId: residentId.trim() })}
+              disabled={!canSave}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--brand-primary)] rounded-md hover:bg-[var(--brand-primary-hover)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              {t('Create profile')}
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </Portal>
+  );
+}
+
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5">
+        {label}
+        {required && <span className="text-[var(--danger)]"> *</span>}
+      </span>
+      {children}
+    </label>
   );
 }
 

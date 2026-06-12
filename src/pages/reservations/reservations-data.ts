@@ -286,7 +286,7 @@ export const DEMO_RESERVATIONS: Reservation[] = [
     status: 'Confirmed', createdAt: '2026-06-08T12:40:00',
   },
   {
-    id: 'rsv39', code: 'RSV-1086', guestName: 'Leila Haddad', guestEmail: 'leila.haddad@example.com',
+    id: 'rsv39', code: 'RSV-1086', guestName: 'Leila Haddad', guestEmail: 'leila.haddad@example.com', customerId: 'c7',
     roomType: 'Superior', roomNo: '211', checkIn: '2026-06-26T14:00:00', checkOut: '2026-06-27T12:00:00', nights: 1, guests: 1, amount: 90000,
     status: 'Cancelled', createdAt: '2026-06-08T14:05:00',
   },

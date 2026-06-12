@@ -14,6 +14,8 @@ interface ReservationsState {
   extendStay: (id: string, checkOut: string, nights: number, amount: number, rateType?: RateType) => void;
   /** Mark a reservation as paid (e.g. a walk-in settling at the counter). */
   setPaid: (id: string) => void;
+  /** Link a reservation to a customer record (e.g. after creating a profile for an unregistered guest). */
+  linkCustomer: (id: string, customerId: string) => void;
   removeReservation: (id: string) => void;
 }
 
@@ -37,6 +39,8 @@ export const useReservations = create<ReservationsState>((set) => ({
     set((s) => ({ reservations: s.reservations.map((r) => (r.id === id ? { ...r, checkOut, nights, amount, ...(rateType ? { rateType } : {}) } : r)) })),
   setPaid: (id) =>
     set((s) => ({ reservations: s.reservations.map((r) => (r.id === id ? { ...r, paymentStatus: 'Paid' } : r)) })),
+  linkCustomer: (id, customerId) =>
+    set((s) => ({ reservations: s.reservations.map((r) => (r.id === id ? { ...r, customerId } : r)) })),
   removeReservation: (id) =>
     set((s) => ({ reservations: s.reservations.filter((r) => r.id !== id) })),
 }));
