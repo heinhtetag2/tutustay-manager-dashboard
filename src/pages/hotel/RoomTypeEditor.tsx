@@ -38,6 +38,8 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
   // Weekend rate is derived from the chosen mode + surcharge; keep weekendPrice in sync.
   const weekendMode: WeekendMode = d.weekendMode ?? 'percent';
   const weekendSurcharge = d.weekendSurcharge ?? 0;
+  const weekendForeignerSurcharge = d.weekendForeignerSurcharge ?? weekendSurcharge;
+  const foreignerWeekendUplift = (acceptsForeigners && weekendMode === 'amount') ? weekendForeignerSurcharge : weekendSurcharge;
   useEffect(() => {
     const computed = computeWeekendPrice(d.regularPrice, weekendMode, weekendSurcharge);
     if (computed !== d.weekendPrice) set({ weekendPrice: computed });
@@ -113,101 +115,126 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
                   <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${d.sessionEnabled ? '' : 'opacity-50 pointer-events-none'}`}>
                     <Field label={t(acceptsForeigners ? 'Local price (per session)' : 'Base price (per session)')}><Money value={d.sessionPrice} onChange={(v) => set({ sessionPrice: v })} /></Field>
                     {acceptsForeigners && <Field label={t('Foreigner price (per session)')}><Money value={d.foreignerSessionPrice ?? 0} onChange={(v) => set({ foreignerSessionPrice: v })} /></Field>}
-                    <Field label={t('Session length (hours)')}>
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-[var(--text-secondary)]">{t('Session length (hours)')}</span>
+                        <button
+                          type="button"
+                          onClick={goToPricingDefaults}
+                          className="inline-flex items-center gap-1 text-[10px] text-[var(--text-tertiary)] hover:text-[var(--brand-primary)] transition-colors cursor-pointer"
+                        >
+                          <SettingsIcon className="w-2.5 h-2.5 shrink-0" />
+                          {t('Manage in Settings')}
+                        </button>
+                      </div>
                       <div className="relative">
                         <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] pointer-events-none" />
                         <input type="text" readOnly disabled value={`${sessionHoursDefault} ${sessionHoursDefault === 1 ? t('hour') : t('hours')}`} className={`${fieldInput} pl-9 pr-9 bg-[var(--surface-subtle)] text-[var(--text-secondary)] cursor-not-allowed`} />
                         <Lock className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-tertiary)] pointer-events-none" />
                       </div>
-                    </Field>
+                    </div>
                   </div>
-                  <DefaultsHint onManage={goToPricingDefaults} label={t('Session length is managed in Settings')} />
                 </div>
               )}
               {priceTab === 'weekend' && (
                 <div className="space-y-4">
                   <Toggle checked={d.weekendEnabled} onChange={(v) => set({ weekendEnabled: v })} label={t('Enable weekend pricing')} hint={t('Apply an uplift to the night and session rate on selected days')} />
                   <div className={d.weekendEnabled ? 'space-y-4' : 'opacity-50 pointer-events-none space-y-4'}>
-                    <Field label={t('Weekend days')}>
-                      {/* Read-only — weekend days are set from the hotel-wide defaults in Settings. */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-[var(--text-secondary)]">{t('Weekend days')}</span>
+                        <button
+                          type="button"
+                          onClick={goToPricingDefaults}
+                          className="inline-flex items-center gap-1 text-[10px] text-[var(--text-tertiary)] hover:text-[var(--brand-primary)] transition-colors cursor-pointer"
+                        >
+                          <SettingsIcon className="w-2.5 h-2.5 shrink-0" />
+                          {t('Manage in Settings')}
+                        </button>
+                      </div>
+                      {/* Read-only display — weekend days are set from hotel-wide defaults in Settings. */}
                       <div className="flex flex-wrap gap-2">
                         {WEEKEND_DAYS.map((day) => {
                           const on = d.weekendDays.includes(day);
-                          return <span key={day} className={`px-3 py-1.5 text-xs font-medium rounded-full border select-none ${on ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]' : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)]'}`}>{t(day)}</span>;
+                          return (
+                            <span key={day} className={`px-2.5 py-1 text-xs font-medium rounded-full border select-none pointer-events-none ${on ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)] border-[var(--brand-border)]' : 'bg-white text-[var(--text-tertiary)] border-[var(--border-default)] opacity-40'}`}>
+                              {t(day).slice(0, 3)}
+                            </span>
+                          );
                         })}
                       </div>
-                      <DefaultsHint onManage={goToPricingDefaults} label={t('Weekend days are configured in Settings')} />
-                    </Field>
+                    </div>
                     <Field label={t('Weekend uplift')}>
                       <div className="space-y-3">
-                        {/* Value and unit toggle as two separate controls on one row. */}
-                        <div className="flex items-center gap-2">
-                          <div className="relative flex-1 min-w-0">
-                            {weekendMode === 'amount' && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-secondary)] pointer-events-none select-none">MMK</span>}
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              value={weekendSurcharge ? weekendSurcharge.toLocaleString('en-US') : ''}
-                              onChange={(e) => set({ weekendSurcharge: Number(e.target.value.replace(/[^\d]/g, '')) })}
-                              placeholder="0"
-                              className={`w-full py-2 bg-white border border-[var(--border-default)] rounded-md text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)] transition-colors tabular-nums placeholder:text-[var(--text-secondary)] ${weekendMode === 'amount' ? 'pl-14 pr-3' : 'pl-3 pr-9'}`}
-                            />
-                            {weekendMode === 'percent' && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--text-secondary)] pointer-events-none select-none">%</span>}
-                          </div>
-                          <div className="flex items-center gap-0.5 shrink-0 p-0.5 bg-[var(--surface-subtle)] rounded-lg">
-                            {([['percent', '%'], ['amount', 'MMK']] as const).map(([m, label]) => {
-                              const on = weekendMode === m;
-                              return (
-                                <button
-                                  key={m}
-                                  type="button"
-                                  onClick={() => set({ weekendMode: m })}
-                                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${on ? 'bg-[var(--brand-tint)] text-[var(--brand-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-                                >
-                                  {label}
-                                </button>
-                              );
-                            })}
-                          </div>
+                        {/* Mode toggle + inputs. % = one input for all. MMK + foreigners = two inputs (local / foreigner). */}
+                        <div className="space-y-2">
+                          {/* Single input row — used for % always, and for MMK when no foreigner pricing */}
+                          {(weekendMode === 'percent' || !acceptsForeigners) && (
+                            <div className="flex items-center w-full border border-[var(--border-default)] rounded-md bg-white focus-within:border-[var(--brand-primary)] focus-within:ring-1 focus-within:ring-[var(--brand-primary)] transition-colors">
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={weekendSurcharge ? weekendSurcharge.toLocaleString('en-US') : ''}
+                                onChange={(e) => set({ weekendSurcharge: Number(e.target.value.replace(/[^\d]/g, '')) })}
+                                placeholder="0"
+                                className="flex-1 min-w-0 py-2 pl-3 pr-2 bg-transparent text-sm text-[var(--text-primary)] focus:outline-none tabular-nums placeholder:text-[var(--text-secondary)]"
+                              />
+                              <div className="flex items-center gap-0.5 shrink-0 p-0.5 mx-1.5 my-1 bg-[var(--surface-subtle)] rounded-[6px]">
+                                <button type="button" onClick={() => set({ weekendMode: 'percent' })} className={`px-2.5 py-1 text-xs font-medium rounded-[4px] transition-all cursor-pointer ${weekendMode === 'percent' ? 'bg-white text-[var(--brand-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>%</button>
+                                <button type="button" onClick={() => set({ weekendMode: 'amount' })} className={`px-2.5 py-1 text-xs font-medium rounded-[4px] transition-all cursor-pointer ${weekendMode === 'amount' ? 'bg-white text-[var(--brand-primary)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>MMK</button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Two inputs — MMK mode + foreigner pricing: local and foreigner get separate flat uplifts */}
+                          {weekendMode === 'amount' && acceptsForeigners && (
+                            <div className="space-y-1.5">
+                              {[
+                                { labelKey: 'Local uplift (MMK)', value: weekendSurcharge, onChange: (v: number) => set({ weekendSurcharge: v }) },
+                                { labelKey: 'Foreigner uplift (MMK)', value: weekendForeignerSurcharge, onChange: (v: number) => set({ weekendForeignerSurcharge: v }) },
+                              ].map(({ labelKey, value, onChange }) => (
+                                <div key={labelKey} className="flex items-center w-full border border-[var(--border-default)] rounded-md bg-white focus-within:border-[var(--brand-primary)] focus-within:ring-1 focus-within:ring-[var(--brand-primary)] transition-colors">
+                                  <span className="pl-3 text-xs text-[var(--text-tertiary)] shrink-0 select-none">{t(labelKey)}</span>
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={value ? value.toLocaleString('en-US') : ''}
+                                    onChange={(e) => onChange(Number(e.target.value.replace(/[^\d]/g, '')))}
+                                    placeholder="0"
+                                    className="flex-1 min-w-0 py-2 px-2 bg-transparent text-sm text-[var(--text-primary)] text-right focus:outline-none tabular-nums placeholder:text-[var(--text-secondary)]"
+                                  />
+                                  <div className="flex items-center gap-0.5 shrink-0 p-0.5 mx-1.5 my-1 bg-[var(--surface-subtle)] rounded-[6px]">
+                                    <button type="button" onClick={() => set({ weekendMode: 'percent' })} className="px-2.5 py-1 text-xs font-medium rounded-[4px] transition-all cursor-pointer text-[var(--text-secondary)] hover:text-[var(--text-primary)]">%</button>
+                                    <button type="button" className="px-2.5 py-1 text-xs font-medium rounded-[4px] bg-white text-[var(--brand-primary)] shadow-sm cursor-default">MMK</button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
-                        {/* Live preview — the uplift applies to both rates on selected days */}
-                        <div className="rounded-md bg-white border border-[var(--border-default)] divide-y divide-[var(--surface-subtle)]">
-                          <div className="flex items-center justify-between px-3 py-2">
-                            <span className="text-xs text-[var(--text-secondary)]">{acceptsForeigners ? t('Weekend night rate (local)') : t('Weekend night rate')}</span>
-                            <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
-                              <span className="text-xs text-[var(--text-muted)] font-normal line-through mr-1.5">{formatPrice(d.regularPrice)}</span>
-                              {formatPrice(d.weekendPrice)}
-                            </span>
-                          </div>
-                          {acceptsForeigners && (
-                            <div className="flex items-center justify-between px-3 py-2">
-                              <span className="text-xs text-[var(--text-secondary)]">{t('Weekend night rate (foreigner)')}</span>
-                              <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
-                                <span className="text-xs text-[var(--text-muted)] font-normal line-through mr-1.5">{formatPrice(d.foreignerPrice ?? 0)}</span>
-                                {formatPrice(computeWeekendPrice(d.foreignerPrice ?? 0, weekendMode, weekendSurcharge))}
-                              </span>
+                        {/* Live preview */}
+                        {(() => {
+                          const rows = [
+                            { label: acceptsForeigners ? t('Night (local)') : t('Night'), base: d.regularPrice, weekend: d.weekendPrice },
+                            ...(acceptsForeigners ? [{ label: t('Night (foreigner)'), base: d.foreignerPrice ?? 0, weekend: computeWeekendPrice(d.foreignerPrice ?? 0, weekendMode, foreignerWeekendUplift) }] : []),
+                            ...(d.sessionEnabled ? [{ label: acceptsForeigners ? t('Session (local)') : t('Session'), base: d.sessionPrice, weekend: computeWeekendPrice(d.sessionPrice, weekendMode, weekendSurcharge) }] : []),
+                            ...(d.sessionEnabled && acceptsForeigners ? [{ label: t('Session (foreigner)'), base: d.foreignerSessionPrice ?? 0, weekend: computeWeekendPrice(d.foreignerSessionPrice ?? 0, weekendMode, foreignerWeekendUplift) }] : []),
+                          ];
+                          return (
+                            <div className="divide-y divide-[var(--border-default)] rounded-md overflow-hidden border border-[var(--border-default)]">
+                              {rows.map((row, i) => (
+                                <div key={i} className="flex items-center justify-between px-3 py-2.5 bg-white">
+                                  <span className="text-xs text-[var(--text-secondary)]">{row.label}</span>
+                                  <div className="flex flex-col items-end">
+                                    <span className="text-[10px] text-[var(--text-muted)] tabular-nums line-through decoration-[var(--text-muted)] leading-none mb-1 opacity-60 tracking-wide">{formatPrice(row.base)}</span>
+                                    <span className="text-sm font-semibold text-[var(--text-primary)] tabular-nums leading-none">{formatPrice(row.weekend)}</span>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          )}
-                          {d.sessionEnabled && (
-                            <div className="flex items-center justify-between px-3 py-2">
-                              <span className="text-xs text-[var(--text-secondary)]">{acceptsForeigners ? t('Weekend session rate (local)') : t('Weekend session rate')}</span>
-                              <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
-                                <span className="text-xs text-[var(--text-muted)] font-normal line-through mr-1.5">{formatPrice(d.sessionPrice)}</span>
-                                {formatPrice(computeWeekendPrice(d.sessionPrice, weekendMode, weekendSurcharge))}
-                              </span>
-                            </div>
-                          )}
-                          {d.sessionEnabled && acceptsForeigners && (
-                            <div className="flex items-center justify-between px-3 py-2">
-                              <span className="text-xs text-[var(--text-secondary)]">{t('Weekend session rate (foreigner)')}</span>
-                              <span className="text-sm font-medium text-[var(--text-primary)] tabular-nums">
-                                <span className="text-xs text-[var(--text-muted)] font-normal line-through mr-1.5">{formatPrice(d.foreignerSessionPrice ?? 0)}</span>
-                                {formatPrice(computeWeekendPrice(d.foreignerSessionPrice ?? 0, weekendMode, weekendSurcharge))}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                          );
+                        })()}
                         <p className="flex items-start gap-1.5 text-xs text-[var(--text-secondary)] pl-1">
                           <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[var(--text-tertiary)]" />
                           <span>{weekendMode === 'percent' ? `+${weekendSurcharge}%` : `+${formatPrice(weekendSurcharge)}`} {t('added to the night and session rate on selected days.')}</span>

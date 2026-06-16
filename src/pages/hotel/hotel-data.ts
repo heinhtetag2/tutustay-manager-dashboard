@@ -192,6 +192,8 @@ export interface RoomType {
   weekendMode?: WeekendMode;
   /** The surcharge value (percent or amount), or the absolute price when mode is 'fixed'. */
   weekendSurcharge?: number;
+  /** Separate flat-MMK surcharge for foreigner rates when weekendMode is 'amount'. Falls back to weekendSurcharge if unset. */
+  weekendForeignerSurcharge?: number;
   weekendDays: string[];
   // Layout & occupancy
   beds: BedConfig[];
