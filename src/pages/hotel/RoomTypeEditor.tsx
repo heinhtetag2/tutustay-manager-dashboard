@@ -88,7 +88,7 @@ export function RoomTypeEditor({ initial, onClose, onSave, forcePriceTab, hideBa
                 return (
                   <button key={key} type="button" onClick={() => setPriceTab(key)} className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md transition-colors cursor-pointer ${on ? 'bg-[var(--text-primary)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
                     <span className="text-sm font-medium">{label}</span>
-                    <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${on ? 'bg-white/20 text-white' : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]'}`}>{badge}</span>
+                    <span className={`hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-medium rounded-full ${on ? 'bg-white/20 text-white' : 'bg-[var(--surface-subtle)] text-[var(--text-tertiary)]'}`}>{badge}</span>
                   </button>
                 );
               })}
