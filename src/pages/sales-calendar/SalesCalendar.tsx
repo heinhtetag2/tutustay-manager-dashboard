@@ -17,6 +17,8 @@ import { SalesDayDetailSheet, dotColor, statusChipStyle } from './SalesDayDetail
 
 const TODAY = new Date('2026-06-01T00:00:00');
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+/** Max booking rows shown inline per day in the mobile agenda before collapsing into "+N more". */
+const AGENDA_PREVIEW = 4;
 
 /** Compact money, e.g. 160000 → "160k". */
 function compact(n: number): string {
@@ -315,7 +317,7 @@ export default function SalesCalendar() {
                     )}
                   </button>
                   <div className="space-y-1.5">
-                    {list.map((r) => (
+                    {list.slice(0, AGENDA_PREVIEW).map((r) => (
                       <button
                         key={r.id}
                         onClick={() => navigate(`/reservations/${r.id}`)}
@@ -326,6 +328,15 @@ export default function SalesCalendar() {
                         <span className="text-xs text-[var(--text-tertiary)] truncate shrink-0 max-w-[40%]">{t(r.roomType)}</span>
                       </button>
                     ))}
+                    {list.length > AGENDA_PREVIEW && (
+                      <button
+                        onClick={() => openDay(day)}
+                        className="flex items-center justify-center gap-1 w-full px-3 py-2 rounded-md text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer"
+                      >
+                        {t('+{{count}} more', { count: list.length - AGENDA_PREVIEW })}
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               );
