@@ -12,6 +12,8 @@ import {
 
 import { countsAsRevenue, formatAmount, type Reservation, type ReservationStatus } from '@/pages/reservations/reservations-data';
 import { STAT_TONE } from '@/shared/ui/stat-tone';
+import { InfoTooltip } from '@/shared/ui/info-tooltip';
+import { GLOSSARY } from '@/widgets/onboarding/glossary';
 import { useReservations } from '@/pages/reservations/use-reservations';
 import { SalesDayDetailSheet, dotColor, statusChipStyle } from './SalesDayDetailSheet';
 
@@ -220,7 +222,10 @@ export default function SalesCalendar() {
         {stats.map((card) => (
           <div key={card.title} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 shadow-none">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
-              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+              <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+                {t(card.title)}
+                {GLOSSARY[card.title] && <InfoTooltip label={GLOSSARY[card.title]} />}
+              </span>
               <div className={`p-2 rounded-md ${STAT_TONE[card.tone]}`}><card.Icon className="w-4 h-4" /></div>
             </div>
             <div className="text-xl sm:text-2xl font-medium text-[var(--text-primary)] tabular-nums">{card.value}</div>

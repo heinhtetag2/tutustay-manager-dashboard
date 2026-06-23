@@ -28,6 +28,8 @@ import { BrandSelect } from '@/shared/ui/brand-select';
 import { MobileFilterButton, MobileFilterSheet, FilterField } from '@/shared/ui/mobile-filter-sheet';
 import { Calendar as CalendarUI } from '@/shared/ui/calendar';
 import { STAT_TONE } from '@/shared/ui/stat-tone';
+import { InfoTooltip } from '@/shared/ui/info-tooltip';
+import { GLOSSARY } from '@/widgets/onboarding/glossary';
 import { useDateFormat } from '@/shared/hooks/useDateFormat';
 import { averageRating, isHidden, isHidePending, type Review } from './reviews-data';
 import { useReviews } from './use-reviews';
@@ -177,7 +179,10 @@ export default function Reviews() {
             className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group"
           >
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
-              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+              <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+                {t(card.title)}
+                {GLOSSARY[card.title] && <InfoTooltip label={GLOSSARY[card.title]} />}
+              </span>
               <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>

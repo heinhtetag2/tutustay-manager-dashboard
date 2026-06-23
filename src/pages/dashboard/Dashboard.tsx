@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Calendar,
+  CalendarClock,
   Coins,
   CalendarCheck,
   CalendarPlus,
@@ -108,6 +109,13 @@ export default function Dashboard() {
   const propertyName = useHotel((s) => s.property.name);
 
   const [range, setRange] = useState<RangeKey>('this_month');
+
+  // Live wall-clock for the header — ticks every second so the time stays current.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const today = startOfDay(NOW);
 
@@ -342,6 +350,12 @@ export default function Dashboard() {
     >
       {/* Header */}
       <div className="mb-8">
+        <span className="inline-flex items-center gap-1.5 mb-2 px-2.5 py-1 rounded-full bg-[var(--brand-tint)]/60 text-[var(--brand-primary)] text-xs font-semibold tabular-nums">
+          <CalendarClock className="w-3.5 h-3.5" strokeWidth={2} />
+          {format(now, 'EEEE, d MMMM yyyy')}
+          <span className="opacity-50">·</span>
+          {format(now, 'h:mm:ss a')}
+        </span>
         <h1 className="text-3xl font-serif text-[var(--text-primary)]">
           {t('Welcome back,')} {USER_FIRST_NAME}
         </h1>

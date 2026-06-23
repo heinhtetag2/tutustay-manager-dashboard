@@ -26,6 +26,9 @@ export const GLOSSARY: Record<string, string> = {
   'Paid out': 'Total payouts already settled to your bank account.',
   'Pending payout': 'Money owed to you that hasn’t been paid out yet — still processing or scheduled.',
   'This month gross': 'Total booking revenue earned this month, before commission and adjustments.',
+  'Response rate': 'The share of guest reviews you have replied to (replies ÷ total reviews). Replying publicly builds trust with future guests.',
+  'Pending value': 'The combined revenue of all pending requests — what you would earn if every one were approved.',
+  Redemptions: 'The total number of times your coupons have been used by guests.',
 };
 
 export type GlossaryTerm = keyof typeof GLOSSARY;

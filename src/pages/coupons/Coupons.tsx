@@ -36,6 +36,8 @@ import {
 } from './coupons-data';
 import { useCoupons } from './use-coupons';
 import { CouponFormSheet } from './CouponFormSheet';
+import { InfoTooltip } from '@/shared/ui/info-tooltip';
+import { GLOSSARY } from '@/widgets/onboarding/glossary';
 
 const NOW = new Date('2026-06-02T10:00:00');
 
@@ -185,7 +187,10 @@ export default function Coupons() {
         {stats.map((card, i) => (
           <motion.div key={card.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: i * 0.08 }} className="bg-white border border-[var(--border-default)] rounded-md p-3 sm:p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
             <div className="flex justify-between items-start mb-1.5 sm:mb-4">
-              <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">{t(card.title)}</span>
+              <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
+                {t(card.title)}
+                {GLOSSARY[card.title] && <InfoTooltip label={GLOSSARY[card.title]} />}
+              </span>
               <div className={`p-2 rounded-md transition-colors ${STAT_TONE[card.tone]}`}>
                 <card.Icon className="w-4 h-4" />
               </div>
