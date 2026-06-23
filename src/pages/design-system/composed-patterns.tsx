@@ -84,14 +84,39 @@ function LayoutSection() {
   const [tab, setTab] = React.useState('overview');
   return (
     <Section id="layout" title="Layout & Navigation" intro="The page-level scaffolding repeated across every screen: the serif page header, breadcrumbs, the underlined tab bar and the two-column detail grid.">
-      <ComponentEntry name="Page header" path="src/pages/**/*.tsx (e.g. Reservations.tsx)" desc="A serif h1 with a muted one-line subtitle. Opens every list and detail page.">
+      <ComponentEntry
+        name="Page header"
+        path="src/pages/**/*.tsx (e.g. Reservations.tsx)"
+        desc="A serif h1 with a muted one-line subtitle. Opens every list and detail page."
+        code={`<div className="mb-2">
+  <h1 className="text-3xl font-serif text-[var(--text-primary)]">
+    Reservation Management
+  </h1>
+  <p className="text-sm text-[var(--text-secondary)] mt-1">
+    Stay on top of every arrival, in-house stay, and checkout.
+  </p>
+</div>`}
+        blocks={['serif h1', 'muted subtitle', 'div header block']}
+      >
         <div className="mb-2">
           <h1 className="text-3xl font-serif text-[var(--text-primary)]">Reservation Management</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">Stay on top of every arrival, in-house stay, and checkout as it happens.</p>
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Breadcrumb" path="src/pages/**/Detail.tsx" desc="Back-link to the list, a chevron separator, and the current record’s id as the active crumb.">
+      <ComponentEntry
+        name="Breadcrumb"
+        path="src/pages/**/Detail.tsx"
+        desc="Back-link to the list, a chevron separator, and the current record’s id as the active crumb."
+        code={`<nav className="flex items-center gap-1.5 text-[13px] text-[var(--text-secondary)]">
+  <button className="hover:text-[var(--text-primary)] transition-colors">
+    Reservation Management
+  </button>
+  <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+  <span className="text-[var(--text-primary)] font-medium truncate">RSV-1090</span>
+</nav>`}
+        blocks={['nav flex row', 'back-link button', 'ChevronRight separator', 'active crumb span']}
+      >
         <nav className="flex items-center gap-1.5 text-[13px] text-[var(--text-secondary)]">
           <button className="text-[13px] leading-none font-normal hover:text-[var(--text-primary)] transition-colors cursor-pointer">Reservation Management</button>
           <ChevronRight className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
@@ -99,7 +124,25 @@ function LayoutSection() {
         </nav>
       </ComponentEntry>
 
-      <ComponentEntry name="Tabs" path="src/pages/company-detail · src/pages/hotel/Rooms.tsx" desc="Underline-indicator tabs with an optional leading icon and a count. The active tab carries a brand-colored underline.">
+      <ComponentEntry
+        name="Tabs"
+        path="src/pages/company-detail · src/pages/hotel/Rooms.tsx"
+        desc="Underline-indicator tabs with an optional leading icon and a count. The active tab carries a brand-colored underline."
+        code={`<div className="flex gap-1 border-b border-[var(--border-default)] overflow-x-auto">
+  {tabs.map((tn) => {
+    const active = tab === tn.id;
+    return (
+      <button key={tn.id} onClick={() => setTab(tn.id)} className="relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium">
+        <tn.Icon className="w-4 h-4" />
+        {tn.label}
+        {tn.count !== undefined && <span>({tn.count})</span>}
+        {active && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-[var(--brand-primary)]" />}
+      </button>
+    );
+  })}
+</div>`}
+        blocks={['flex tab bar', 'border-b underline track', 'leading icon', 'count span', 'active brand underline']}
+      >
         <div className="flex gap-1 border-b border-[var(--border-default)] overflow-x-auto">
           {[
             { id: 'overview', Icon: LayoutDashboard, label: 'Overview' },
@@ -123,7 +166,20 @@ function LayoutSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Two-column detail layout" path="src/pages/**/Detail.tsx" desc="A 3-col grid: main content spans 2 (lg:col-span-2), a sidebar takes the third. Collapses to one column on mobile.">
+      <ComponentEntry
+        name="Two-column detail layout"
+        path="src/pages/**/Detail.tsx"
+        desc="A 3-col grid: main content spans 2 (lg:col-span-2), a sidebar takes the third. Collapses to one column on mobile."
+        code={`<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+  <div className="lg:col-span-2 bg-[var(--surface)] border rounded-md p-5">
+    {/* Main column — details, info cards, timelines */}
+  </div>
+  <div className="bg-[var(--surface)] border rounded-md p-5">
+    {/* Sidebar — guest, payment, related records */}
+  </div>
+</div>`}
+        blocks={['responsive grid', 'lg:col-span-2 main', 'sidebar column', 'Card (surface + border)']}
+      >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
           <div className="lg:col-span-2 bg-[var(--surface)] border border-[var(--border-default)] rounded-md p-5 text-sm text-[var(--text-secondary)]">
             <div className="text-sm font-medium text-[var(--text-primary)] mb-1">Main column · lg:col-span-2</div>
@@ -157,7 +213,27 @@ function CardsSection() {
 
   return (
     <Section id="cards" title="Cards & Stats" intro="The KPI card, the secondary metric strip, the trend chip, the info-row card and the avatar — the building blocks every page composes from.">
-      <ComponentEntry name="KPI stat card" path="src/pages/dashboard/Dashboard.tsx · list & detail pages" desc="Big tabular number with a pill icon (brand on hover), an optional trend chip and a muted sublabel. Rendered in a responsive 1→2→4 column grid.">
+      <ComponentEntry
+        name="KPI stat card"
+        path="src/pages/dashboard/Dashboard.tsx · list & detail pages"
+        desc="Big tabular number with a pill icon (brand on hover), an optional trend chip and a muted sublabel. Rendered in a responsive 1→2→4 column grid."
+        code={`<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  {kpis.map((c) => (
+    <div key={c.title} className="bg-white border rounded-md p-5 group hover:border-[var(--brand-border)]">
+      <div className="flex justify-between items-start mb-4">
+        <span className="text-sm font-medium text-[var(--text-secondary)]">{c.title}</span>
+        <div className={\`p-2 rounded-md \${STAT_TONE[c.tone]}\`}><c.Icon className="w-4 h-4" /></div>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="text-2xl font-medium text-[var(--brand-primary)] tabular-nums">{c.value}</div>
+        {c.delta != null && <DeltaChip delta={c.delta} />}
+      </div>
+      <div className="text-xs text-[var(--text-tertiary)] mt-2">{c.subtitle}</div>
+    </div>
+  ))}
+</div>`}
+        blocks={['responsive grid', 'Card (surface + border)', 'STAT_TONE pill icon', 'DeltaChip', 'tabular value']}
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {kpis.map((c) => (
             <div key={c.title} className="bg-white border border-[var(--border-default)] rounded-md p-5 flex flex-col justify-center shadow-none hover:border-[var(--brand-border)] transition-colors group">
@@ -177,7 +253,26 @@ function CardsSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Secondary metric strip" path="src/pages/dashboard/Dashboard.tsx" desc="A single bordered bar split into four divided cells — each an icon, a label with an (i) glossary tooltip, a value and a sublabel.">
+      <ComponentEntry
+        name="Secondary metric strip"
+        path="src/pages/dashboard/Dashboard.tsx"
+        desc="A single bordered bar split into four divided cells — each an icon, a label with an (i) glossary tooltip, a value and a sublabel."
+        code={`<div className="grid grid-cols-2 lg:grid-cols-4 sm:divide-x divide-[var(--surface-subtle)] bg-white border rounded-md overflow-hidden">
+  {metrics.map((m) => (
+    <div key={m.title} className="px-5 py-4 flex items-center gap-3.5">
+      <div className="w-10 h-10 rounded-md bg-[var(--surface-subtle)] flex items-center justify-center">
+        <CreditCard className="w-4 h-4" />
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-1 text-xs font-medium">{m.title}<InfoTooltip label={m.glossary} /></div>
+        <div className="text-lg font-medium tabular-nums">{m.value}</div>
+        <div className="text-[11px] text-[var(--text-tertiary)]">{m.subtitle}</div>
+      </div>
+    </div>
+  ))}
+</div>`}
+        blocks={['divided grid bar', 'Card (surface + border)', 'icon tile', 'InfoTooltip', 'tabular value']}
+      >
         <div className="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[var(--surface-subtle)] bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
           {metrics.map((m) => (
             <div key={m.title} className="px-5 py-4 flex items-center gap-3.5">
@@ -197,7 +292,16 @@ function CardsSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Trend chip (delta)" path="src/pages/dashboard/Dashboard.tsx" desc="Up/down pill for period-over-period change. Green tint for positive, danger tint for negative. Supports percent or count.">
+      <ComponentEntry
+        name="Trend chip (delta)"
+        path="src/pages/dashboard/Dashboard.tsx"
+        desc="Up/down pill for period-over-period change. Green tint for positive, danger tint for negative. Supports percent or count."
+        code={`<DeltaChip delta={12.4} />
+<DeltaChip delta={-4} unit="count" />
+<DeltaChip delta={2336.3} />
+<DeltaChip delta={-8.1} />`}
+        blocks={['DeltaChip', 'ArrowUpRight / ArrowDownRight', 'success / danger tint pill']}
+      >
         <div className="flex flex-wrap items-center gap-3">
           <DeltaChip delta={12.4} />
           <DeltaChip delta={-4} unit="count" />
@@ -206,7 +310,23 @@ function CardsSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Info card (icon · label · value rows)" path="src/pages/**/Detail.tsx — InfoRow" desc="A titled card whose body is a 2-column grid of rows: a rounded-square icon, a muted label and a value.">
+      <ComponentEntry
+        name="Info card (icon · label · value rows)"
+        path="src/pages/**/Detail.tsx — InfoRow"
+        desc="A titled card whose body is a 2-column grid of rows: a rounded-square icon, a muted label and a value."
+        code={`<section className="bg-white border rounded-md overflow-hidden">
+  <div className="px-6 py-4 border-b">
+    <h2 className="text-base font-medium">Reservation details</h2>
+    <p className="text-xs text-[var(--text-secondary)] mt-0.5">Stay and room information</p>
+  </div>
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 px-6 py-5">
+    <InfoRow Icon={Hash} label="Reservation code"><span>RSV-1090</span></InfoRow>
+    <InfoRow Icon={BedDouble} label="Room"><span>Family · Room 413</span></InfoRow>
+    <InfoRow Icon={Mail} label="Email"><span>guest@example.com</span></InfoRow>
+  </div>
+</section>`}
+        blocks={['Card (surface + border)', 'card header', 'InfoRow', 'icon tile', '2-col grid']}
+      >
         <section className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
           <div className="px-6 py-4 border-b border-[var(--surface-subtle)]">
             <h2 className="text-base font-medium text-[var(--text-primary)]">Reservation details</h2>
@@ -221,7 +341,20 @@ function CardsSection() {
         </section>
       </ComponentEntry>
 
-      <ComponentEntry name="Avatar" path="rendered inline across tables & headers" desc="A rounded-square initial badge in brand tint. Sizes scale with context (w-9 in tables, w-14 in detail headers).">
+      <ComponentEntry
+        name="Avatar"
+        path="rendered inline across tables & headers"
+        desc="A rounded-square initial badge in brand tint. Sizes scale with context (w-9 in tables, w-14 in detail headers)."
+        code={`<Avatar name="Beatrice" size="w-9 h-9" />
+<Avatar name="Marcus" size="w-10 h-10" />
+<Avatar name="Sofia" size="w-14 h-14" text="text-xl" />
+
+// Avatar renders the uppercase initial in brand tint:
+<div className="rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center font-medium">
+  {initialOf(name)}
+</div>`}
+        blocks={['Avatar', 'brand-tint square', 'initial glyph']}
+      >
         <div className="flex items-end gap-4">
           <div className="text-center"><Avatar name="Beatrice" size="w-9 h-9" /><div className="text-[11px] text-[var(--text-muted)] mt-1">w-9</div></div>
           <div className="text-center"><Avatar name="Marcus" size="w-10 h-10" /><div className="text-[11px] text-[var(--text-muted)] mt-1">w-10</div></div>
@@ -355,7 +488,22 @@ function TablesSection() {
 
   return (
     <Section id="tables" title="Tables & Filters" intro="The list-page workhorses: the filter toolbar (search + dropdowns + date), the month-range and targeted date pickers, the loading skeleton, the data table with avatar rows and status badges, pagination, the empty state, and the full status-badge tone reference.">
-      <ComponentEntry name="Filter toolbar" path="src/pages/reservations/Reservations.tsx" desc="A search field with a leading icon, BrandSelect dropdown filters, a date-range button, and a round clear-all button that appears when any filter is active. Fully interactive — it filters the table below.">
+      <ComponentEntry
+        name="Filter toolbar"
+        path="src/pages/reservations/Reservations.tsx"
+        desc="A search field with a leading icon, BrandSelect dropdown filters, a date-range button, and a round clear-all button that appears when any filter is active. Fully interactive — it filters the table below."
+        code={`<div className="flex flex-wrap items-center gap-3">
+  <div className="relative flex-1 min-w-[200px] max-w-sm">
+    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
+    <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by guest, code or room" className="w-full pl-9 pr-4 py-2 border rounded-md" />
+  </div>
+  <BrandSelect value={status} onValueChange={setStatus} leftIcon={<ListFilter />} options={statusOptions} />
+  <BrandSelect value={type} onValueChange={setType} leftIcon={<BedDouble />} options={typeOptions} />
+  <button ref={dateBtnRef} onClick={toggleDate}><CalendarIcon className="w-4 h-4" />Check-in date</button>
+  {hasFilters && <button onClick={clear} className="w-9 h-9 rounded-full"><X className="w-4 h-4" /></button>}
+</div>`}
+        blocks={['flex toolbar', 'Search input', 'BrandSelect', 'date-range button', 'clear-all button']}
+      >
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
@@ -423,7 +571,26 @@ function TablesSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Date-range popover — day range" path="src/pages/reservations/Reservations.tsx · booking-requests/BookingRequests.tsx" desc="The default date filter, shown open: a left preset rail and a two-month day calendar, closed with Clear / Apply. Used where the field is a real day (check-in, arrival). The trigger chip turns brand-tinted and echoes the selection once a range is picked.">
+      <ComponentEntry
+        name="Date-range popover — day range"
+        path="src/pages/reservations/Reservations.tsx · booking-requests/BookingRequests.tsx"
+        desc="The default date filter, shown open: a left preset rail and a two-month day calendar, closed with Clear / Apply. Used where the field is a real day (check-in, arrival). The trigger chip turns brand-tinted and echoes the selection once a range is picked."
+        code={`<div className="bg-white border rounded-md inline-flex">
+  <div className="w-48 border-r p-2 flex flex-col gap-1">
+    {presets.map((p) => (
+      <button key={p} onClick={() => applyDayPreset(p)}>{p}{dayPreset === p && <Check className="w-4 h-4" />}</button>
+    ))}
+  </div>
+  <div className="p-4" style={CAL_VARS}>
+    <Calendar mode="range" numberOfMonths={2} selected={dayRange} onSelect={setDayRange} />
+    <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+      <button onClick={() => setDayRange(undefined)}>Clear</button>
+      <button><Check className="w-4 h-4" />Apply</button>
+    </div>
+  </div>
+</div>`}
+        blocks={['Calendar (range, 2 months)', 'preset rail', 'trigger chip', 'Clear / Apply footer']}
+      >
         <DemoLabel>Trigger chip → open popover</DemoLabel>
         <button className={`mb-3 flex items-center gap-2 px-4 py-2 border rounded-md text-sm font-medium ${dayRange?.from ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]' : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white'}`}>
           <CalendarIcon className="w-4 h-4" />{dayRange?.from ? 'Custom range' : 'Check-in date'}
@@ -446,7 +613,22 @@ function TablesSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Date-range popover — targeted (mode toggle)" path="src/pages/coupons/Coupons.tsx" desc="Same day-range popover with a segmented Valid during / Expiring / Starting toggle above the calendar — for records that carry a date window (coupons: startsAt → expiresAt). The mode switches what the range targets (overlap, expiry, or start), so the date filter complements the status filter instead of duplicating it.">
+      <ComponentEntry
+        name="Date-range popover — targeted (mode toggle)"
+        path="src/pages/coupons/Coupons.tsx"
+        desc="Same day-range popover with a segmented Valid during / Expiring / Starting toggle above the calendar — for records that carry a date window (coupons: startsAt → expiresAt). The mode switches what the range targets (overlap, expiry, or start), so the date filter complements the status filter instead of duplicating it."
+        code={`<div className="p-4" style={CAL_VARS}>
+  <div className="flex p-0.5 mb-3 bg-[var(--surface-subtle)] rounded-md">
+    {DATE_FILTER_MODES.map((m) => (
+      <button key={m.key} onClick={() => setDateMode(m.key)} className={dateMode === m.key ? 'bg-white shadow' : ''}>
+        {m.label}
+      </button>
+    ))}
+  </div>
+  <Calendar mode="range" numberOfMonths={2} selected={modeRange} onSelect={setModeRange} />
+</div>`}
+        blocks={['segmented mode toggle', 'Calendar (range, 2 months)', 'preset rail', 'Clear / Apply footer']}
+      >
         <DemoLabel>Trigger chip → open popover</DemoLabel>
         <button className={`mb-3 flex items-center gap-2 px-4 py-2 border rounded-md text-sm font-medium ${modeRange?.from ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]' : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white'}`}>
           <CalendarIcon className="w-4 h-4" />{modeRange?.from ? `${DATE_FILTER_MODES.find((m) => m.key === dateMode)!.label}` : 'Validity date'}
@@ -476,7 +658,26 @@ function TablesSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Date-range popover — month range" path="src/shared/ui/month-range-picker.tsx · src/pages/settlements/Settlements.tsx" desc="The same popover shell with a year-navigable month grid instead of a day calendar — for data bucketed by month/period (settlement payouts), where day precision would be fake. Click a start month then an end month; it emits { from: startOfMonth, to: endOfMonth } so it drops into the same overlap filters.">
+      <ComponentEntry
+        name="Date-range popover — month range"
+        path="src/shared/ui/month-range-picker.tsx · src/pages/settlements/Settlements.tsx"
+        desc="The same popover shell with a year-navigable month grid instead of a day calendar — for data bucketed by month/period (settlement payouts), where day precision would be fake. Click a start month then an end month; it emits { from: startOfMonth, to: endOfMonth } so it drops into the same overlap filters."
+        code={`<div className="bg-white border rounded-md inline-flex">
+  <div className="w-44 border-r p-2 flex flex-col gap-1">
+    {presets.map((p) => (
+      <button key={p} onClick={() => applySettlePreset(p)}>{p}</button>
+    ))}
+  </div>
+  <div className="p-4">
+    <MonthRangePicker value={monthRange} onChange={setMonthRange} defaultYear={2026} />
+    <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+      <button onClick={() => setMonthRange(undefined)}>Clear</button>
+      <button><Check className="w-4 h-4" />Apply</button>
+    </div>
+  </div>
+</div>`}
+        blocks={['MonthRangePicker', 'preset rail', 'trigger chip', 'Clear / Apply footer']}
+      >
         <DemoLabel>Trigger chip → open popover</DemoLabel>
         <button className={`mb-3 flex items-center gap-2 px-4 py-2 border rounded-md text-sm font-medium ${monthRange ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] bg-[var(--brand-tint)]' : 'border-[var(--border-default)] text-[var(--text-tertiary)] bg-white'}`}>
           <CalendarIcon className="w-4 h-4" />
@@ -507,7 +708,25 @@ function TablesSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Loading skeleton" path="src/shared/ui/skeleton.tsx · all list pages" desc="A shimmer placeholder block shown on first load. Size it with width/height utility classes; it sweeps a soft highlight (the shimmer keyframe in index.css). List pages render skeleton rows in the table body while data loads, then fade into real rows.">
+      <ComponentEntry
+        name="Loading skeleton"
+        path="src/shared/ui/skeleton.tsx · all list pages"
+        desc="A shimmer placeholder block shown on first load. Size it with width/height utility classes; it sweeps a soft highlight (the shimmer keyframe in index.css). List pages render skeleton rows in the table body while data loads, then fade into real rows."
+        code={`<Skeleton className="h-4 w-24" />
+<Skeleton className="h-5 w-20 rounded-full" />
+<Skeleton className="h-10 w-10 rounded-md" />
+
+// Table loading row
+<div className="flex items-center gap-3 px-4 py-3">
+  <Skeleton className="h-10 w-10 rounded-md shrink-0" />
+  <div className="flex-1 space-y-2">
+    <Skeleton className="h-4 w-32" />
+    <Skeleton className="h-3 w-44" />
+  </div>
+  <Skeleton className="h-5 w-20 rounded-full" />
+</div>`}
+        blocks={['Skeleton', 'shimmer keyframe', 'table loading rows']}
+      >
         <div className="space-y-4">
           <div className="flex items-center gap-6">
             <div><DemoLabel>Sizes</DemoLabel>
@@ -538,7 +757,29 @@ function TablesSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Data table" path="src/pages/reservations/Reservations.tsx" desc="Header row in uppercase micro-caps; body rows with an avatar + multi-line identity cell, multi-line room cell, a stay with a clock icon, a tabular amount and a status badge. Reflects the filters above, with pagination and an empty state.">
+      <ComponentEntry
+        name="Data table"
+        path="src/pages/reservations/Reservations.tsx"
+        desc="Header row in uppercase micro-caps; body rows with an avatar + multi-line identity cell, multi-line room cell, a stay with a clock icon, a tabular amount and a status badge. Reflects the filters above, with pagination and an empty state."
+        code={`<div className="bg-white rounded-md border overflow-hidden">
+  <table className="w-full text-left text-sm">
+    <thead><tr className="border-b">
+      {cols.map((h) => <th key={h} className="py-4 px-6 text-[11px] tracking-wider uppercase">{h}</th>)}
+    </tr></thead>
+    <tbody className="divide-y divide-[var(--surface-subtle)]">
+      {paged.map((r, i) => (
+        <tr key={r.id} className="hover:bg-[var(--surface-muted)]">
+          <td className="px-6 py-4"><div className="flex items-center gap-3"><Avatar name={r.guest} /><div>{r.guest}</div></div></td>
+          <td className="px-6 py-4 tabular-nums">{money(r.amount)}</td>
+          <td className="px-6 py-4"><span className={statusStyle(r.status)}>{r.status}</span></td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  {/* pagination footer */}
+</div>`}
+        blocks={['Card (surface + border)', 'uppercase th', 'Avatar identity cell', 'StatusBadge', 'pagination', 'empty state']}
+      >
         <div className="bg-white rounded-md border border-[var(--border-default)] overflow-hidden shadow-none">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
@@ -611,7 +852,20 @@ function TablesSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Status badge — tone reference" path="statusStyle / couponStatusClass / settlementStatusClass + StatusBadge" desc="Every status pill across the product, with its exact tint/text token pairing. Some carry a leading icon (Pending, Approved, Declined, Overdue).">
+      <ComponentEntry
+        name="Status badge — tone reference"
+        path="statusStyle / couponStatusClass / settlementStatusClass + StatusBadge"
+        desc="Every status pill across the product, with its exact tint/text token pairing. Some carry a leading icon (Pending, Approved, Declined, Overdue)."
+        code={`<div className="flex flex-wrap gap-2">
+  {STATUS_REF.map((s) => (
+    <span key={s.label} className={\`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium rounded-full \${s.cls}\`}>
+      {s.Icon && <s.Icon className="w-3 h-3" />}
+      {s.label}
+    </span>
+  ))}
+</div>`}
+        blocks={['StatusBadge', 'tint/text token pairs', 'optional leading icon', 'rounded-full pill']}
+      >
         <div className="flex flex-wrap gap-2">
           {STATUS_REF.map((s) => (
             <span key={s.label} className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-medium tracking-wide rounded-full ${s.cls}`}>
@@ -679,7 +933,27 @@ function ChartsSection() {
 
   return (
     <Section id="charts" title="Charts" intro="Recharts visualisations themed to the design tokens — a gradient revenue area chart with a range selector and an average reference line, and a grouped arrivals-vs-departures bar chart. Hover for the dark tooltips.">
-      <ComponentEntry name="Revenue area chart" path="src/pages/dashboard/Dashboard.tsx" desc="AreaChart with a brand-primary gradient fill, dashed average ReferenceLine, abbreviated Y-axis (270K / 1.2M) and a custom dark tooltip. The BrandSelect swaps the range live.">
+      <ComponentEntry
+        name="Revenue area chart"
+        path="src/pages/dashboard/Dashboard.tsx"
+        desc="AreaChart with a brand-primary gradient fill, dashed average ReferenceLine, abbreviated Y-axis (270K / 1.2M) and a custom dark tooltip. The BrandSelect swaps the range live."
+        code={`<BrandSelect value={range} onValueChange={setRange} leftIcon={<CalendarIcon />} options={rangeOptions} />
+<ResponsiveContainer width="100%" height="100%">
+  <AreaChart data={data}>
+    <defs>
+      <linearGradient id="dsColorRevenue" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.25} />
+        <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0} />
+      </linearGradient>
+    </defs>
+    <XAxis dataKey="name" /><YAxis tickFormatter={moneyShort} />
+    <Tooltip content={<RevenueTooltip />} />
+    <ReferenceLine y={avg} strokeDasharray="4 4" />
+    <Area type="monotone" dataKey="value" stroke="var(--brand-primary)" fill="url(#dsColorRevenue)" />
+  </AreaChart>
+</ResponsiveContainer>`}
+        blocks={['recharts AreaChart', 'gradient fill', 'ReferenceLine (avg)', 'custom dark Tooltip', 'BrandSelect']}
+      >
         <div className="bg-white border border-[var(--border-default)] rounded-md p-6 shadow-none">
           <div className="flex justify-between items-start mb-4 gap-3 flex-wrap">
             <div>
@@ -721,7 +995,21 @@ function ChartsSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Arrivals & departures bar chart" path="src/pages/dashboard/Dashboard.tsx" desc="Grouped BarChart with rounded-top bars (brand-primary vs brand-accent), a header legend of colored dots, whole-number Y-axis and a custom tooltip.">
+      <ComponentEntry
+        name="Arrivals & departures bar chart"
+        path="src/pages/dashboard/Dashboard.tsx"
+        desc="Grouped BarChart with rounded-top bars (brand-primary vs brand-accent), a header legend of colored dots, whole-number Y-axis and a custom tooltip."
+        code={`<ResponsiveContainer width="100%" height="100%">
+  <BarChart data={FLOW_DATA} barGap={3} barCategoryGap="24%">
+    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+    <XAxis dataKey="name" /><YAxis allowDecimals={false} />
+    <Tooltip content={<FlowTooltip />} />
+    <Bar dataKey="arrivals" fill="var(--brand-primary)" radius={[3, 3, 0, 0]} maxBarSize={14} />
+    <Bar dataKey="departures" fill="var(--brand-accent)" radius={[3, 3, 0, 0]} maxBarSize={14} />
+  </BarChart>
+</ResponsiveContainer>`}
+        blocks={['recharts BarChart', 'grouped rounded bars', 'legend dots', 'custom dark Tooltip']}
+      >
         <div className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
           <div className="px-6 py-4 border-b border-[var(--surface-subtle)] flex items-center justify-between gap-3">
             <div>
@@ -772,7 +1060,23 @@ function BannersSection() {
 
   return (
     <Section id="banners" title="Banners & Overlays" intro="Page-spanning banners and floating surfaces: the sample-data ribbon, the collapsible Get-started checklist, the recommended-next-step CTA, the bulk-selection bar, the activity timeline, and the confirmation modal.">
-      <ComponentEntry name="Sample-data ribbon" path="src/widgets/onboarding/demo-ribbon.tsx" desc="The dismissible brand-tint strip at the very top of the shell that flags demo data. Click ✕ to collapse it.">
+      <ComponentEntry
+        name="Sample-data ribbon"
+        path="src/widgets/onboarding/demo-ribbon.tsx"
+        desc="The dismissible brand-tint strip at the very top of the shell that flags demo data. Click ✕ to collapse it."
+        code={`<AnimatePresence initial={false}>
+  {ribbon && (
+    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border border-[var(--brand-border)] bg-[var(--brand-tint)] rounded-md">
+      <div className="flex items-center gap-2.5 px-4 py-2">
+        <FlaskConical className="w-3.5 h-3.5 text-[var(--brand-primary)]" />
+        <p className="text-xs"><span className="font-medium">You're viewing sample data.</span></p>
+        <button onClick={() => setRibbon(false)} aria-label="Dismiss" className="ml-auto"><X className="w-3.5 h-3.5" /></button>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>`}
+        blocks={['AnimatePresence collapse', 'brand-tint strip', 'FlaskConical icon', 'dismiss button']}
+      >
         <AnimatePresence initial={false}>
           {ribbon ? (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden border border-[var(--brand-border)] bg-[var(--brand-tint)] rounded-md">
@@ -791,7 +1095,29 @@ function BannersSection() {
         </AnimatePresence>
       </ComponentEntry>
 
-      <ComponentEntry name="Get started progress banner" path="src/widgets/onboarding/quick-start-checklist.tsx" desc="A collapsible onboarding checklist with a rocket badge, a progress bar and check-circle list items (strikethrough when done). Click the header to expand.">
+      <ComponentEntry
+        name="Get started progress banner"
+        path="src/widgets/onboarding/quick-start-checklist.tsx"
+        desc="A collapsible onboarding checklist with a rocket badge, a progress bar and check-circle list items (strikethrough when done). Click the header to expand."
+        code={`<div className="bg-white border rounded-md overflow-hidden">
+  <button onClick={() => setCollapsed((c) => !c)} className="w-full flex items-center gap-3 px-5 py-4">
+    <div className="w-9 h-9 rounded-md bg-[var(--brand-tint)]"><Rocket className="w-4 h-4" /></div>
+    <div className="flex-1"><div className="text-sm font-medium">Get started</div></div>
+    <div className="w-28 h-1.5 rounded-full bg-[var(--surface-subtle)]"><div className="h-full bg-[var(--brand-primary)]" style={{ width: '66%' }} /></div>
+    <ChevronRight className={collapsed ? '' : 'rotate-90'} />
+  </button>
+  <AnimatePresence initial={false}>
+    {!collapsed && (
+      <motion.ul animate={{ height: 'auto' }}>
+        {checklist.map((it) => (
+          <li key={it.title}><Check className="w-3 h-3" /><span className={it.done ? 'line-through' : ''}>{it.title}</span></li>
+        ))}
+      </motion.ul>
+    )}
+  </AnimatePresence>
+</div>`}
+        blocks={['Card (surface + border)', 'Rocket badge', 'progress bar', 'AnimatePresence collapse', 'check-circle list']}
+      >
         <div className="bg-white border border-[var(--border-default)] rounded-md overflow-hidden">
           <button onClick={() => setCollapsed((c) => !c)} className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-[var(--surface-muted)] transition-colors">
             <div className="w-9 h-9 rounded-md bg-[var(--brand-tint)] text-[var(--brand-primary)] flex items-center justify-center shrink-0"><Rocket className="w-4 h-4" strokeWidth={1.75} /></div>
@@ -821,7 +1147,21 @@ function BannersSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Recommended next step" path="src/widgets/onboarding/recommended-next-step.tsx" desc="A brand-filled hero CTA: a sparkles badge, an uppercase eyebrow, a title/body and a white action button.">
+      <ComponentEntry
+        name="Recommended next step"
+        path="src/widgets/onboarding/recommended-next-step.tsx"
+        desc="A brand-filled hero CTA: a sparkles badge, an uppercase eyebrow, a title/body and a white action button."
+        code={`<div className="flex items-center gap-3 rounded-lg bg-[var(--brand-primary)] px-4 py-3.5 text-white">
+  <div className="w-8 h-8 rounded-md bg-white/15 flex items-center justify-center"><Sparkles className="w-4 h-4" /></div>
+  <div className="flex-1 min-w-0">
+    <div className="text-[11px] uppercase tracking-wide text-white/70">Recommended next step</div>
+    <div className="text-sm font-medium mt-0.5">Connect a payout account</div>
+    <div className="text-xs text-white/80 mt-0.5">Add a bank account so you can get paid.</div>
+  </div>
+  <button className="bg-white text-[var(--brand-primary)] px-3 h-9 rounded-md">Set up<ArrowRight className="w-4 h-4" /></button>
+</div>`}
+        blocks={['brand-filled hero', 'Sparkles badge', 'uppercase eyebrow', 'white action button']}
+      >
         <div className="flex items-center gap-3 rounded-lg bg-[var(--brand-primary)] px-4 py-3.5 text-white">
           <div className="w-8 h-8 rounded-md bg-white/15 flex items-center justify-center shrink-0"><Sparkles className="w-4 h-4" /></div>
           <div className="min-w-0 flex-1">
@@ -833,7 +1173,25 @@ function BannersSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Bulk selection bar" path="src/pages/customers/Customers.tsx" desc="Slides in when rows are selected: a brand-tint bar with a live count and bulk actions. Toggle the count with the buttons.">
+      <ComponentEntry
+        name="Bulk selection bar"
+        path="src/pages/customers/Customers.tsx"
+        desc="Slides in when rows are selected: a brand-tint bar with a live count and bulk actions. Toggle the count with the buttons."
+        code={`<AnimatePresence initial={false}>
+  {selected > 0 && (
+    <motion.div initial={{ opacity: 0, y: -6, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }} exit={{ opacity: 0, y: -6, height: 0 }}>
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--brand-tint)] border border-[var(--brand-border)] rounded-md">
+        <span className="text-sm font-medium text-[var(--brand-primary)] tabular-nums">{selected} selected</span>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setSelected(0)}>Clear</button>
+          <button className="text-[var(--danger)] border border-[var(--danger-border)]"><Trash2 className="w-4 h-4" />Delete</button>
+        </div>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>`}
+        blocks={['AnimatePresence slide-in', 'brand-tint bar', 'live count', 'bulk action buttons']}
+      >
         <div className="space-y-3">
           <div className="flex gap-2">
             <button onClick={() => setSelected((n) => n + 1)} className="px-3 py-1.5 text-sm border border-[var(--border-default)] rounded-md hover:bg-[var(--surface-subtle)] cursor-pointer">Select one</button>
@@ -855,7 +1213,30 @@ function BannersSection() {
         </div>
       </ComponentEntry>
 
-      <ComponentEntry name="Activity timeline" path="src/pages/**/Detail.tsx" desc="A vertical event list: a tinted circular icon per event connected by a hairline, with a label, optional detail and a tabular date.">
+      <ComponentEntry
+        name="Activity timeline"
+        path="src/pages/**/Detail.tsx"
+        desc="A vertical event list: a tinted circular icon per event connected by a hairline, with a label, optional detail and a tabular date."
+        code={`<ol className="px-6 py-5">
+  {timeline.map((e, i) => {
+    const last = i === timeline.length - 1;
+    return (
+      <li key={e.label} className="flex gap-3">
+        <div className="flex flex-col items-center shrink-0">
+          <div className={\`w-9 h-9 rounded-full flex items-center justify-center \${e.tone}\`}><e.Icon className="w-4 h-4" /></div>
+          {!last && <div className="w-px flex-1 bg-[var(--border-default)] my-1" />}
+        </div>
+        <div className={last ? '' : 'pb-5'}>
+          <div className="text-sm font-medium">{e.label}</div>
+          {e.detail && <div className="text-xs text-[var(--text-secondary)]">{e.detail}</div>}
+          <div className="text-xs mt-1 tabular-nums">{e.date}</div>
+        </div>
+      </li>
+    );
+  })}
+</ol>`}
+        blocks={['Card (surface + border)', 'tinted circle icon', 'connector hairline', 'tabular date']}
+      >
         <section className="bg-white border border-[var(--border-default)] rounded-md shadow-none overflow-hidden">
           <div className="px-6 py-4 border-b border-[var(--surface-subtle)]">
             <h2 className="text-base font-medium text-[var(--text-primary)]">Activity</h2>
@@ -882,7 +1263,33 @@ function BannersSection() {
         </section>
       </ComponentEntry>
 
-      <ComponentEntry name="Confirmation modal" path="src/pages/**/Detail.tsx (Portal)" desc="A centered, Portal-rendered dialog with a tinted icon, a headline, supporting copy and a cancel / confirm pair. Backdrop click and Cancel both dismiss.">
+      <ComponentEntry
+        name="Confirmation modal"
+        path="src/pages/**/Detail.tsx (Portal)"
+        desc="A centered, Portal-rendered dialog with a tinted icon, a headline, supporting copy and a cancel / confirm pair. Backdrop click and Cancel both dismiss."
+        code={`<Portal>
+  <AnimatePresence>
+    {confirm && (
+      <>
+        <motion.div className="fixed inset-0 bg-[var(--text-primary)]/30 z-[60]" onClick={() => setConfirm(false)} />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+          <motion.div initial={{ opacity: 0, scale: 0.96, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} className="pointer-events-auto max-w-sm bg-white border rounded-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-md bg-[var(--danger-tint)] text-[var(--danger)]"><Trash2 className="w-5 h-5" /></div>
+              <div><h3 className="text-base font-medium">Delete coupon?</h3><p className="text-sm text-[var(--text-secondary)] mt-1">This cannot be undone.</p></div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setConfirm(false)}>Cancel</button>
+              <button onClick={() => setConfirm(false)} className="bg-[var(--danger)] text-white"><Trash2 className="w-4 h-4" />Delete</button>
+            </div>
+          </motion.div>
+        </div>
+      </>
+    )}
+  </AnimatePresence>
+</Portal>`}
+        blocks={['Portal', 'AnimatePresence', 'backdrop overlay', 'tinted icon', 'cancel / confirm pair']}
+      >
         <button onClick={() => setConfirm(true)} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--danger)] bg-white border border-[var(--danger-border)] rounded-md hover:bg-[var(--danger-tint)] transition-colors cursor-pointer"><Trash2 className="w-4 h-4" />Delete coupon…</button>
         <Portal>
           <AnimatePresence>

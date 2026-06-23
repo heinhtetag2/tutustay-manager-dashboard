@@ -217,6 +217,55 @@ const NAV = [
   ['banners', 'Banners & Overlays'],
 ];
 
+/**
+ * Sticky "On this page" rail (Polaris-style). Lists every section and
+ * highlights the one currently in view via an IntersectionObserver.
+ * Hidden below xl — the horizontal header nav covers narrower screens.
+ */
+function OnThisPage() {
+  const [active, setActive] = React.useState<string>(NAV[0][0]);
+
+  React.useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) setActive(visible[0].target.id);
+      },
+      { rootMargin: '-80px 0px -70% 0px', threshold: 0 },
+    );
+    NAV.forEach(([id]) => {
+      const el = document.getElementById(id);
+      if (el) obs.observe(el);
+    });
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <aside className="hidden xl:block w-52 shrink-0">
+      <div className="sticky top-24">
+        <div className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-tertiary)] mb-3">On this page</div>
+        <nav className="flex flex-col border-l border-[var(--border-default)]">
+          {NAV.map(([id, label]) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              className={`-ml-px pl-3 py-1.5 text-[13px] border-l-2 transition-colors ${
+                active === id
+                  ? 'border-[var(--brand-primary)] text-[var(--brand-primary)] font-medium'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </aside>
+  );
+}
+
 /* ----- page --------------------------------------------------------------- */
 
 export default function DesignSystemPage() {
@@ -271,7 +320,8 @@ export default function DesignSystemPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 md:px-8 xl:px-12 py-12">
+      <div className="max-w-[88rem] mx-auto px-6 md:px-8 xl:px-12 py-12 flex gap-12">
+       <main className="min-w-0 flex-1">
         {/* COLORS */}
         <Section id="colors" title="Color" intro="Semantic tokens (Tier 2) are what UI references. Each resolves to a primitive ramp step (Tier 1) shown below. Re-theme by re-pointing the semantic layer.">
           {SEMANTIC_GROUPS.map((g) => (
@@ -351,7 +401,35 @@ export default function DesignSystemPage() {
 
         {/* BUTTONS & ACTIONS */}
         <Section id="buttons" title="Buttons & Actions" intro="Button is the live, theme-bound primitive. Every variant, size and state below renders the real component.">
-          <ComponentEntry name="Button" path="src/shared/ui/button.tsx" desc="6 variants × 4 sizes, with icon and disabled states. asChild renders the styles onto any child element (e.g. a router link).">
+          <ComponentEntry
+            name="Button"
+            path="src/shared/ui/button.tsx"
+            desc="6 variants × 4 sizes, with icon and disabled states. asChild renders the styles onto any child element (e.g. a router link)."
+            code={`import { Button } from '@/shared/ui/button';
+import { Plus } from 'lucide-react';
+
+// Default
+<Button>New room</Button>
+
+// Variant + size
+<Button variant="outline" size="sm">Export</Button>
+
+// With a leading icon (auto-sized to 16px)
+<Button><Plus /> New room</Button>
+
+// Icon-only — always pass an aria-label
+<Button size="icon" aria-label="Add"><Plus /></Button>
+
+// asChild: render button styles onto a router link
+<Button asChild><Link to="/rooms">View rooms</Link></Button>`}
+            props={[
+              { name: 'variant', type: "'default' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'link'", default: "'default'", desc: 'Visual weight. Use default for the primary action, outline/ghost for secondary, destructive for irreversible actions.' },
+              { name: 'size', type: "'default' | 'sm' | 'lg' | 'icon'", default: "'default'", desc: 'Height and padding. icon renders a square button for an icon-only action.' },
+              { name: 'asChild', type: 'boolean', default: 'false', desc: 'Render the button styles onto the single child element instead of a <button> (e.g. a router Link).' },
+              { name: 'disabled', type: 'boolean', default: 'false', desc: 'Disables interaction and dims the button to 50% opacity.' },
+              { name: '...props', type: 'React.ComponentProps<"button">', desc: 'All native button attributes — onClick, type, aria-label, etc.' },
+            ]}
+          >
             <DemoLabel>Variants</DemoLabel>
             <div className="flex flex-wrap gap-3 mb-5">
               <Button>Default</Button>
@@ -401,7 +479,36 @@ export default function DesignSystemPage() {
 
         {/* FORMS & INPUTS */}
         <Section id="forms" title="Forms & Inputs" intro="Selection and date primitives. These are fully interactive — pick values and watch the state update.">
-          <ComponentEntry name="BrandSelect" path="src/shared/ui/brand-select.tsx" desc="Single-select dropdown (Radix Select) with optional left icon and brand-tinted active state.">
+          <ComponentEntry
+            name="BrandSelect"
+            path="src/shared/ui/brand-select.tsx"
+            desc="Single-select dropdown (Radix Select) with optional left icon and brand-tinted active state."
+            code={`import { BrandSelect } from '@/shared/ui/brand-select';
+import { Building2 } from 'lucide-react';
+
+const [roomType, setRoomType] = useState('deluxe');
+
+<BrandSelect
+  value={roomType}
+  onValueChange={setRoomType}
+  leftIcon={<Building2 />}
+  ariaLabel="Room type"
+  options={[
+    { value: 'deluxe', label: 'Deluxe' },
+    { value: 'suite', label: 'Suite' },
+  ]}
+/>`}
+            props={[
+              { name: 'value', type: 'string', required: true, desc: 'The currently selected option value (controlled).' },
+              { name: 'onValueChange', type: '(value: string) => void', required: true, desc: 'Fires with the new value when the selection changes.' },
+              { name: 'options', type: 'BrandSelectOption[]', required: true, desc: 'Selectable options — each { value: string; label: ReactNode }.' },
+              { name: 'placeholder', type: 'string', desc: 'Shown on the trigger when no value is selected.' },
+              { name: 'leftIcon', type: 'React.ReactNode', desc: 'Optional icon rendered inside the trigger, before the label.' },
+              { name: 'disabled', type: 'boolean', default: 'false', desc: 'Disables the trigger.' },
+              { name: 'ariaLabel', type: 'string', desc: 'Accessible label for the trigger when there is no visible label.' },
+              { name: 'className', type: 'string', desc: 'Extra classes for the trigger.' },
+            ]}
+          >
             <div className="max-w-xs">
               <BrandSelect
                 value={roomType}
@@ -419,7 +526,32 @@ export default function DesignSystemPage() {
             </div>
           </ComponentEntry>
 
-          <ComponentEntry name="MultiSelect" path="src/shared/ui/multi-select.tsx" desc="Searchable multi-select with checkboxes, a selected-count label and a clear-all action.">
+          <ComponentEntry
+            name="MultiSelect"
+            path="src/shared/ui/multi-select.tsx"
+            desc="Searchable multi-select with checkboxes, a selected-count label and a clear-all action."
+            code={`import { MultiSelect } from '@/shared/ui/multi-select';
+import { Tag } from 'lucide-react';
+
+const [amenities, setAmenities] = useState<string[]>([]);
+
+<MultiSelect
+  values={amenities}
+  onChange={setAmenities}
+  leftIcon={<Tag />}
+  placeholder="Amenities"
+  options={['Wi-Fi', 'Breakfast', 'Parking', 'Pool']}
+/>`}
+            props={[
+              { name: 'values', type: 'string[]', required: true, desc: 'Currently selected values (controlled).' },
+              { name: 'onChange', type: '(values: string[]) => void', required: true, desc: 'Fires with the next selection whenever an option is toggled or cleared.' },
+              { name: 'options', type: 'string[]', required: true, desc: 'All selectable options.' },
+              { name: 'placeholder', type: 'string', required: true, desc: 'Shown on the trigger when nothing is selected.' },
+              { name: 'leftIcon', type: 'React.ReactNode', desc: 'Optional icon rendered inside the trigger.' },
+              { name: 'searchPlaceholder', type: 'string', default: "'Search'", desc: 'Placeholder for the in-dropdown search field.' },
+              { name: 'className', type: 'string', desc: 'Extra classes for the trigger.' },
+            ]}
+          >
             <div className="max-w-xs">
               <MultiSelect
                 values={amenities}
@@ -432,7 +564,27 @@ export default function DesignSystemPage() {
             </div>
           </ComponentEntry>
 
-          <ComponentEntry name="Calendar" path="src/shared/ui/calendar.tsx" desc="react-day-picker styled to the design system. Supports single-date and range selection.">
+          <ComponentEntry
+            name="Calendar"
+            path="src/shared/ui/calendar.tsx"
+            desc="react-day-picker styled to the design system. Supports single-date and range selection."
+            code={`import { Calendar } from '@/shared/ui/calendar';
+import type { DateRange } from 'react-day-picker';
+
+// Single date
+const [day, setDay] = useState<Date>();
+<Calendar mode="single" selected={day} onSelect={setDay} />
+
+// Date range
+const [range, setRange] = useState<DateRange>();
+<Calendar mode="range" selected={range} onSelect={setRange} />`}
+            props={[
+              { name: 'mode', type: "'single' | 'range' | 'multiple'", default: "'single'", desc: 'Selection behaviour. Forwarded to react-day-picker.' },
+              { name: 'selected', type: 'Date | DateRange | Date[]', desc: 'The current selection — shape depends on mode.' },
+              { name: 'onSelect', type: '(value) => void', desc: 'Fires with the new selection when the user picks a day or range.' },
+              { name: '...props', type: 'DayPickerProps', desc: 'All other react-day-picker props (disabled, numberOfMonths, etc.) pass through.' },
+            ]}
+          >
             <div className="flex flex-wrap gap-8">
               <div>
                 <DemoLabel>Single</DemoLabel>
@@ -452,7 +604,25 @@ export default function DesignSystemPage() {
 
         {/* FEEDBACK */}
         <Section id="feedback" title="Status & Feedback" intro="Status pills, inline help and the stacked booking-toast notifications.">
-          <ComponentEntry name="InfoTooltip & Term" path="src/shared/ui/info-tooltip.tsx" desc="The (i) affordance reveals a definition on hover, focus or tap. Term looks copy up from the shared glossary.">
+          <ComponentEntry
+            name="InfoTooltip & Term"
+            path="src/shared/ui/info-tooltip.tsx"
+            desc="The (i) affordance reveals a definition on hover, focus or tap. Term looks copy up from the shared glossary."
+            code={`import { InfoTooltip, Term } from '@/shared/ui/info-tooltip';
+
+// Standalone (i) tooltip next to a label
+Occupancy <InfoTooltip label="Share of bookable rooms filled tonight." />
+
+// Glossary-backed term (definition pulled from the shared GLOSSARY)
+This month's <Term name="ADR">ADR</Term> is trending up.`}
+            props={[
+              { name: 'InfoTooltip · label', type: 'string', required: true, desc: 'The explanatory text revealed on hover/focus/tap.' },
+              { name: 'InfoTooltip · side', type: "'top' | 'bottom'", default: "'top'", desc: 'Which side of the trigger the tooltip opens on.' },
+              { name: 'Term · name', type: 'keyof typeof GLOSSARY', required: true, desc: 'Glossary key whose definition is shown on hover.' },
+              { name: 'Term · children', type: 'React.ReactNode', desc: 'Visible text. Defaults to the glossary key if omitted.' },
+              { name: 'className', type: 'string', desc: 'Extra classes for the wrapper (both components).' },
+            ]}
+          >
             <div className="flex flex-col gap-3 text-sm text-[var(--text-primary)]">
               <span className="inline-flex items-center gap-1">
                 Occupancy <InfoTooltip label="The share of your bookable rooms that are filled tonight." />
@@ -461,7 +631,30 @@ export default function DesignSystemPage() {
             </div>
           </ComponentEntry>
 
-          <ComponentEntry name="Booking Toasts" path="src/shared/ui/booking-toasts.tsx" desc="A zustand store + host that stacks incoming-booking notifications top-right (newest in front; hover to fan out). Click to fire one.">
+          <ComponentEntry
+            name="Booking Toasts"
+            path="src/shared/ui/booking-toasts.tsx"
+            desc="A zustand store + host that stacks incoming-booking notifications top-right (newest in front; hover to fan out). Click to fire one."
+            code={`import { useBookingToasts, BookingToastHost } from '@/shared/ui/booking-toasts';
+
+// Mount the host once, near the app root
+<BookingToastHost />
+
+// Push a toast from anywhere
+const push = useBookingToasts((s) => s.push);
+push({
+  requestId: 'req_123',
+  guest: 'Aria Nguyen', initial: 'A',
+  roomType: 'Deluxe', nights: 2, guests: 2,
+  checkIn: 'Jun 11', amount: '160,000',
+});`}
+            props={[
+              { name: 'push', type: "(b: Omit<BookingToast, 'id'>) => void", desc: 'Store action — enqueues a new toast. Read it via useBookingToasts((s) => s.push).' },
+              { name: 'dismiss', type: '(id: string) => void', desc: 'Store action — removes a single toast.' },
+              { name: 'dismissAll', type: '() => void', desc: 'Store action — clears the whole stack.' },
+              { name: '<BookingToastHost />', type: 'Component', desc: 'Renders the stacked toasts. Mount once near the app root.' },
+            ]}
+          >
             <Button onClick={fireToast}><Bell /> Push a booking toast</Button>
           </ComponentEntry>
         </Section>
@@ -530,7 +723,11 @@ export default function DesignSystemPage() {
         <footer className="border-t border-[var(--border-default)] pt-6 text-xs text-[var(--text-muted)]">
           Full token tables, component inventory and the consistency roadmap live in <span className="font-mono">/design-system/*.md</span> at the repo root.
         </footer>
-      </main>
+       </main>
+
+        {/* sticky "On this page" rail (Polaris-style) — xl and up */}
+        <OnThisPage />
+      </div>
 
       {/* ----- live product create/edit forms ----- */}
       {productForm === 'room-type' && (
