@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Mail, Lock, Eye, EyeOff, Check, Building2, CalendarCheck, Wallet } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Check, Building2, CalendarCheck, Wallet, TrendingUp } from 'lucide-react';
 import { useSession } from '@/shared/state/use-session';
 
 /* ============================================================================
@@ -37,14 +37,64 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[var(--surface-muted)] grid grid-cols-1 lg:grid-cols-2">
       {/* ── Brand panel ───────────────────────────────────────────────── */}
       <div
-        className="relative hidden lg:flex flex-col justify-between p-12 text-white overflow-hidden"
-        style={{ background: 'linear-gradient(155deg, var(--color-base-ocean-80) 0%, var(--color-base-ocean-60) 100%)' }}
+        className="relative hidden lg:flex flex-col justify-between p-12 text-white overflow-hidden bg-[var(--color-base-ocean-80)] bg-cover bg-center"
+        style={{ backgroundImage: 'url(/login-resort.jpg)' }}
       >
+        {/* Navy overlay — keeps the photo on-brand and the white text legible */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(150deg, rgba(14,34,51,0.92) 0%, rgba(20,42,60,0.80) 45%, rgba(35,65,87,0.62) 100%)' }}
+        />
+
         {/* Soft glow */}
         <div
           className="absolute -top-24 -right-24 w-[460px] h-[460px] rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.10), transparent 70%)' }}
         />
+
+        {/* Ambient product preview — two glass cards (revenue + live booking).
+            Bleeds off the right edge; sits in the empty upper area. */}
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0, y: 28, rotate: -6 }}
+          animate={{ opacity: 1, y: 0, rotate: -6 }}
+          transition={{ duration: 0.6, delay: 0.15, ease: 'easeOut' }}
+          className="absolute top-[11%] -right-12 w-[360px] hidden xl:block pointer-events-none select-none"
+        >
+          {/* Revenue card */}
+          <div className="rounded-xl border border-white/15 bg-white/[0.07] backdrop-blur-md p-4 shadow-2xl">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="text-[11px] text-white/60">{t('Revenue')} · {t('This month')}</div>
+                <div className="text-2xl font-semibold tabular-nums mt-0.5">MMK 4.8M</div>
+              </div>
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-data-green-30)] bg-white/10 rounded-full px-2 py-0.5">
+                <TrendingUp className="w-3 h-3" /> 12%
+              </span>
+            </div>
+            <svg viewBox="0 0 280 70" className="w-full h-16 mt-3" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="loginSpark" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.35)" />
+                  <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+                </linearGradient>
+              </defs>
+              <path d="M0,55 L40,48 L80,52 L120,33 L160,38 L200,20 L240,26 L280,10 L280,70 L0,70 Z" fill="url(#loginSpark)" />
+              <path d="M0,55 L40,48 L80,52 L120,33 L160,38 L200,20 L240,26 L280,10" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+            </svg>
+          </div>
+
+          {/* Floating booking card */}
+          <div className="mt-3 ml-10 rounded-xl border border-white/15 bg-white/[0.07] backdrop-blur-md p-3 shadow-2xl flex items-center gap-3">
+            <span className="w-8 h-8 rounded-md bg-white/15 flex items-center justify-center text-xs font-medium shrink-0">A</span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] font-medium truncate">{t('New booking')} · {t('Deluxe')}</div>
+              <div className="text-[11px] text-white/55 truncate">Aria Nguyen · 2 {t('nights')}</div>
+            </div>
+            <span className="text-[11px] text-white/70 tabular-nums shrink-0">MMK 160k</span>
+          </div>
+        </motion.div>
 
         {/* Logo placeholder */}
         <div
