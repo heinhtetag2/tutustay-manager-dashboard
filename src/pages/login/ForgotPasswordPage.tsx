@@ -8,9 +8,6 @@ import {
   Eye,
   EyeOff,
   Check,
-  Building2,
-  CalendarCheck,
-  Wallet,
   ArrowLeft,
   ArrowRight,
   KeyRound,
@@ -113,21 +110,6 @@ export default function ForgotPasswordPage() {
           >
             {t('Reset your password in a few quick steps and get back to running your property.')}
           </motion.p>
-
-          <ul className="mt-8 space-y-3">
-            {[
-              { Icon: CalendarCheck, label: t('Accept and manage bookings in real time') },
-              { Icon: Building2, label: t('Set up room types, rates, and availability') },
-              { Icon: Wallet, label: t('Track revenue and get paid on time') },
-            ].map(({ Icon, label }) => (
-              <li key={label} className="flex items-center gap-3 text-sm text-white/85">
-                <span className="w-7 h-7 rounded-md bg-white/12 flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4" strokeWidth={1.75} />
-                </span>
-                {label}
-              </li>
-            ))}
-          </ul>
         </div>
 
         <div className="relative text-xs text-white/55">© {t('TutuStay — Manager Dashboard')}</div>

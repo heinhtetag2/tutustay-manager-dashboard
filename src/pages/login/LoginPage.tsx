@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Mail, Lock, Eye, EyeOff, Check, Building2, CalendarCheck, Wallet, TrendingUp } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Check, TrendingUp } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
 import { useSession } from '@/shared/state/use-session';
+import { MobileDemoModal } from './MobileDemoModal';
 
 /* ============================================================================
    LOGIN  —  route: /login  (full page, outside the app shell)
@@ -22,6 +24,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(true);
+  const [demoOpen, setDemoOpen] = useState(false);
 
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && password.length >= 1;
 
@@ -122,21 +125,6 @@ export default function LoginPage() {
           >
             {t('Bookings, rooms, guests, and payouts — managed in one place, beautifully.')}
           </motion.p>
-
-          <ul className="mt-8 space-y-3">
-            {[
-              { Icon: CalendarCheck, label: t('Accept and manage bookings in real time') },
-              { Icon: Building2, label: t('Set up room types, rates, and availability') },
-              { Icon: Wallet, label: t('Track revenue and get paid on time') },
-            ].map(({ Icon, label }) => (
-              <li key={label} className="flex items-center gap-3 text-sm text-white/85">
-                <span className="w-7 h-7 rounded-md bg-white/12 flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4" strokeWidth={1.75} />
-                </span>
-                {label}
-              </li>
-            ))}
-          </ul>
         </div>
 
         <div className="relative text-xs text-white/55">© {t('TutuStay — Manager Dashboard')}</div>
@@ -224,6 +212,19 @@ export default function LoginPage() {
             >
               {t('Sign in')}
             </button>
+
+            {/* Live demo — opens the guest-app phone preview */}
+            <div className="relative py-1">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-[var(--border-default)]" /></div>
+              <span className="relative mx-auto block w-fit bg-[var(--surface-muted)] px-3 text-xs text-[var(--text-secondary)]">{t('or')}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDemoOpen(true)}
+              className="w-full h-10 rounded-md border border-[var(--border-strong)] bg-white text-[var(--text-primary)] text-sm font-medium hover:bg-[var(--surface-subtle)] transition-colors cursor-pointer inline-flex items-center justify-center gap-2"
+            >
+              <Smartphone className="w-4 h-4" /> {t('View live demo')}
+            </button>
           </form>
 
           <p className="text-sm text-[var(--text-secondary)] text-center mt-8">
@@ -234,6 +235,8 @@ export default function LoginPage() {
           </p>
         </motion.div>
       </div>
+
+      <MobileDemoModal open={demoOpen} onClose={() => setDemoOpen(false)} />
     </div>
   );
 }
