@@ -1,23 +1,52 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronDown, MapPin, Star, Heart, Wifi, SignalHigh, BatteryMedium, X } from 'lucide-react';
+import { ChevronLeft, ChevronDown, ChevronRight, MapPin, Star, Heart, Wifi, SignalHigh, BatteryMedium, X, Megaphone, Tag, Info, Clock, Check, SquarePen, Send } from 'lucide-react';
 
 /* ============================================================================
    MobileDemoModal — a phone mockup that previews the TutuStay *guest* app.
-   Two screens, switchable: the "Favourites" (အကြိုက်ဆုံး) listing and a
-   revamped "My reviews" (ကျွန်ုပ်၏ သုံးသပ်ချက်များ) screen. Decorative demo
-   only, opened from the login screen.
+   Switchable screens: "Favourites" (အကြိုက်ဆုံး), "My reviews"
+   (ကျွန်ုပ်၏ သုံးသပ်ချက်များ), "FAQ" (မေးလေ့ရှိသော မေးခွန်းများ) and
+   "Announcements" (အသိပေးချက်များ). Decorative demo only, opened from login.
    ============================================================================ */
 
 const BLUE = '#1488C8';
 
-type ScreenKey = 'favourites' | 'reviews' | 'faq';
+type ScreenKey = 'favourites' | 'reviews' | 'faq' | 'announcements' | 'qa';
 
 const SCREENS: { key: ScreenKey; label: string; title: string }[] = [
   { key: 'favourites', label: 'Favourites', title: 'အကြိုက်ဆုံး' },
   { key: 'reviews', label: 'Reviews', title: 'ကျွန်ုပ်၏ သုံးသပ်ချက်များ' },
   { key: 'faq', label: 'FAQ', title: 'မေးလေ့ရှိသော မေးခွန်းများ' },
+  { key: 'announcements', label: 'Announcements', title: 'အသိပေးချက်များ' },
+  { key: 'qa', label: 'Q&A', title: 'မေး & ဖြေ' },
 ];
+
+type QaItem = { q: string; status: 'pending' | 'answered'; date: string; answer?: string };
+
+const QA: QaItem[] = [
+  { q: 'Is airport pickup available at Golden Bay Resort?', status: 'answered', date: '2026-06-22', answer: 'Yes — free shuttle for stays of 2+ nights. Share your flight time after booking.' },
+  { q: 'Can I check in earlier than 2 PM?', status: 'answered', date: '2026-06-15', answer: 'Early check-in from 11 AM is subject to availability and may carry a small fee.' },
+  { q: 'Hello', status: 'pending', date: '2026-06-10' },
+];
+
+const QA_STATUS: Record<QaItem['status'], { label: string; pill: string; icon: typeof Clock }> = {
+  pending: { label: 'စောင့်ဆိုင်းဆဲ', pill: 'bg-amber-50 text-amber-600', icon: Clock },
+  answered: { label: 'ဖြေဆိုပြီး', pill: 'bg-emerald-50 text-emerald-600', icon: Check },
+};
+
+type Announcement = { tag: 'Promo' | 'Update' | 'Notice'; title: string; date: string; body: string; unread?: boolean };
+
+const ANNOUNCEMENTS: Announcement[] = [
+  { tag: 'Promo', title: 'Monsoon escape — up to 30% off', date: '2026-06-24', body: 'Book a beach or lake stay before 15 July and save up to 30% on selected resorts in Ngapali and Inle.', unread: true },
+  { tag: 'Update', title: 'New: Pay at property on more stays', date: '2026-06-18', body: 'You can now reserve eligible rooms without paying upfront and settle the balance at check-in.', unread: true },
+  { tag: 'Notice', title: 'this is the way', date: '2026-06-10', body: 'Scheduled maintenance is complete. Thanks for your patience while we improved booking performance.' },
+];
+
+const TAG_STYLES: Record<Announcement['tag'], { tile: string; icon: typeof Megaphone }> = {
+  Promo: { tile: 'bg-amber-50 text-amber-600', icon: Tag },
+  Update: { tile: 'bg-[#1488C8]/[0.10] text-[#1488C8]', icon: Info },
+  Notice: { tile: 'bg-neutral-100 text-neutral-500', icon: Megaphone },
+};
 
 const FAQ_CATS = ['All', 'Billing & Payment', 'Accommodation', 'Booking'];
 
@@ -114,6 +143,112 @@ function ReviewsScreen() {
   );
 }
 
+function AnnouncementsScreen() {
+  return (
+    <div className="pb-4">
+      <div className="px-4 pt-4 space-y-2.5">
+        {ANNOUNCEMENTS.map((a) => {
+          const { tile, icon: Icon } = TAG_STYLES[a.tag];
+          return (
+            <button
+              key={a.title}
+              className="group w-full text-left flex items-start gap-2.5 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 active:bg-neutral-50 transition-colors cursor-pointer"
+            >
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${tile}`}>
+                <Icon className="w-3 h-3" strokeWidth={2.25} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[14px] font-medium text-neutral-900 truncate">{a.title}</span>
+                  {a.unread && <span className="w-1.5 h-1.5 rounded-full bg-[#1488C8] shrink-0" aria-label="Unread" />}
+                </div>
+                <p className="text-[12px] text-neutral-500 truncate mt-0.5">{a.body}</p>
+                <span className="text-[11px] text-neutral-400 tabular-nums">{a.date}</span>
+              </div>
+              <ChevronRight className="w-4 h-4 shrink-0 text-neutral-300 group-active:text-neutral-400 mt-0.5" />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function QaScreen() {
+  return (
+    <div className="pb-4">
+      <div className="px-4 pt-4 space-y-2.5">
+        {QA.map((item) => {
+          const s = QA_STATUS[item.status];
+          const Icon = s.icon;
+          return (
+            <button
+              key={item.q}
+              className="group w-full text-left rounded-xl border border-neutral-200 bg-white px-3.5 py-3 active:bg-neutral-50 transition-colors cursor-pointer"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-[14px] font-medium text-neutral-900 leading-snug min-w-0">{item.q}</span>
+                <ChevronRight className="w-4 h-4 shrink-0 text-neutral-300 group-active:text-neutral-400 mt-0.5" />
+              </div>
+              {item.answer && <p className="mt-1 text-[12px] text-neutral-500 leading-snug line-clamp-2">{item.answer}</p>}
+              <div className="mt-2 flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-medium ${s.pill}`}>
+                  <Icon className="w-3 h-3" strokeWidth={2.25} />
+                  {s.label}
+                </span>
+                <span className="text-[11px] text-neutral-400 tabular-nums">{item.date}</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function QaComposeScreen({ onSubmit }: { onSubmit: () => void }) {
+  const [text, setText] = useState('');
+  const ready = text.trim().length > 0;
+  return (
+    <div className="px-4 pt-4 pb-4 space-y-4">
+      {/* Property selector */}
+      <div>
+        <label className="block text-[12px] font-medium text-neutral-500 mb-1.5">
+          Property <span className="font-normal text-neutral-400">(optional)</span>
+        </label>
+        <button className="w-full flex items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 text-left active:bg-neutral-50 transition-colors cursor-pointer">
+          <span className="text-[13.5px] text-neutral-400">Choose a property</span>
+          <ChevronDown className="w-4 h-4 shrink-0 text-neutral-400" />
+        </button>
+      </div>
+
+      {/* Question */}
+      <div>
+        <label className="block text-[12px] font-medium text-neutral-500 mb-1.5">Your question</label>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={5}
+          placeholder="What would you like to ask? e.g. Is breakfast included?"
+          className="w-full rounded-xl border border-neutral-200 bg-white px-3.5 py-3 text-[13.5px] text-neutral-900 placeholder:text-neutral-400 resize-none outline-none focus:border-[#1488C8] focus:ring-2 focus:ring-[#1488C8]/20 transition-shadow"
+        />
+        <p className="mt-1.5 text-[11.5px] text-neutral-400">Our team usually replies within 24 hours.</p>
+      </div>
+
+      {/* Submit */}
+      <button
+        onClick={ready ? onSubmit : undefined}
+        disabled={!ready}
+        style={ready ? { background: BLUE } : undefined}
+        className="w-full h-11 rounded-xl text-[14px] font-semibold text-white flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed"
+      >
+        <Send className="w-4 h-4" strokeWidth={2} />
+        မေးခွန်းပို့မည်
+      </button>
+    </div>
+  );
+}
+
 function FaqScreen() {
   const [cat, setCat] = useState('All');
   const [openKey, setOpenKey] = useState<string | null>(FAQS[0].q);
@@ -139,18 +274,27 @@ function FaqScreen() {
         })}
       </div>
 
-      {/* Standard accordion — question row + rotating chevron, answer below */}
-      <div>
+      {/* Card accordion — each FAQ in its own bordered card */}
+      <div className="flex flex-col gap-2.5 px-4">
         {items.map((f) => {
           const on = openKey === f.q;
           return (
-            <div key={f.q} className="border-b border-neutral-200">
+            <div
+              key={f.q}
+              className={`rounded-2xl border bg-white overflow-hidden transition-colors ${
+                on ? 'border-[#1488C8] shadow-sm' : 'border-neutral-200'
+              }`}
+            >
               <button
                 onClick={() => setOpenKey(on ? null : f.q)}
-                className="w-full flex items-center justify-between gap-3 px-4 py-4 text-left cursor-pointer"
+                className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left cursor-pointer"
               >
                 <span className="text-[14.5px] font-medium text-neutral-900 leading-snug">{f.q}</span>
-                <ChevronDown className={`w-5 h-5 shrink-0 text-neutral-400 transition-transform duration-200 ${on ? 'rotate-180' : ''}`} />
+                <ChevronDown
+                  className={`w-5 h-5 shrink-0 transition-transform duration-200 ${
+                    on ? 'rotate-180 text-[#1488C8]' : 'text-neutral-400'
+                  }`}
+                />
               </button>
               <AnimatePresence initial={false}>
                 {on && (
@@ -161,7 +305,7 @@ function FaqScreen() {
                     transition={{ duration: 0.22, ease: 'easeOut' }}
                     className="overflow-hidden"
                   >
-                    <p className="text-[13px] text-neutral-600 leading-relaxed px-4 pb-4 -mt-1">{f.a}</p>
+                    <p className="text-[13px] text-neutral-600 leading-relaxed px-4 pb-4 -mt-0.5">{f.a}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -175,7 +319,9 @@ function FaqScreen() {
 
 export function MobileDemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [screen, setScreen] = useState<ScreenKey>('favourites');
+  const [composing, setComposing] = useState(false);
   const active = SCREENS.find((s) => s.key === screen)!;
+  const headerTitle = composing ? 'မေးခွန်းအသစ်' : active.title;
 
   return (
     <AnimatePresence>
@@ -217,8 +363,14 @@ export function MobileDemoModal({ open, onClose }: { open: boolean; onClose: () 
                     </span>
                   </div>
                   <div className="relative flex items-center justify-center px-10 h-12">
-                    <ChevronLeft className="absolute left-3 w-6 h-6" strokeWidth={2.5} />
-                    <span className="text-[16px] font-semibold tracking-wide text-center leading-tight">{active.title}</span>
+                    <button
+                      onClick={() => composing && setComposing(false)}
+                      aria-label="Back"
+                      className={`absolute left-3 ${composing ? 'cursor-pointer' : 'pointer-events-none'}`}
+                    >
+                      <ChevronLeft className="w-6 h-6" strokeWidth={2.5} />
+                    </button>
+                    <span className="text-[16px] font-semibold tracking-wide text-center leading-tight">{headerTitle}</span>
                   </div>
                 </div>
 
@@ -226,16 +378,30 @@ export function MobileDemoModal({ open, onClose }: { open: boolean; onClose: () 
                 <div className="flex-1 overflow-y-auto bg-neutral-50/40 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
                   <AnimatePresence mode="wait">
                     <motion.div
-                      key={screen}
+                      key={composing ? 'qa-compose' : screen}
                       initial={{ opacity: 0, x: 12 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -12 }}
                       transition={{ duration: 0.2 }}
                     >
-                      {screen === 'favourites' ? <FavouritesScreen /> : screen === 'reviews' ? <ReviewsScreen /> : <FaqScreen />}
+                      {composing ? (
+                        <QaComposeScreen onSubmit={() => setComposing(false)} />
+                      ) : screen === 'favourites' ? <FavouritesScreen /> : screen === 'reviews' ? <ReviewsScreen /> : screen === 'faq' ? <FaqScreen /> : screen === 'announcements' ? <AnnouncementsScreen /> : <QaScreen />}
                     </motion.div>
                   </AnimatePresence>
                 </div>
+
+                {/* Compose FAB — Q&A list only */}
+                {screen === 'qa' && !composing && (
+                  <button
+                    onClick={() => setComposing(true)}
+                    aria-label="Ask a question"
+                    style={{ background: BLUE }}
+                    className="absolute bottom-16 right-3.5 w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white active:scale-95 transition-transform cursor-pointer"
+                  >
+                    <SquarePen className="w-5 h-5" strokeWidth={2} />
+                  </button>
+                )}
 
                 {/* Android nav bar */}
                 <div className="shrink-0 bg-neutral-50 border-t border-neutral-200">
@@ -253,7 +419,7 @@ export function MobileDemoModal({ open, onClose }: { open: boolean; onClose: () 
               {SCREENS.map((s) => (
                 <button
                   key={s.key}
-                  onClick={() => setScreen(s.key)}
+                  onClick={() => { setScreen(s.key); setComposing(false); }}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                     screen === s.key ? 'bg-white text-[var(--text-primary)]' : 'bg-white/15 text-white/80 hover:bg-white/25'
                   }`}

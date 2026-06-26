@@ -9,7 +9,8 @@ import { MobileDemoModal } from './MobileDemoModal';
 
 /* ============================================================================
    LOGIN  —  route: /login  (full page, outside the app shell)
-   Split layout: brand panel (ocean gradient) + sign-in form. Demo only —
+   Split layout: brand panel (architecture photo + soft gradient) + sign-in
+   form. Demo only —
    submitting goes straight to the dashboard.
    ============================================================================ */
 
@@ -43,11 +44,12 @@ export default function LoginPage() {
         className="relative hidden lg:flex flex-col justify-between p-12 text-white overflow-hidden bg-[var(--color-base-ocean-80)] bg-cover bg-center"
         style={{ backgroundImage: 'url(/login-resort.jpg)' }}
       >
-        {/* Navy overlay — keeps the photo on-brand and the white text legible */}
+        {/* Soft neutral gradient — just enough to keep the white text legible,
+            no colour tint so the photo shows through. */}
         <div
           aria-hidden
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(150deg, rgba(14,34,51,0.92) 0%, rgba(20,42,60,0.80) 45%, rgba(35,65,87,0.62) 100%)' }}
+          style={{ background: 'linear-gradient(to bottom, rgba(12,14,18,0.45) 0%, rgba(12,14,18,0.12) 32%, rgba(12,14,18,0.30) 66%, rgba(12,14,18,0.82) 100%)' }}
         />
 
         {/* Soft glow */}
