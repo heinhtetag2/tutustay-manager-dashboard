@@ -39,6 +39,8 @@ export const router = createBrowserRouter([
   { path: '/login', Component: LoginPage },
   { path: '/forgot-password', Component: ForgotPasswordPage },
   { path: '/showcase', Component: ProjectShowcase },
+  // Public reference — linked from the case study, so it must open without signing in.
+  { path: '/design-system', element: createElement(Layout), children: [{ index: true, Component: DesignSystemPage }] },
   // Onboarding wizard — requires sign-in (manager arrives here from Login).
   { path: '/hotel/setup', element: createElement(RequireAuth, null, createElement(HotelSetupPage)) },
   {
