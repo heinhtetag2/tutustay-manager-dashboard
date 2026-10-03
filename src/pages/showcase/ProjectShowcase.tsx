@@ -163,7 +163,7 @@ function Strip({ frames }: { frames: { name: string; label: string; text: string
   );
 }
 
-type Side = { src: string; tag: string; when: string; portrait?: boolean };
+type Side = { src: string; tag: string; when: string; portrait?: boolean; natural?: boolean };
 
 /** Before | After, same frame size on both sides, with a verdict line. */
 function Compare({ a, b, verdict }: { a: Side; b: Side; verdict: string }) {
@@ -173,9 +173,9 @@ function Compare({ a, b, verdict }: { a: Side; b: Side; verdict: string }) {
         <span className="rounded px-1.5 py-0.5 font-semibold uppercase tracking-wide" style={{ color: tone, backgroundColor: `${tone}22` }}>{s.tag}</span>
         <span style={{ color: MUTED }}>{s.when}</span>
       </div>
-      <div className="flex justify-center overflow-hidden rounded-xl border p-3" style={{ borderColor: LINE, backgroundColor: PANEL }}>
+      <div className="flex items-start justify-center overflow-hidden rounded-xl border p-3" style={{ borderColor: LINE, backgroundColor: PANEL }}>
         <img src={s.src} alt={`${s.tag}, ${s.when}`} loading="lazy"
-          className={s.portrait ? 'block max-h-[480px] w-auto rounded-md object-contain object-top' : 'block aspect-[16/10] w-full rounded-md object-cover object-top'} />
+          className={s.natural ? 'block h-auto w-full rounded-md' : s.portrait ? 'block max-h-[480px] w-auto rounded-md object-contain object-top' : 'block aspect-[16/10] w-full rounded-md object-cover object-top'} />
       </div>
     </div>
   );
@@ -515,6 +515,231 @@ function FieldCount() {
   );
 }
 
+
+/** Horizontal bars with a value label. Non-zero values always get a visible sliver. */
+function BarList({ rows, note }: { rows: { l: string; v: number; tone: string; sub?: string }[]; note?: string }) {
+  const max = Math.max(...rows.map((r) => r.v));
+  return (
+    <div className="rounded-xl border p-5" style={{ borderColor: LINE, backgroundColor: PANEL }}>
+      <div className="space-y-3">
+        {rows.map((r) => (
+          <div key={r.l} className="grid grid-cols-[150px_1fr_64px] items-center gap-3 text-sm">
+            <span style={{ color: TEXT }}>{r.l}{r.sub && <span className="block text-[11px]" style={{ color: MUTED }}>{r.sub}</span>}</span>
+            <div className="h-5 rounded" style={{ backgroundColor: PANEL2 }}>
+              <div className="h-5 rounded" style={{ width: r.v ? `${Math.max(1.5, (r.v / max) * 100)}%` : '0%', backgroundColor: `${r.tone}66`, borderRight: r.v ? `3px solid ${r.tone}` : 'none' }} />
+            </div>
+            <span className="text-right tabular-nums" style={{ color: r.tone }}>{r.v.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+      {note && <p className="mt-3 text-xs" style={{ color: MUTED }}>{note}</p>}
+    </div>
+  );
+}
+
+/** Commits per week, from `git log`. Weeks with no commits stay visible as gaps. */
+function CommitChart() {
+  const weeks: [string, string, number, string][] = [
+    ['20 Apr', 'W17', 7, WARN], ['27 Apr', 'W18', 0, WARN], ['4 May', 'W19', 0, WARN], ['11 May', 'W20', 2, WARN], ['18 May', 'W21', 0, WARN],
+    ['25 May', 'W22', 3, GOOD], ['1 Jun', 'W23', 43, GOOD], ['8 Jun', 'W24', 16, GOOD], ['15 Jun', 'W25', 3, GOOD], ['22 Jun', 'W26', 5, GOOD],
+  ];
+  const max = 43;
+  return (
+    <div className="rounded-xl border p-5" style={{ borderColor: LINE, backgroundColor: PANEL }}>
+      <div className="flex h-44 items-end gap-2">
+        {weeks.map(([d, w, v, c]) => (
+          <div key={w} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
+            <span className="text-xs tabular-nums" style={{ color: v ? TEXT : MUTED }}>{v}</span>
+            <div className="w-full rounded-t" style={{ height: `${Math.max(2, (v / max) * 100)}%`, backgroundColor: `${c}${v ? '77' : '33'}`, borderTop: `2px solid ${c}` }} />
+            <span className="text-[10px]" style={{ color: MUTED }}>{d}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-xs" style={{ color: MUTED }}>
+        <span><b style={{ color: WARN }}>■</b> earlier products (iDap)</span>
+        <span><b style={{ color: GOOD }}>■</b> TutuStay, from 29 May</span>
+      </div>
+      <p className="mt-2 text-xs" style={{ color: MUTED }}>Commits per week, 20 April to 26 June. The week of 1 June holds 43 of the 79 commits: the wizard, booking toasts, the calendar, coupons and settlements all land there. The quiet weeks are gaps in the work, not missing data.</p>
+    </div>
+  );
+}
+
+/** Effort vs value, my judgement from the product review. */
+function PriorityMatrix() {
+  const pts: { l: string; x: number; y: number; deferred?: boolean }[] = [
+    { l: 'Booking Requests', x: 14, y: 90 }, { l: 'Setup Wizard', x: 30, y: 78 }, { l: 'Dashboard', x: 44, y: 68 },
+    { l: 'Settlements', x: 74, y: 90 }, { l: 'Room-Type Pricing', x: 80, y: 74 }, { l: 'Reviews', x: 62, y: 50 },
+    { l: 'Customers', x: 46, y: 36 }, { l: 'Coupons', x: 18, y: 42 }, { l: 'Employees', x: 38, y: 20 },
+    { l: 'Channel / OTA sync', x: 84, y: 12, deferred: true }, { l: 'Multi-property', x: 64, y: 8, deferred: true },
+  ];
+  return (
+    <div className="rounded-xl border p-4" style={{ borderColor: LINE, backgroundColor: PANEL }}>
+      <div className="relative h-[340px] w-full">
+        <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+          <div className="border-b border-r p-2" style={{ borderColor: LINE }}>Do first</div>
+          <div className="border-b p-2 text-right" style={{ borderColor: LINE }}>Plan carefully</div>
+          <div className="border-r p-2" style={{ borderColor: LINE }}>Fill-ins</div>
+          <div className="p-2 text-right">Defer</div>
+        </div>
+        {pts.map((p) => (
+          <span key={p.l} className="absolute -translate-x-1/2 translate-y-1/2 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs"
+            style={{ left: `${p.x}%`, bottom: `${p.y}%`, borderColor: p.deferred ? MUTED : ACCENT, borderStyle: p.deferred ? 'dashed' : 'solid', color: p.deferred ? MUTED : TEXT, backgroundColor: PANEL2 }}>{p.l}</span>
+        ))}
+      </div>
+      <div className="mt-2 flex justify-between text-[11px]" style={{ color: MUTED }}><span>Low effort</span><span>Effort →</span><span>High effort</span></div>
+      <p className="mt-1 text-xs" style={{ color: MUTED }}>Vertical axis is value to the owner and the loop. Positions are my judgement from the product review, not measured. Dashed items were deliberately deferred.</p>
+    </div>
+  );
+}
+
+/** The owner's journey, with how it feels and where it breaks. My reading. */
+function JourneyMap() {
+  const stages = [
+    { t: 'Set up', screen: 'Setup hub', mood: 2, feel: '“Where do I start?”', friction: 'The wizard hid behind a small sidebar ring', fix: 'Dashboard checklist (decision D)' },
+    { t: 'Receive', screen: 'Booking Requests', mood: 4, feel: '“A booking!”', friction: 'None', fix: 'Keep the queue calm' },
+    { t: 'Decide', screen: 'Booking Requests', mood: 3, feel: '“What happens if I approve?”', friction: 'No consequence message', fix: 'Consequence toasts (P0)' },
+    { t: 'Fulfil', screen: 'Reservations', mood: 2, feel: '“What is Overdue?”', friction: 'Status named, not explained', fix: 'Glossary tooltip (decision B)' },
+    { t: 'Get paid', screen: 'Settlements', mood: 3, feel: '“Gross vs net?”', friction: 'Finance jargon', fix: 'Derived payout (decision C)' },
+  ];
+  return (
+    <div className="overflow-x-auto rounded-xl border" style={{ borderColor: LINE, backgroundColor: PANEL }}>
+      <div className="grid min-w-[720px] grid-cols-5">
+        {stages.map((st, i) => (
+          <div key={st.t} className="border-r p-4 last:border-r-0" style={{ borderColor: LINE }}>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: ACCENT }}>{i + 1} · {st.t}</div>
+            <div className="mt-1 text-sm font-semibold" style={{ color: TEXT }}>{st.screen}</div>
+            <div className="mt-3 flex gap-1" aria-label={`Mood ${st.mood} of 5`}>
+              {[1, 2, 3, 4, 5].map((n) => <span key={n} className="h-1.5 flex-1 rounded-full" style={{ backgroundColor: n <= st.mood ? (st.mood >= 4 ? GOOD : st.mood === 3 ? WARN : BAD) : PANEL2 }} />)}
+            </div>
+            <p className="mt-2 text-xs italic" style={{ color: BODY }}>{st.feel}</p>
+            <p className="mt-3 text-[11px] font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Friction</p>
+            <p className="text-xs leading-5" style={{ color: BODY }}>{st.friction}</p>
+            <p className="mt-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: MUTED }}>Response</p>
+            <p className="text-xs leading-5" style={{ color: BODY }}>{st.fix}</p>
+          </div>
+        ))}
+      </div>
+      <p className="border-t px-4 py-2 text-[11px]" style={{ borderColor: LINE, color: MUTED }}>The mood bars are my reading of the journey from a cold first-run review, not research with owners.</p>
+    </div>
+  );
+}
+
+/** My own scorecard, five pips per dimension. Not measured. */
+function Scorecard() {
+  const rows: [string, number, string][] = [
+    ['Product strategy', 4, 'A clear take-rate model; owns the booking → payout loop'],
+    ['Information architecture', 5, 'Grouped by how an operator thinks'],
+    ['UX and flows', 3, 'Strong bones; no first-run by default, jargon-heavy'],
+    ['Visual craft', 4, 'Calm, flat, confident'],
+    ['Design system · foundation', 5, 'Three-tier tokens, self-audited'],
+    ['Design system · components', 2, 'Token-rich, component-poor'],
+    ['Accessibility', 2, 'Colour-only status, uneven focus, dark mode not wired'],
+    ['Onboarding', 3, 'A strong wizard that was under-surfaced'],
+  ];
+  return (
+    <div className="rounded-xl border p-5" style={{ borderColor: LINE, backgroundColor: PANEL }}>
+      <div className="space-y-2.5">
+        {rows.map(([l, n, d]) => (
+          <div key={l} className="grid items-center gap-3 sm:grid-cols-[210px_110px_1fr]">
+            <span className="text-sm" style={{ color: TEXT }}>{l}</span>
+            <div className="flex gap-1">{[1, 2, 3, 4, 5].map((k) => <span key={k} className="h-2 w-5 rounded-sm" style={{ backgroundColor: k <= n ? (n >= 4 ? GOOD : n === 3 ? WARN : BAD) : PANEL2 }} />)}</div>
+            <span className="text-xs" style={{ color: MUTED }}>{d}</span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-xs" style={{ color: MUTED }}>My own scores from the design review, out of five. They are a self-assessment, not a measurement, and should be re-scored after each roadmap phase.</p>
+    </div>
+  );
+}
+
+/** How old the demo data is, against the real clock. The product's own demo-data problem. */
+function DataWindows() {
+  const start = new Date('2025-12-01').getTime();
+  const end = new Date('2026-12-31').getTime();
+  const todayMs = Date.now();
+  const pct = (d: string | number) => `${(((typeof d === 'number' ? d : new Date(d).getTime()) - start) / (end - start)) * 100}%`;
+  const rows: [string, string, string, string][] = [
+    ['Reviews', '2025-12-20', '2026-05-29', INFO],
+    ['Reservations (stays)', '2026-05-12', '2026-07-03', GOOD],
+    ['Booking requests', '2026-06-01', '2026-06-15', WARN],
+  ];
+  const days = (d: string) => Math.max(0, Math.round((todayMs - new Date(d).getTime()) / 86_400_000));
+  return (
+    <div className="rounded-xl border p-5" style={{ borderColor: LINE, backgroundColor: PANEL }}>
+      <div className="relative space-y-4 pt-5">
+        <div className="absolute inset-y-0 w-px" style={{ left: pct(todayMs), backgroundColor: BAD }}>
+          <span className="absolute -top-0.5 left-1 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider" style={{ color: BAD }}>Today</span>
+        </div>
+        {rows.map(([l, a, z, c]) => (
+          <div key={l} className="grid grid-cols-[150px_1fr] items-center gap-3 text-sm">
+            <span style={{ color: TEXT }}>{l}<span className="block text-[11px]" style={{ color: MUTED }}>ended {days(z)} days ago</span></span>
+            <div className="relative h-5 rounded" style={{ backgroundColor: PANEL2 }}>
+              <div className="absolute inset-y-0 rounded" style={{ left: pct(a), width: `calc(${pct(z)} - ${pct(a)})`, backgroundColor: `${c}66`, borderRight: `3px solid ${c}` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 grid grid-cols-[150px_1fr] gap-3 text-[10px]" style={{ color: MUTED }}>
+        <span />
+        <div className="flex justify-between"><span>Dec 2025</span><span>Mar</span><span>Jun</span><span>Sep</span><span>Dec 2026</span></div>
+      </div>
+      <p className="mt-3 text-xs" style={{ color: MUTED }}>The seeded demo data is fixed in time, so the live clock leaves it behind. Tonight, arrivals and in-house guests read zero. The gap above is computed from today’s date every time you open this page.</p>
+    </div>
+  );
+}
+
+/** The ocean ramp and the semantic roles pointing at it. */
+function OceanRamp() {
+  const ramp: [string, string, string[]][] = [
+    ['10', '#ecf3fe', []], ['20', '#dae5fc', ['--brand-tint', '--brand-border']], ['30', '#a8c3eb', []], ['40', '#6697c9', []],
+    ['50', '#447aaf', ['--brand-accent']], ['60', '#2b5782', ['--brand-primary-hover']], ['70', '#1d3d58', ['--brand-primary']], ['80', '#122536', []],
+  ];
+  return (
+    <div className="rounded-xl border p-4" style={{ borderColor: LINE, backgroundColor: PANEL }}>
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+        {ramp.map(([step, hex, roles]) => (
+          <div key={step}>
+            <div className="h-14 rounded-lg border" style={{ backgroundColor: hex, borderColor: LINE }} />
+            <div className="mt-1.5 text-xs font-semibold" style={{ color: TEXT }}>{step}</div>
+            <div className="text-[10px] tabular-nums" style={{ color: MUTED }}>{hex}</div>
+            {roles.map((r) => <div key={r} className="mt-1 rounded px-1 py-0.5 text-[9px] leading-3" style={{ color: INFO, backgroundColor: `${ACCENT}22` }}>{r}</div>)}
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-xs" style={{ color: MUTED }}>Tier 1: one of the 13+ palette ramps (ocean). Tier 2 roles point at single steps. Changing which step <code>--brand-primary</code> points at recolours every button, link and active state.</p>
+    </div>
+  );
+}
+
+/** Which written rule landed on which page, counted from the source. */
+function CoverageMatrix() {
+  const pages: [string, ('y' | 'n' | '-')[]][] = [
+    ['Dashboard', ['-', '-', 'y']], ['Sales Calendar', ['y', '-', 'y']], ['Employees', ['y', 'y', '-']], ['Customers', ['y', 'y', 'y']],
+    ['Reviews', ['y', 'y', 'y']], ['Rooms', ['y', 'n', '-']], ['Reservations', ['y', 'y', 'y']], ['Booking Requests', ['y', 'y', 'y']],
+    ['Coupons', ['y', 'y', 'y']], ['Settlements', ['y', 'y', 'y']],
+  ];
+  const cell = (v: 'y' | 'n' | '-') => v === 'y' ? <span style={{ color: GOOD }}>✓</span> : v === 'n' ? <span style={{ color: BAD }}>✕</span> : <span style={{ color: MUTED }}>–</span>;
+  return (
+    <div className="overflow-x-auto rounded-xl border" style={{ borderColor: LINE, backgroundColor: PANEL }}>
+      <table className="w-full min-w-[480px] text-sm">
+        <thead><tr style={{ color: MUTED }}>
+          <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.1em]">Page</th>
+          {['Empty state', 'Skeleton', 'Glossary'].map((h) => <th key={h} className="px-4 py-3 text-center text-[11px] font-semibold uppercase tracking-[0.1em]">{h}</th>)}
+        </tr></thead>
+        <tbody>
+          {pages.map(([n, c]) => (
+            <tr key={n} className="border-t" style={{ borderColor: LINE }}>
+              <td className="px-4 py-2" style={{ color: TEXT }}>{n}</td>
+              {c.map((v, i) => <td key={i} className="px-4 py-2 text-center">{cell(v)}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="border-t px-4 py-2 text-[11px]" style={{ borderColor: LINE, color: MUTED }}>✓ rule applied · ✕ rule applies but is missing · – not applicable (no list, or no jargon KPI). Counted from the page source. Rooms is the one list page without a loading skeleton.</p>
+    </div>
+  );
+}
+
 /* ── Page ───────────────────────────────────────────────────────────────── */
 
 export default function ProjectShowcase() {
@@ -605,12 +830,12 @@ export default function ProjectShowcase() {
           {/* ── 1 · Overview ─────────────────────────────────────────── */}
           <section id="overview" className="scroll-mt-24 pb-16 pt-14">
             <div className="text-center">
-              <p className="text-sm" style={{ color: MUTED }}>Hotel manager dashboard <span className="mx-2">·</span> Product and UX design <span className="mx-2">·</span> 2026</p>
+              <p className="text-sm" style={{ color: MUTED }}>Hotel booking platform <span className="mx-2">·</span> Manager dashboard prototype <span className="mx-2">·</span> Product and UX design <span className="mx-2">·</span> 2026</p>
               <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-bold leading-[1.1] tracking-tight md:text-5xl">
-                TutuStay: running an independent hotel, from booking request to payout
+                TutuStay: a booking platform for independent hotels, from guest request to host payout
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-8" style={{ color: MUTED }}>
-                A single-property operations dashboard for owners who run on chat apps and paper, and a settlement screen that shows its working. How I designed it, the decisions that shaped it, and what is still untested.
+                A platform with a guest app, a manager dashboard and platform-side moderation. The part built as a working prototype is the manager dashboard, for owners who run on chat apps and paper. How I designed it, the decisions that shaped it, and what is still untested.
               </p>
               <a href="https://tutustay-manager-dashboard.vercel.app/login" target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-white/10" style={{ borderColor: ACCENT, backgroundColor: PANEL }}>
                 Try the prototype <ArrowUpRight className="h-4 w-4" />
@@ -624,13 +849,13 @@ export default function ProjectShowcase() {
 
             <H3>In one paragraph</H3>
             <p>
-              Independent hotel and guesthouse owners coordinate arrivals, confirmations and money across chat threads, paper and spreadsheets. TutuStay is a take-rate marketplace: the platform earns 12% on completed stays, so its whole job is to move demand through one loop, request to reservation to settlement, without anything falling out. The design bet is that the loop should be visible. One repeating screen grammar makes every page learnable from the first, a glossary defines every jargon number where it appears, and the settlement screen derives the payout from the reservations so the owner can check it themselves.
+              TutuStay is a booking platform for independent hotels and guesthouses in Myanmar, with three sides: a guest app where travellers browse, book and pay; a manager dashboard where owners run the property; and a platform side that moderates content and pays hosts out. Today the prototype is the manager dashboard, and this case study is mostly about it. Independent owners coordinate arrivals, confirmations and money across chat threads, paper and spreadsheets. TutuStay is a take-rate marketplace: the platform earns 12% on completed stays, so its whole job is to move demand through one loop, request to reservation to settlement, without anything falling out. The design bet is that the loop should be visible. One repeating screen grammar makes every page learnable from the first, a glossary defines every jargon number where it appears, and the settlement screen derives the payout from the reservations so the owner can check it themselves.
             </p>
 
             <dl className="grid grid-cols-1 gap-x-10 gap-y-5 md:grid-cols-2">
               {[
-                ['Product', 'A hotel-manager web dashboard, with an 8-step property set-up wizard'],
-                ['Users', 'Owners and staff of single-property hotels and guesthouses'],
+                ['Product', 'A hotel booking platform. Built as a prototype: the manager dashboard, with an 8-step property set-up wizard. Previewed only: the guest app.'],
+                ['Users', 'Guests who book; owners and staff of single-property hotels and guesthouses who run them; platform admins who moderate'],
                 ['My role', 'Product design, UX, design system and the front-end build. Solo.'],
                 ['Tools', 'React, TypeScript, Tailwind, Radix. Claude as AI pair programmer, under my direction.'],
                 ['Timeline', 'Started 20 April 2026 as a different product; became TutuStay from 29 May; 79 commits to 26 June'],
@@ -663,9 +888,14 @@ export default function ProjectShowcase() {
             </p>
             <Tag kind="Gap">This is reasoned from the brief and a cold first-run review, not from field research. No owner interviews, surveys or observation exist in the materials, so the whole design rests on reasoning, benchmarks and building the screens.</Tag>
 
+            <H3>The owner’s journey</H3>
+            <p>Five stages, from setting up the property to getting paid. Friction clusters at the transitions (approve, check out, get paid), not inside screens, which is what the rest of the design responds to.</p>
+            <JourneyMap />
+
             <H3>The product bet</H3>
             <Quote>Own the loop to earn the right to own the money.</Quote>
             <p>Convert scattered demand into completed, paid stays, because that is where commission is captured. Scope stays narrow on purpose: one property, no channel sync, no multi-property. Every feature is judged on whether it keeps the loop moving or makes its money legible.</p>
+            <PriorityMatrix />
 
             <H3>Constraints that shaped every screen</H3>
             <Table
@@ -685,6 +915,10 @@ export default function ProjectShowcase() {
 
           {/* ── 3 · How it works ─────────────────────────────────────── */}
           <Chapter id="how" n={3} kicker="Context" title="How TutuStay works" lead="The one sequence everything hangs off, the machinery that turns it into money, and the screen grammar that makes it learnable.">
+            <H3>The platform: three surfaces</H3>
+            <p>TutuStay is not only a dashboard. A booking starts in a guest app, is decided in the manager dashboard, and is moderated and paid out by the platform. Only the middle surface is a working prototype; the other two appear in it as screens, states and rules.</p>
+            <Tag kind="Gap">Because the guest app and the admin side aren’t built, the manager dashboard stands in for the whole loop. Decisions that involve them (approval before a coupon goes live, a payout being marked paid) are real states in the dashboard but have no counterpart behind them.</Tag>
+
             <H3>One booking, start to payout</H3>
             <p>Three status vocabularies, one colour grammar. A request becomes a reservation when approved, and a reservation becomes money when the guest checks out.</p>
             <LoopDiagram />
@@ -720,6 +954,14 @@ export default function ProjectShowcase() {
               { name: 'reviews', label: 'Reviews', text: 'Response rate and moderation.' },
             ]} />
             <p className="text-xs" style={{ color: MUTED }}>Same title, KPI row, filters and table on five different screens. Captured at one size from the running app.</p>
+
+            <H3>Phones as well as desks</H3>
+            <p>Owners check in between tasks, so every screen has a phone layout too. The reservations table becomes a card list, the filters collapse into a sheet, and the KPI row becomes a two-by-two grid. It is the same screen grammar, re-flowed rather than redesigned.</p>
+            <Compare
+              a={{ src: now('reservations'), tag: 'Desktop', when: '1440 px' }}
+              b={{ src: now('m-reservations'), tag: 'Phone', when: '390 px', portrait: true }}
+              verdict="Same four layers, same words. The table row becomes a card with its fields stacked, so nothing needs sideways scrolling."
+            />
           </Chapter>
 
           {/* ── 4 · Decisions ────────────────────────────────────────── */}
@@ -812,9 +1054,18 @@ export default function ProjectShowcase() {
             <H3>Pricing, the part that kept changing</H3>
             <p>Weekend pricing is the most intricate control. An owner chooses weekend days, then an uplift as a percent or a flat amount; with foreigner pricing in flat mode there are two uplifts. The preview has to make the result obvious before anything is saved.</p>
             <Compare
-              a={{ src: before('b-type-weekend'), tag: 'Before', when: '10 Jun · b2bd1d5' }}
-              b={{ src: now('type-weekend'), tag: 'Now', when: '16 Jun · fd53ba0' }}
-              verdict="The %/MMK choice moves inside the input instead of sitting beside it as a second control, the days and the Settings link collapse onto fewer lines, and the preview becomes a stacked before/after with the base faintly struck through."
+              a={{ src: before('b-type-weekend'), tag: 'Before', when: '10 Jun · b2bd1d5', natural: true }}
+              b={{ src: now('type-weekend'), tag: 'Now', when: '16 Jun · fd53ba0', natural: true }}
+              verdict="Same state on both sides: weekend pricing on, 80,000 a night, a 20% uplift. The top is identical; every change is below the toggle."
+            />
+            <Table
+              head={['', 'Before', 'Now', 'Why']}
+              rows={[
+                ['1 · Weekend days', 'Seven pills wrap onto two lines, with a separate line saying days are set in Settings.', 'One row. Days you can’t change here fade back; “Manage in Settings” sits beside the label.', 'These days aren’t decided here, so they shouldn’t compete with what is.'],
+                ['2 · Unit toggle', 'A % / MMK pill sits beside the field as a second control.', 'The toggle lives inside the field, one control for one value.', 'Percent and a flat amount are the same question, “how much more?”'],
+                ['3 · Preview', '“Weekend night rate (local)  80,000 96,000” on one line.', 'Stacked: the old rate faintly struck through above the new one. Shorter labels.', 'The eye reads before → after top to bottom.'],
+                ['Total height', '608 px', '558 px, about 8% shorter', 'Less scrolling inside a side sheet that already scrolls.'],
+              ]}
             />
             <Strip frames={[
               { name: 'type-regular', label: 'Regular', text: 'Local and foreigner nightly rates.' },
@@ -869,6 +1120,9 @@ export default function ProjectShowcase() {
             ]} />
             <Tag kind="Gap">That history is why some of the design system is strong and some is not. The primitives that survived three products are the ones that were genuinely reusable; leftover survey code and fork files are still in the repo.</Tag>
 
+            <H3>Where the effort went</H3>
+            <CommitChart />
+
             <H3>How the work ran</H3>
             <Flow steps={[
               { t: 'Domain model', d: 'Entities, states, the loop' },
@@ -897,6 +1151,7 @@ export default function ProjectShowcase() {
             <H3>The token foundation</H3>
             <p>Three tiers, so a re-theme is a change to one layer. Components read a thin adapter; screens read the semantic tier; only the semantic tier ever touches the raw palette.</p>
             <TierDiagram />
+            <OceanRamp />
 
             <H3>The loop that kept the AI consistent</H3>
             <Flow steps={[
@@ -921,6 +1176,9 @@ export default function ProjectShowcase() {
               { n: '22', l: 'jargon terms behind (i) tooltips, from one glossary file' },
               { n: '1', l: 'drawer width: every drawer and side sheet standardised to max-w-md' },
             ]} />
+
+            <H3>Where the rules landed</H3>
+            <CoverageMatrix />
 
             <H3>The design-system page is the AI’s ground truth</H3>
             <p>The in-app design-system page is a live reference, not a picture. It renders the real tokens and components, and its drawer section opens the actual Add Room, Add Room Type, Add Coupon and Add Employee editors a manager uses. When a pattern changed, the reference changed in the same commit, so the documentation could not fall behind the product.</p>
@@ -965,14 +1223,15 @@ export default function ProjectShowcase() {
             <p>I owned the domain model, the information architecture, the token architecture, the rules above and every acceptance decision. Claude produced and refactored implementation and ran the sweeps; the audits were run the same way.</p>
 
             <H3>Token-rich, component-poor</H3>
-            <Table
-              head={['Reality', 'Count', 'Verdict']}
+            <BarList
               rows={[
-                ['Token references across the code', '5,000+', 'Values are well systematised'],
-                ['Imports of the Button primitive', '0', 'Built, then never adopted'],
-                ['Hand-rolled inline buttons', '412', 'Consistency by copy-paste'],
-                ['bg-white / text-white literals', '485 / 162', 'Bypass the tokens and break dark mode'],
+                { l: 'Token references', v: 5000, tone: GOOD, sub: 'values are systematised (5,000+)' },
+                { l: 'bg-white literals', v: 485, tone: WARN, sub: 'bypass the tokens, break dark mode' },
+                { l: 'Hand-rolled buttons', v: 412, tone: WARN, sub: 'copy-paste consistency' },
+                { l: 'text-white literals', v: 162, tone: WARN },
+                { l: 'Button primitive imports', v: 0, tone: BAD, sub: 'built, then never adopted' },
               ]}
+              note="Counts from the design-system audit. The foundation is the strongest asset; the component layer under it is the weakest."
             />
             <Tag kind="Gap">The method is uneven. Where a rule was written down and swept, it held: empty states, skeletons and glossary tooltips are uniform. Where it wasn’t, it didn’t: the Button primitive has zero imports. The lesson is that the AI follows the rules it is given, so the work is deciding which rules to write.</Tag>
           </Chapter>
@@ -990,11 +1249,46 @@ export default function ProjectShowcase() {
                 ['Impact on owners. No users, no telemetry.', <Chip tone={WARN}>Unmeasured</Chip>],
               ]}
             />
+            <H3>The demo data is fixed in time</H3>
+            <DataWindows />
             <Tag kind="Gap">The demo data needs work to read as true: dates were seeded as fixed ISO strings and have aged; two reservations point at customers that don’t exist; there are no repeat guests, so the Repeat customers KPI can’t be demonstrated; and the Burmese market story disagrees with a Korean-won default currency.</Tag>
+          
+            <H3>How I would score it</H3>
+            <Scorecard />
           </Chapter>
 
           {/* ── 10 · Reflection ──────────────────────────────────────── */}
           <Chapter id="next" n={10} kicker="Results" title="Reflection and next steps">
+            <H3>I built this fast, on purpose</H3>
+            <p>
+              The hotel version of this product took four weeks. I was working quickly, so I put the effort where it pays back soonest: not into a distinctive look, but into a system I could keep consistent while moving fast. The goal was a product that is consistent, easy to use and clean, with the rules written down so each new screen starts from the same place instead of from scratch.
+            </p>
+            <Stats items={[
+              { n: '4 wks', l: 'from the first hotel commit (29 May) to the last (26 Jun)' },
+              { n: '68', l: 'commits on 16 working days in that stretch' },
+              { n: '3', l: 'written-down rules plus one token system holding it together' },
+            ]} />
+            <Table
+              head={['I chose', 'Over', 'The cost']}
+              rows={[
+                ['Consistency and clarity', 'A distinctive brand expression', 'The product looks calm and clean but fairly neutral. Someone could mistake it for any well-made dashboard.'],
+                ['A neutral, tokenised look', 'Hand-tuned screens', 'Spacing and colour are right everywhere and special nowhere.'],
+                ['Shipping the whole loop', 'Polishing one corner', 'Some corners (dark mode, the Button primitive, demo data) are unfinished, and I say so in chapter 8 and 9.'],
+              ]}
+            />
+
+            <H3>Where it goes next: the brand</H3>
+            <p>
+              Because the foundation is a three-tier token system, aligning the product with the TutuStay brand is mostly a change to one layer, not a redesign. Re-point the semantic tokens at the brand’s colours, swap the placeholder logo, set the brand typeface and radius, and every screen follows. That is the main reason I spent the time on tokens first.
+            </p>
+            <Flow steps={[
+              { t: 'Brand direction', d: 'Logo, colour, type, voice, imagery' },
+              { t: 'Re-point Tier 2', d: 'Brand tokens replace the neutral defaults' },
+              { t: 'Adjust the components', d: 'Radius, density and icon style, in one pass' },
+              { t: 'Check every screen', d: 'Against the design-system page' },
+            ]} />
+            <Tag kind="Gap">There is no brand identity applied yet. The logo on the login page is a dashed “LOGO” placeholder, and the blue is a working palette, not a brand colour. I would rather say that than imply the visual identity is finished.</Tag>
+
             <H3>What I’d keep</H3>
             <ul className="list-disc space-y-1 pl-5">
               <li>The token architecture and the habit of auditing my own work.</li>
@@ -1010,6 +1304,7 @@ export default function ProjectShowcase() {
                 ['P0', 'Seed the demo relative to today and fix dangling references', 'The hero screen currently shows an empty tonight'],
                 ['P1', 'Adopt the Button primitive; extract Card, Badge, Input, EmptyState', 'Turn consistency-by-discipline into consistency-by-construction'],
                 ['P1', 'Status icons and legend; wire dark mode or remove it', 'Colour-only status is an accessibility exposure'],
+                ['P1', 'A brand pass: logo, colour, type, imagery, applied through the semantic tokens', 'The product is consistent and clean but not yet recognisably TutuStay'],
                 ['P2', 'Run five owner interviews', 'The largest evidence gap in this whole case study'],
               ]}
             />
