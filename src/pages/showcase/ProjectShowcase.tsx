@@ -1,5 +1,12 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
+import { Skeleton } from '@/shared/ui/skeleton';
+import { BrandDots } from '@/shared/ui/brand-dots';
+import { InfoTooltip } from '@/shared/ui/info-tooltip';
+import { GLOSSARY } from '@/widgets/onboarding/glossary';
+import { RotateCcw, X as XIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { computeWeekendPrice, type WeekendMode } from '@/pages/hotel/hotel-data';
 import { ArrowUpRight, X, ArrowRight, AlertCircle, Target, Lightbulb, FlaskConical, Route, BookOpen, Calculator, Rocket, Layers, BedDouble, TriangleAlert, Eye, type LucideIcon } from 'lucide-react';
 
 /* ============================================================================
@@ -740,6 +747,159 @@ function CoverageMatrix() {
   );
 }
 
+
+/** A row of captured frames, left to right in time. */
+function Film({ frames, caption, cols }: { frames: { name: string; t: string }[]; caption: string; cols: string }) {
+  return (
+    <figure>
+      <div className={`grid gap-2 ${cols}`}>
+        {frames.map((f) => (
+          <div key={f.name}>
+            <div className="overflow-hidden rounded-lg border p-1" style={{ borderColor: LINE, backgroundColor: PANEL }}>
+              <img src={now(f.name)} alt={f.t} loading="lazy" className="block h-auto w-full rounded" />
+            </div>
+            <div className="mt-1 text-center text-[11px] tabular-nums" style={{ color: MUTED }}>{f.t}</div>
+          </div>
+        ))}
+      </div>
+      <figcaption className="mt-2 text-xs leading-5" style={{ color: MUTED }}>{caption}</figcaption>
+    </figure>
+  );
+}
+
+/** Live demos built from the product's real components, on an app-coloured surface. */
+function MotionLab() {
+  const [loading, setLoading] = useState(true);
+  const timer = useRef<number | undefined>(undefined);
+  const replay = () => {
+    setLoading(true);
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setLoading(false), 900);
+  };
+  useEffect(() => { replay(); return () => window.clearTimeout(timer.current); }, []);
+  const [sheet, setSheet] = useState(false);
+  const [base, setBase] = useState(80000);
+  const [mode, setMode] = useState<WeekendMode>('percent');
+  const [uplift, setUplift] = useState(20);
+  const weekend = computeWeekendPrice(base, mode, uplift);
+  const rows = [['Leila Haddad', '4 stays', '360,000'], ['Daniel Foster', '12 stays', '1,440,000'], ['Grace Park', '6 stays', '720,000']];
+  const surface = { backgroundColor: 'var(--surface)', color: 'var(--text-primary)', borderColor: 'var(--border-default)' } as const;
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <div className="rounded-xl border p-4" style={surface}>
+        <div className="mb-3 flex items-center justify-between">
+          <div><div className="text-sm font-medium">Loading</div><div className="text-xs" style={{ color: 'var(--text-secondary)' }}>The real Skeleton, swept by a 1.6 s shimmer</div></div>
+          <button type="button" onClick={replay} className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--surface-subtle)]" style={{ borderColor: 'var(--border-default)' }}>
+            <RotateCcw className="h-3 w-3" />Replay
+          </button>
+        </div>
+        <div className="space-y-2">
+          {rows.map(([n, c, a]) => (
+            <div key={n} className="flex items-center gap-3 rounded-lg border px-3 py-2.5" style={{ borderColor: 'var(--border-default)' }}>
+              {loading ? <Skeleton className="h-8 w-8 rounded-full" /> : <span className="grid h-8 w-8 place-items-center rounded-full text-xs font-medium" style={{ backgroundColor: 'var(--brand-tint)', color: 'var(--brand-primary)' }}>{n[0]}</span>}
+              <div className="min-w-0 flex-1 space-y-1">
+                {loading ? <><Skeleton className="h-3.5 w-28" /><Skeleton className="h-3 w-16" /></> : <><div className="text-sm">{n}</div><div className="text-xs" style={{ color: 'var(--text-secondary)' }}>{c}</div></>}
+              </div>
+              {loading ? <Skeleton className="h-4 w-16" /> : <span className="text-sm tabular-nums">{a}</span>}
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px]" style={{ color: 'var(--text-secondary)' }}>The app simulates a 900 ms fetch on first load of every list page.</p>
+      </div>
+
+      <div className="rounded-xl border p-4" style={surface}>
+        <div className="mb-3"><div className="text-sm font-medium">Hover and focus</div><div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Hover a row, or Tab to the (i)</div></div>
+        <div className="mb-2 inline-flex items-center gap-1 text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+          ADR <InfoTooltip label={GLOSSARY.ADR ?? 'Average Daily Rate'} side="bottom" />
+        </div>
+        <div className="space-y-1">
+          {rows.map(([n, c, a]) => (
+            <div key={n} className="flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[var(--surface-subtle)]">
+              <span>{n}</span><span className="tabular-nums" style={{ color: 'var(--text-secondary)' }}>{a}</span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px]" style={{ color: 'var(--text-secondary)' }}>The tooltip opens on hover and on keyboard focus, and escapes any overflow clip.</p>
+      </div>
+
+      <div className="rounded-xl border p-4" style={surface}>
+        <div className="text-sm font-medium">Waiting between pages</div>
+        <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Three brand-coloured dots, 1 s loop, 0.15 s stagger</div>
+        <div className="mt-4 flex items-center gap-4">
+          <BrandDots />
+          <BrandDots size="w-1.5 h-1.5" />
+        </div>
+        <p className="mt-3 text-[11px]" style={{ color: 'var(--text-secondary)' }}>Used for the route-change pill, so a navigation never looks frozen.</p>
+      </div>
+
+
+      <div className="rounded-xl border p-4" style={surface}>
+        <div className="mb-3 flex items-center justify-between">
+          <div><div className="text-sm font-medium">Side sheet</div><div className="text-xs" style={{ color: 'var(--text-secondary)' }}>0.3 s tween, backdrop fades in 0.2 s</div></div>
+          <button type="button" onClick={() => setSheet(true)} className="rounded-md border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-[var(--surface-subtle)]" style={{ borderColor: 'var(--border-default)' }}>Add room</button>
+        </div>
+        <div className="relative h-[230px] overflow-hidden rounded-lg border" style={{ borderColor: 'var(--border-default)', backgroundColor: 'var(--surface-muted)' }}>
+          <div className="space-y-2 p-3">{[0, 1, 2].map((i) => <div key={i} className="h-9 rounded-md border bg-[var(--surface)]" style={{ borderColor: 'var(--border-default)' }} />)}</div>
+          <AnimatePresence>
+            {sheet && (
+              <>
+                <motion.div key="bd" className="absolute inset-0 bg-[rgba(44,38,39,0.45)]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} onClick={() => setSheet(false)} />
+                <motion.aside key="sh" className="absolute inset-y-0 right-0 w-[72%] border-l bg-[var(--surface)]" style={{ borderColor: 'var(--border-default)' }}
+                  initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'tween', duration: 0.3, ease: [0.22, 1, 0.36, 1] }}>
+                  <div className="flex items-center justify-between border-b px-3 py-2.5" style={{ borderColor: 'var(--border-default)' }}>
+                    <span className="text-sm font-medium">Add Room</span>
+                    <button type="button" aria-label="Close" onClick={() => setSheet(false)}><XIcon className="h-4 w-4" /></button>
+                  </div>
+                  <div className="space-y-2 p-3">
+                    {['Floor', 'Number', 'Type'].map((f) => <div key={f}><div className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>{f}</div><div className="mt-1 h-7 rounded-md border" style={{ borderColor: 'var(--border-default)' }} /></div>)}
+                  </div>
+                </motion.aside>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+        <p className="mt-2 text-[11px]" style={{ color: 'var(--text-secondary)' }}>Click “Add room”, then click the dim area or × to close. Same spec as the product’s side sheet.</p>
+      </div>
+
+      <div className="rounded-xl border p-4" style={surface}>
+        <div className="mb-3"><div className="text-sm font-medium">Weekend uplift, live</div><div className="text-xs" style={{ color: 'var(--text-secondary)' }}>The product’s own price function. Change the numbers.</div></div>
+        <div className="grid grid-cols-2 gap-2">
+          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Night rate
+            <input type="number" value={base} onChange={(e) => setBase(Math.max(0, Number(e.target.value) || 0))} className="mt-1 h-9 w-full rounded-md border px-2 text-sm tabular-nums" style={{ borderColor: 'var(--border-default)', color: 'var(--text-primary)', backgroundColor: 'var(--surface)' }} />
+          </label>
+          <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>Uplift
+            <div className="mt-1 flex h-9 items-center rounded-md border pr-1" style={{ borderColor: 'var(--border-default)', backgroundColor: 'var(--surface)' }}>
+              <input type="number" value={uplift} onChange={(e) => setUplift(Math.max(0, Number(e.target.value) || 0))} className="h-full min-w-0 flex-1 rounded-md bg-transparent px-2 text-sm tabular-nums outline-none" style={{ color: 'var(--text-primary)' }} />
+              <div className="flex rounded-md p-0.5" style={{ backgroundColor: 'var(--surface-subtle)' }}>
+                {([['percent', '%'], ['amount', 'MMK']] as const).map(([m, l]) => (
+                  <button key={m} type="button" onClick={() => setMode(m)} className="rounded px-2 py-0.5 text-xs font-medium transition-colors" style={{ backgroundColor: mode === m ? 'var(--surface)' : 'transparent', color: mode === m ? 'var(--brand-primary)' : 'var(--text-secondary)' }}>{l}</button>
+                ))}
+              </div>
+            </div>
+          </label>
+        </div>
+        <div className="mt-3 rounded-lg border px-3 py-2.5 text-right" style={{ borderColor: 'var(--border-default)' }}>
+          <div className="text-[11px] line-through tabular-nums" style={{ color: 'var(--text-secondary)' }}>{base.toLocaleString()}</div>
+          <div className="text-lg font-medium tabular-nums">{weekend.toLocaleString()}</div>
+        </div>
+        <p className="mt-2 text-[11px]" style={{ color: 'var(--text-secondary)' }}>Weekend night = {mode === 'percent' ? `${base.toLocaleString()} + ${uplift}%` : `${base.toLocaleString()} + ${uplift.toLocaleString()} MMK`}. This is the stacked preview from the weekend redesign.</p>
+      </div>
+
+      <div className="rounded-xl border p-4" style={surface}>
+        <div className="text-sm font-medium">Press and active states</div>
+        <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Try them</div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" className="rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors" style={{ backgroundColor: 'var(--brand-primary)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-primary-hover)')} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--brand-primary)')}>Primary</button>
+          <button type="button" className="rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-[var(--surface-subtle)] focus-visible:outline focus-visible:outline-2" style={{ borderColor: 'var(--border-default)' }}>Secondary</button>
+          <button type="button" disabled className="rounded-md px-3 py-1.5 text-sm font-medium opacity-50" style={{ backgroundColor: 'var(--surface-subtle)' }}>Disabled</button>
+        </div>
+        <p className="mt-3 text-[11px]" style={{ color: 'var(--text-secondary)' }}>Hover shifts the primary one ramp step (70 to 60). That is the whole hover system.</p>
+      </div>
+    </div>
+  );
+}
+
 /* ── Page ───────────────────────────────────────────────────────────────── */
 
 export default function ProjectShowcase() {
@@ -1180,6 +1340,28 @@ export default function ProjectShowcase() {
             <H3>Where the rules landed</H3>
             <CoverageMatrix />
 
+            <H3>How it feels: loading, hover and motion</H3>
+            <p>
+              A calm product has to look calm while it waits and when you touch it. Motion here is small and consistent: nothing bounces except the loading dots, most transitions run 0.2 to 0.3 s, and every state change is a colour or position change, not decoration. These panels are built from the product’s real components, so what you feel is what ships. Try them.
+            </p>
+            <MotionLab />
+            <Table
+              head={['Moment', 'Effect', 'Timing', 'Why']}
+              rows={[
+                ['First load of a list', 'Skeleton rows with a soft shimmer sweep; they swap to content', '900 ms simulated fetch; 1.6 s shimmer loop', 'The page keeps its shape, so nothing jumps when data arrives.'],
+                ['Opening a side sheet', 'Slides in from the right over a fading backdrop', '0.3 s, ease (0.22, 1, 0.36, 1); backdrop 0.2 s', 'A quick, decelerating slide reads as “arrived”, and the page behind stays put.'],
+                ['Changing page', 'Brand dots in a small pill', '1 s loop, 0.15 s stagger', 'Proof the app heard the click.'],
+                ['Jargon', 'Tooltip opens on hover and on focus, anchored by a caret', 'Instant', 'Keyboard users get the same definition as mouse users.'],
+                ['Rows and buttons', 'Background or ramp-step shift on hover', 'Colour transition only', 'No movement, so dense tables never feel jittery.'],
+              ]}
+            />
+            <Film cols="grid-cols-3"
+              frames={[{ name: 'fx-load-1', t: '~0.1 s · page fades in' }, { name: 'fx-load-2', t: '~0.5 s · skeletons shimmer' }, { name: 'fx-load-3', t: '~1.4 s · data in place' }]}
+              caption="A real list page loading, captured at three moments (Customers). The layout is the same in all three, so the eye never has to re-find anything." />
+            <Film cols="grid-cols-2 md:grid-cols-4"
+              frames={[{ name: 'fx-drawer-1', t: 'click' }, { name: 'fx-drawer-2', t: '+ a few ms' }, { name: 'fx-drawer-3', t: '+ ~150 ms' }, { name: 'fx-drawer-4', t: 'settled' }]}
+              caption="The Add Room side sheet opening, frame by frame. It slides in from the right while the page behind dims. The frame times are approximate; the animation spec is in the table above." />
+
             <H3>The design-system page is the AI’s ground truth</H3>
             <p>The in-app design-system page is a live reference, not a picture. It renders the real tokens and components, and its drawer section opens the actual Add Room, Add Room Type, Add Coupon and Add Employee editors a manager uses. When a pattern changed, the reference changed in the same commit, so the documentation could not fall behind the product.</p>
             <a href="https://tutustay-manager-dashboard.vercel.app/design-system" target="_blank" rel="noreferrer"
@@ -1288,6 +1470,29 @@ export default function ProjectShowcase() {
               { t: 'Check every screen', d: 'Against the design-system page' },
             ]} />
             <Tag kind="Gap">There is no brand identity applied yet. The logo on the login page is a dashed “LOGO” placeholder, and the blue is a working palette, not a brand colour. I would rather say that than imply the visual identity is finished.</Tag>
+
+            <H3>Next: test with real owners, then keep updating</H3>
+            <p>
+              Everything in this case study is reasoned, not tested. The next step is to put the prototype in front of real owners and staff, watch them use it, and let what they do change the dashboard. Feedback decides the order of work from here, not my own list.
+            </p>
+            <Flow steps={[
+              { t: 'Test with real use', d: 'Owners and staff run their real day on it' },
+              { t: 'Collect feedback', d: 'Watch, ask, and note where they hesitate' },
+              { t: 'Prioritise', d: 'Fix what blocks the booking → payout loop first' },
+              { t: 'Update the dashboard', d: 'Change screens and the design system together' },
+              { t: 'Test again', d: 'Check the fix worked before moving on' },
+            ]} />
+            <Table
+              head={['Decision', 'What I would test', 'What I would watch for']}
+              rows={[
+                ['A · The loop', 'Can an owner explain how a request becomes a payout, in their own words?', 'Where they stop or guess: approve, check out, get paid.'],
+                ['B · Jargon', 'Do owners open the (i) tooltips, and do they understand ADR and RevPAR afterwards?', 'Terms they still ask about, and terms nobody needs.'],
+                ['C · Settlements', 'Can an owner reproduce one payout from the reservations?', 'Questions about commission and adjustments; whether disputes drop.'],
+                ['D · Set-up', 'Do new owners finish the wizard and the checklist without help?', 'The step where they stall, and what they were looking for.'],
+                ['F · Rooms', 'Can an owner add ten rooms and change a rate without confusion about room vs room type?', 'Time taken, and mistakes on type vs room.'],
+              ]}
+            />
+            <Tag kind="Gap">No users, no telemetry and no interviews exist yet. Before testing I would instrument the north-star (weekly completed, paid room-nights per property), set-up completion and request-to-approval rate, so each round of feedback can be compared with the last.</Tag>
 
             <H3>What I’d keep</H3>
             <ul className="list-disc space-y-1 pl-5">
