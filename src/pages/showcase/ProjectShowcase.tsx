@@ -615,7 +615,7 @@ export default function ProjectShowcase() {
               <a href="https://tutustay-manager-dashboard.vercel.app/login" target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-white/10" style={{ borderColor: ACCENT, backgroundColor: PANEL }}>
                 Try the prototype <ArrowUpRight className="h-4 w-4" />
               </a>
-              <p className="mt-2 text-xs" style={{ color: MUTED }}>Opens the live project. Use “View live demo” or any email and password to look around.</p>
+              <p className="mt-2 text-xs" style={{ color: MUTED }}>Opens the live project. The email is pre-filled; enter any password to sign in.</p>
               
             </div>
             <div className="mt-12">
