@@ -36,7 +36,6 @@ import {
 } from 'lucide-react';
 
 import { BrandSelect } from '@/shared/ui/brand-select';
-import setupIllustration from '@/assets/illustrations/treasure-chest.svg';
 import kbzpayLogo from '@/assets/logos/banks/kbzpay.webp';
 import uabLogo from '@/assets/logos/banks/uab.webp';
 import { useHotel } from '../use-hotel';
@@ -261,15 +260,8 @@ export function HotelSetupWizard({ onClose, initialStep = 0 }: { onClose: () => 
         </div>
       </header>
 
-      {/* Body: form with the illustration peeking bottom-right behind it */}
+      {/* Body */}
       <div className="flex-1 relative min-h-0">
-        {/* Illustration overlay — desktop only, behind the form content */}
-        <img
-          src={setupIllustration}
-          alt=""
-          aria-hidden
-          className="hidden lg:block pointer-events-none select-none absolute bottom-0 right-0 z-0 w-[32%] max-w-[360px] xl:max-w-[420px] h-auto"
-        />
         {/* The form */}
         <div className="h-full overflow-y-auto relative z-10">
           {/* Step navigator — spans the full form width on every step, so the nodes

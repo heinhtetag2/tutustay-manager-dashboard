@@ -29,6 +29,7 @@ import Settings from '@/pages/settings';
 import HotelSetupPage from '@/pages/hotel/setup/HotelSetupPage';
 import LoginPage from '@/pages/login/LoginPage';
 import ForgotPasswordPage from '@/pages/login/ForgotPasswordPage';
+import ProjectShowcase from '@/pages/showcase/ProjectShowcase';
 import SetupHub from '@/pages/setup-hub/SetupHub';
 import DesignSystemPage from '@/pages/design-system/DesignSystemPage';
 import NotFound from '@/pages/not-found';
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
   // Full-page flows — outside the app shell (no sidebar).
   { path: '/login', Component: LoginPage },
   { path: '/forgot-password', Component: ForgotPasswordPage },
+  { path: '/showcase', Component: ProjectShowcase },
   // Onboarding wizard — requires sign-in (manager arrives here from Login).
   { path: '/hotel/setup', element: createElement(RequireAuth, null, createElement(HotelSetupPage)) },
   {

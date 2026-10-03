@@ -3,7 +3,7 @@ import { AnimatePresence } from 'motion/react';
 import type { DateRange } from 'react-day-picker';
 import {
   Building2, Tag, Plus, Trash2, Download, ArrowRight, Bell,
-  LogIn, LogOut, Ban, CheckCircle2,
+  LogIn, LogOut, Ban, CheckCircle2, ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { BrandSelect } from '@/shared/ui/brand-select';
@@ -311,6 +311,9 @@ export default function DesignSystemPage() {
           <div>
             <div className="text-lg font-medium">TutuStay · Design System</div>
             <div className="text-xs text-[var(--text-muted)]">Live reference — rendered from <span className="font-mono">theme.css</span></div>
+            <a href="/showcase" target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[var(--brand-primary)] hover:underline">
+              Open case study <ExternalLink className="h-3 w-3" />
+            </a>
           </div>
           <nav className="flex flex-wrap gap-1">
             {NAV.map(([id, label]) => (
