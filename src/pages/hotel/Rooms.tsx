@@ -457,7 +457,7 @@ function RoomTypeGroup({
           <span className="hidden sm:block shrink-0"><Thumb src={rt.photos[0]} label={rt.name} size="w-11 h-11" /></span>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--brand-primary)] transition-colors">{rt.name}</span>
+              <span className="text-sm font-medium text-[var(--text-primary)] truncate underline decoration-[var(--border-strong)] underline-offset-4 group-hover:text-[var(--brand-primary)] group-hover:decoration-[var(--brand-primary)] transition-colors">{rt.name}</span>
               <span className="text-[11px] font-normal text-[var(--text-tertiary)] tabular-nums">· {rooms.length} {rooms.length === 1 ? t('room') : t('rooms')}</span>
             </div>
             <div className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums leading-snug sm:truncate">
