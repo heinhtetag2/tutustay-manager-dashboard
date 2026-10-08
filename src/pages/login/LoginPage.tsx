@@ -23,12 +23,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [remember, setRemember] = useState(true);
+  const [error, setError] = useState('');
 
-  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && password.length >= 1;
+  // Any username is accepted; the password must match the demo passphrase.
+  const DEMO_PASSWORD = 'heinhtetag';
+  const valid = email.trim().length >= 1 && password.length >= 1;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!valid) return;
+    if (password !== DEMO_PASSWORD) {
+      setError(t('Incorrect password. Please try again.'));
+      return;
+    }
+    setError('');
     // Sign in, then walk the manager through onboarding before the dashboard.
     signIn();
     navigate('/hotel/setup?from=/');
@@ -148,8 +156,8 @@ export default function LoginPage() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                 <input
                   id="email"
-                  type="email"
-                  autoComplete="email"
+                  type="text"
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t('you@example.com')}
@@ -173,7 +181,7 @@ export default function LoginPage() {
                   type={showPw ? 'text' : 'password'}
                   autoComplete="current-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); if (error) setError(''); }}
                   placeholder={t('Enter your password')}
                   className={`${fieldInput} pr-10`}
                 />
@@ -186,6 +194,7 @@ export default function LoginPage() {
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {error && <p className="mt-1.5 text-xs text-[var(--color-data-red-50,#dc2626)]">{error}</p>}
             </div>
 
             {/* Remember me */}
