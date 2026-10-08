@@ -351,7 +351,6 @@ function SettlementLab() {
 
 /* ── The page ───────────────────────────────────────────────────────────── */
 
-const PROTOTYPE_URL = 'https://tutustay-manager-dashboard.vercel.app/login';
 const DESIGN_SYSTEM_URL = 'https://tutustay-manager-dashboard.vercel.app/design-system';
 
 export default function ProjectShowcase() {
@@ -449,10 +448,6 @@ export default function ProjectShowcase() {
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-8" style={{ color: MUTED }}>
                 A dashboard where an owner approves booking requests, tracks guests and rooms, and checks exactly how their payout was calculated. A working prototype on sample data.
               </p>
-              <a href={PROTOTYPE_URL} target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-white/10" style={{ borderColor: ACCENT, backgroundColor: PANEL }}>
-                Try the prototype <ArrowUpRight className="h-4 w-4" />
-              </a>
-              <p className="mt-2 text-xs" style={{ color: MUTED }}>Opens the live project. The email is pre-filled; enter any password to sign in.</p>
             </div>
             <div className="mt-12">
               <Shot name="dashboard" caption="The dashboard an owner sees first: arrivals, departures, occupancy and revenue, worked out from the reservations. All names and numbers are sample data." />
@@ -666,7 +661,7 @@ export default function ProjectShowcase() {
                 </span>
               </div>
             </a>
-            <p style={{ color: MUTED }}>Thanks for reading. The live prototype link is at the top of this page.</p>
+            <p style={{ color: MUTED }}>Thanks for reading.</p>
           </Chapter>
         </main>
 
